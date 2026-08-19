@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Esta es la dirección del servidor del profesor
-const URL_BASE = "https://backend-mydreams.onrender.com";
+// ¡Ahora apuntamos a nuestro propio servidor backend en Spring Boot!
+const URL_BASE = "http://localhost:8080";
 
 export const obtenerProductos = async () => {
   try {

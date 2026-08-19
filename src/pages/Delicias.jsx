@@ -28,11 +28,31 @@ function Delicias() {
     { titulo: "Queques Artesanales", cats: ["Queques Artesanales", "Queques"] },
   ];
 
-  useEffect(() => {
+useEffect(() => {
     const cargarTodo = async () => {
       try {
         const datos = await obtenerProductos();
-        setProductos(datos || []);
+        
+        let listaPlana = Object.values(datos).flat();
+
+        // 🍰 Nuestro diccionario traductor: de Java a React
+        const traductorCategorias = {
+          "tortas": "Tortas",
+          "queques": "Queques",
+          "tartas": "Tartas",
+          "personales": "Tentaciones Individuales"
+        };
+
+        listaPlana = listaPlana.map(prod => ({
+          ...prod,
+          // Traducimos la categoría usando el diccionario
+          categoria: traductorCategorias[prod.categoria] || prod.categoria,
+          imagenUrl: prod.img,
+          descripcion: prod.desc,
+          precio: prod.precio ? prod.precio : 15000
+        }));
+
+        setProductos(listaPlana);
       } catch (error) {
         console.error("Error al cargar:", error);
       } finally {
