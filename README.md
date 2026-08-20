@@ -27,7 +27,6 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 
 ### **Backend & DevOps**
 * 🍃 **Spring Boot** (Lógica de negocio y API REST)
-* ☁️ **Render** (Despliegue y Hosting de la infraestructura)
 * 🔑 **JWT** (Gestión de seguridad y sesiones)
 * 📧 **Formspree** (Servicio externo de mensajería)
 
