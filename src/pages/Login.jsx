@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUsuario } from "../service/AuthService";
-// 1. Importamos el componente del botón de Google
 import { GoogleLogin } from '@react-oauth/google';
 import "../App.css";
 
@@ -70,6 +69,12 @@ function Login() {
           </div>
         )}
 
+        {/* --- SECCIÓN ADMINISTRADOR --- */}
+        <div style={{ marginBottom: "20px", textAlign: "center" }}>
+          <h3 style={{ color: "#d63384", fontSize: "1.2rem", marginBottom: "5px" }}>Acceso de Administrador</h3>
+          <p style={{ fontSize: "13px", color: "#666" }}>Solo para gestión interna de la pastelería</p>
+        </div>
+
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label>Usuario</label>
@@ -81,7 +86,7 @@ function Login() {
                 if (campoError.user)
                   setCampoError({ ...campoError, user: false });
               }}
-              placeholder="Ingresa tu usuario"
+              placeholder="Ej: admin"
               className={campoError.user ? "input-error" : ""}
             />
           </div>
@@ -105,25 +110,24 @@ function Login() {
             style={{ width: "100%" }}
             disabled={loading}
           >
-            {loading ? "Verificando..." : "Ingresar"}
+            {loading ? "Verificando..." : "Ingresar como Administrador"}
           </button>
         </form>
 
-        {/* --- INICIO BLOQUE DE GOOGLE --- */}
-        <div style={{ marginTop: "25px", paddingTop: "15px", borderTop: "1px solid #ddd", textAlign: "center" }}>
-          <p style={{ marginBottom: "15px", color: "#666", fontSize: "14px" }}>
-            O si prefieres, ingresa con tu correo
+        {/* --- SECCIÓN CLIENTES / GOOGLE --- */}
+        <div style={{ marginTop: "25px", paddingTop: "20px", borderTop: "1px solid #ddd", textAlign: "center" }}>
+          <h3 style={{ color: "#d63384", fontSize: "1.2rem", marginBottom: "5px" }}>Acceso para Clientes</h3>
+          <p style={{ marginBottom: "15px", color: "#666", fontSize: "13px" }}>
+            Ingresa de forma rápida y segura con tu cuenta de Google
           </p>
           <div style={{ display: "flex", justifyContent: "center" }}>
             <GoogleLogin
               onSuccess={(credentialResponse) => {
                 console.log("¡Éxito! Token de Google:", credentialResponse);
                 
-                // Guardamos el JWT (token) que nos entrega Google
                 sessionStorage.setItem("userToken", credentialResponse.credential);
                 sessionStorage.setItem("userName", "Usuario Google");
                 
-                // Redirigimos al Home (o donde estimen conveniente)
                 window.location.href = "/";
               }}
               onError={() => {
@@ -132,7 +136,6 @@ function Login() {
             />
           </div>
         </div>
-        {/* --- FIN BLOQUE DE GOOGLE --- */}
         
       </div>
     </main>
