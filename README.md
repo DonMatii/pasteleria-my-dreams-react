@@ -26,8 +26,10 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 * 🔐 **@react-oauth/google** (Integración con Google Identity Services)
 
 ### **Backend & DevOps**
+* ☕ Java 21 (Lenguaje base del microservicio)
 * 🍃 **Spring Boot** (Lógica de negocio y API REST)
-* 🔑 **JWT** (Gestión de seguridad y sesiones)
+* 🛡️ Spring Security + OAuth2 (Gestión de seguridad y validación JWT)
+* 🏗️ Maven (Gestión de dependencias)
 * 📧 **Formspree** (Servicio externo de mensajería)
 
 ---
