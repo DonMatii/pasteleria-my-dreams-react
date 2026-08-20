@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUsuario } from "../service/AuthService";
 import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode"; // <-- 1. Importamos la nueva herramienta
 import "../App.css";
 
 function Login() {
@@ -125,8 +126,13 @@ function Login() {
               onSuccess={(credentialResponse) => {
                 console.log("¡Éxito! Token de Google:", credentialResponse);
                 
+                // 2. Decodificamos el token para extraer los datos reales
+                const decodedToken = jwtDecode(credentialResponse.credential);
+                console.log("Datos del usuario decodificados:", decodedToken);
+                
+                // 3. Guardamos el token y usamos el nombre de pila (given_name)
                 sessionStorage.setItem("userToken", credentialResponse.credential);
-                sessionStorage.setItem("userName", "Usuario Google");
+                sessionStorage.setItem("userName", decodedToken.given_name || decodedToken.name);
                 
                 window.location.href = "/";
               }}
