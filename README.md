@@ -40,16 +40,22 @@ Para levantar el proyecto localmente, sigue estos pasos:
 ```bash
 # 1. Clonar el repositorio
 git clone [https://github.com/CatherineGodoy/pasteleria-my-dreams-react.git](https://github.com/CatherineGodoy/pasteleria-my-dreams-react.git)
+```
 
+```bash
 # 2. Entrar a la carpeta del proyecto
 cd pasteleria-my-dreams-react
+```
 
+```bash
 # 3. Instalar todas las dependencias
 npm install
+```
 
+```bash
 # 4. Iniciar el servidor de desarrollo
 npm run dev
-
+```
 
 ## 🧪 Testing y Calidad
 
@@ -66,13 +72,17 @@ Para garantizar la robustez de la aplicación y una experiencia de usuario sin e
 ```bash
 # Ejecutar la suite de pruebas completa
 npx vitest run
+```
 
+```bash
 # Generar reporte de cobertura detallado (%)
 npx vitest run --coverage
+```
 
+```bash
 # Abrir el dashboard gráfico de Vitest en el navegador
 npx vitest --ui
-
+```
 
 🔄 Evolución del Proyecto (Hitos)
 Fase 1: Maquetación inicial (HTML/CSS/JS Estático).
