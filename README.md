@@ -7,7 +7,7 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 
 ## ✨ Logros de esta Entrega Final
 
-* **Integración Fullstack:** Conexión en tiempo real con una API REST hospedada en **Render**.
+* **Integración Fullstack:** Conexión en tiempo real con una API REST desarrollada en Java Spring Boot y respaldada por una base de datos relacional (MySQL/XAMPP).
 * **Admin Panel Pro:** Panel de administración protegido para gestionar el catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar).
 * **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de usuarios, eliminando formularios de login tradicionales para clientes y garantizando una gestión de identidad robusta.
 * **Persistencia de Datos:** Gestión de productos vinculada a una base de datos dinámica, permitiendo actualizaciones de stock y precios en vivo.
@@ -28,6 +28,7 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 ### **Backend & DevOps**
 * ☕ Java 21 (Lenguaje base del microservicio)
 * 🍃 **Spring Boot** (Lógica de negocio y API REST)
+* 🗄️ **MySQL / XAMPP & Hibernate JPA** (Gestión de base de datos y ORM)
 * 🛡️ Spring Security + OAuth2 (Gestión de seguridad y validación JWT)
 * 🏗️ Maven (Gestión de dependencias)
 * 📧 **Formspree** (Servicio externo de mensajería)
