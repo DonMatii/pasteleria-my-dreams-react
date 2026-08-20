@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 function AdminPanel() {
   const [productos, setProductos] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
+  const [stats, setStats] = useState(null); // Estado para el segundo microservicio de estadísticas
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: "",
     descripcion: "",
@@ -16,7 +17,9 @@ function AdminPanel() {
   });
 
   const username = sessionStorage.getItem("userName") || "Administradora";
-  const urlApi = "https://backend-mydreams.onrender.com/api/productos";
+  
+  // CORREGIDO: Apuntando al backend local en vez de Render
+  const urlApi = "http://localhost:8080/api/productos";
 
   const cargarDatos = () => {
     obtenerProductos().then((data) => {
@@ -25,8 +28,22 @@ function AdminPanel() {
     });
   };
 
+  // Función para consumir el segundo microservicio (Estadísticas - Puerto 8081)
+  const cargarEstadisticas = async () => {
+    try {
+      const resp = await fetch("http://localhost:8081/api/estadisticas");
+      if (resp.ok) {
+        const data = await resp.json();
+        setStats(data);
+      }
+    } catch (error) {
+      console.error("Error al conectar con estadisticas-service:", error);
+    }
+  };
+
   useEffect(() => {
     cargarDatos();
+    cargarEstadisticas();
   }, []);
 
   const handleChange = (e) => {
@@ -73,6 +90,7 @@ function AdminPanel() {
         });
         resetearFormulario();
         cargarDatos();
+        cargarEstadisticas(); // Actualizamos métricas también
       } else {
         Swal.fire("Error", "No se pudo guardar. Verifica tu sesión.", "error");
       }
@@ -102,6 +120,7 @@ function AdminPanel() {
         if (resp.ok) {
           Swal.fire("Eliminado", "El producto ha sido quitado.", "success");
           cargarDatos();
+          cargarEstadisticas();
         }
       }
     });
@@ -133,12 +152,29 @@ function AdminPanel() {
           Bienvenida, <span className="admin-user-name">{username}</span> 
         </p>
 
+        {/* Tarjeta del Segundo Microservicio: Estadísticas */}
+        {stats && (
+          <div style={{ background: "#fff5f8", border: "1px solid #d95386", padding: "12px", borderRadius: "8px", marginBottom: "20px", display: "flex", justifyContent: "space-around", textAlign: "center" }}>
+            <div>
+              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>📦 Total Catálogo</span>
+              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.totalProductosCatalogo}</strong>
+            </div>
+            <div>
+              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>🏷️ Categorías</span>
+              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.categoriasActivas}</strong>
+            </div>
+            <div>
+              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>⚙️ Estado MS</span>
+              <strong style={{ fontSize: "14px", color: "green" }}>{stats.estadoServicio}</strong>
+            </div>
+          </div>
+        )}
+
         <div className="admin-seccion-gestion">
           <h2 className="admin-titulo-formulario">
             {editandoId ? "Modificar Dulce" : "Nuevo Ingreso"}
           </h2>
           
-          {/* noValidate quita el globo naranja del navegador */}
           <form onSubmit={handleSubmit} className="admin-formulario" noValidate>
             <div className="admin-form-group">
               <label htmlFor="nombre">Nombre del Producto</label>
@@ -203,6 +239,7 @@ function AdminPanel() {
                 <option value="quequeArandano.jpg">quequeArandano.jpg</option>
                 <option value="quequeChoc.jpg">quequeChoc.jpg</option>
                 <option value="quequeMarmoladoVainilla.jpg">quequeMarmoladoVainilla.jpg</option>
+                <option value="quequePlatano.jpg">quequePlatano.jpg</option>
                 <option value="quequePlatano.jpg">quequePlatano.jpg</option>
                 <option value="quequeVainilla.jpg">quequeVainilla.jpg</option>
                 <option value="rollosDeCanela.jpg">rollosDeCanela.jpg</option>
