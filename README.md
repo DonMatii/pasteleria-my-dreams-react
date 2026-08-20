@@ -9,7 +9,7 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 
 * **Integración Fullstack:** Conexión en tiempo real con una API REST hospedada en **Render**.
 * **Admin Panel Pro:** Panel de administración protegido para gestionar el catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar).
-* **Seguridad JWT:** Implementación de autenticación basada en Tokens (**JSON Web Tokens**) para asegurar el acceso administrativo.
+* **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de usuarios, eliminando formularios de login tradicionales para clientes y garantizando una gestión de identidad robusta.
 * **Persistencia de Datos:** Gestión de productos vinculada a una base de datos dinámica, permitiendo actualizaciones de stock y precios en vivo.
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
 * **Calidad de Software:** Implementación de pruebas unitarias con **Vitest** y reporte de cobertura de código.
@@ -23,6 +23,7 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 * 🌐 **React Router 7** (Gestión de rutas dinámicas)
 * 📡 **Axios** (Cliente HTTP para consumo de API REST)  <-- ¡AQUÍ!
 * 🧪 **Vitest + React Testing Library** (Garantía de calidad)
+* 🔐 **@react-oauth/google** (Integración con Google Identity Services)
 
 ### **Backend & DevOps**
 * 🍃 **Spring Boot** (Lógica de negocio y API REST)
@@ -80,7 +81,7 @@ Fase 2: Migración a React y creación de componentes reutilizables.
 
 Fase 3: Implementación de Pruebas Unitarias y validaciones de usuario.
 
-Fase 4 (Meta): Integración con Backend (Spring Boot), autenticación JWT y despliegue final en Render.
+Fase 4 (Meta): Integración con Backend (Spring Boot), implementación de seguridad con Google OAuth 2.0 (IDaaS) y despliegue final.
 
 👩‍💻 Autor
 Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitHub](https://github.com/CatherineGodoy)
