@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUsuario } from "../service/AuthService";
+// 1. Importamos el componente del botón de Google
+import { GoogleLogin } from '@react-oauth/google';
 import "../App.css";
 
 function Login() {
@@ -69,8 +71,6 @@ function Login() {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          {" "}
-          {/* noValidate quita los mensajes por defecto */}
           <div className="form-group">
             <label>Usuario</label>
             <input
@@ -108,6 +108,32 @@ function Login() {
             {loading ? "Verificando..." : "Ingresar"}
           </button>
         </form>
+
+        {/* --- INICIO BLOQUE DE GOOGLE --- */}
+        <div style={{ marginTop: "25px", paddingTop: "15px", borderTop: "1px solid #ddd", textAlign: "center" }}>
+          <p style={{ marginBottom: "15px", color: "#666", fontSize: "14px" }}>
+            O si prefieres, ingresa con tu correo
+          </p>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                console.log("¡Éxito! Token de Google:", credentialResponse);
+                
+                // Guardamos el JWT (token) que nos entrega Google
+                sessionStorage.setItem("userToken", credentialResponse.credential);
+                sessionStorage.setItem("userName", "Usuario Google");
+                
+                // Redirigimos al Home (o donde estimen conveniente)
+                window.location.href = "/";
+              }}
+              onError={() => {
+                setError("El inicio de sesión con Google fue cancelado o falló.");
+              }}
+            />
+          </div>
+        </div>
+        {/* --- FIN BLOQUE DE GOOGLE --- */}
+        
       </div>
     </main>
   );
