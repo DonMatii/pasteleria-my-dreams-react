@@ -1,16 +1,17 @@
+Markdown
 # 🧁 Pastelería My Dreams — Fullstack Web App
 
 ¡Bienvenido a la versión final de **Pastelería My Dreams**! 🚀
-Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstack** robusta. Se reconstruyó como una **Single Page Application (SPA)** con React, conectada a un backend profesional en Java Spring Boot.
+Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstack** robusta y modular. Se reconstruyó como una **Single Page Application (SPA)** con React, conectada a una **arquitectura distribuida de microservicios** en Java Spring Boot y respaldada por una base de datos relacional (MySQL/XAMPP).
 
 ---
 
 ## ✨ Logros de esta Entrega Final
 
-* **Integración Fullstack:** Conexión en tiempo real con una API REST desarrollada en Java Spring Boot y respaldada por una base de datos relacional (MySQL/XAMPP).
-* **Admin Panel Pro:** Panel de administración protegido para gestionar el catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar).
-* **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de usuarios, eliminando formularios de login tradicionales para clientes y garantizando una gestión de identidad robusta.
-* **Persistencia de Datos:** Gestión de productos vinculada a una base de datos dinámica, permitiendo actualizaciones de stock y precios en vivo.
+* **Arquitectura de Microservicios:** Conexión en tiempo real con un backend modular basado en múltiples servicios independientes en Java Spring Boot (`catalogo-service` y `estadisticas-service`)[cite: 1] y una base de datos relacional (MySQL/XAMPP).
+* **Admin Panel Pro:** Panel de administración protegido para gestionar el catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar) y visualizar métricas operativas del sistema.
+* **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de clientes, garantizando una gestión de identidad robusta, combinada con autenticación local para administradores (Autenticación Dual).
+* **Persistencia de Datos:** Gestión de productos vinculada a una base de datos dinámica mediante Spring Data JPA, permitiendo actualizaciones de inventario en vivo[cite: 1].
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
 * **Calidad de Software:** Implementación de pruebas unitarias con **Vitest** y reporte de cobertura de código.
 
@@ -21,15 +22,15 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 ### **Frontend**
 * ⚛️ **React 19 + Vite 7** (Arquitectura moderna y rápida)
 * 🌐 **React Router 7** (Gestión de rutas dinámicas)
-* 📡 **Axios** (Cliente HTTP para consumo de API REST)  <-- ¡AQUÍ!
+* 📡 **Axios** (Cliente HTTP con interceptor inteligente para consumo de API REST)
 * 🧪 **Vitest + React Testing Library** (Garantía de calidad)
 * 🔐 **@react-oauth/google** (Integración con Google Identity Services)
 
 ### **Backend & DevOps**
-* ☕ Java 21 (Lenguaje base del microservicio)
-* 🍃 **Spring Boot** (Lógica de negocio y API REST)
-* 🗄️ **MySQL / XAMPP & Hibernate JPA** (Gestión de base de datos y ORM)
-* 🛡️ Spring Security + OAuth2 (Gestión de seguridad y validación JWT)
+* ☕ Java 21 (Lenguaje base del ecosistema)
+* 🍃 **Spring Boot** (Lógica de negocio y microservicios desacoplados)[cite: 1]
+* 🗄️ **MySQL / XAMPP & Hibernate JPA** (Gestión de base de datos relacional y ORM)[cite: 1]
+* 🛡️ Spring Security + OAuth2 Resource Server (Gestión de seguridad y validación JWT)[cite: 1]
 * 🏗️ Maven (Gestión de dependencias)
 * 📧 **Formspree** (Servicio externo de mensajería)
 
