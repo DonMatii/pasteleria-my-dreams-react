@@ -1,7 +1,6 @@
 import axios from "axios";
 
 // 1. Centralizamos la URL del backend usando la variable de entorno
-// IMPORTANTE: Vite usa import.meta.env en lugar de process.env
 const URL_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // 2. Creamos la instancia oficial para "8 Digital"
@@ -12,14 +11,11 @@ const apiClient = axios.create({
 // 3. Nuestro Interceptor Inteligente ("El Guardia de Seguridad")
 apiClient.interceptors.request.use(
   (config) => {
-    // Busca el token sagrado en la sesión
+    // Busca el token sagrado en la sesión (Google o Admin)
     const token = sessionStorage.getItem("userToken");
     
-    // DETALLE CLAVE: Si es una petición GET para ver el catálogo, 
-    // no adjuntamos el token para evitar conflictos con el bypass del admin en rutas públicas.
-    const esGetPublico = config.method === "get" && config.url.includes("/api/productos");
-
-    if (token && !esGetPublico) {
+    // Como el catálogo es privado, adjuntamos siempre el token a cualquier petición
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
