@@ -1,7 +1,8 @@
 import axios from "axios";
 
-// 1. Centralizamos la URL del backend local
-const URL_BASE = "http://localhost:8080";
+// 1. Centralizamos la URL del backend usando la variable de entorno
+// IMPORTANTE: Vite usa import.meta.env en lugar de process.env
+const URL_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // 2. Creamos la instancia oficial para "8 Digital"
 const apiClient = axios.create({
