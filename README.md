@@ -22,7 +22,7 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 ### **Frontend**
 * ⚛️ **React 19 + Vite 7** (Arquitectura moderna y rápida)
 * 🌐 **React Router 7** (Gestión de rutas dinámicas)
-* 📡 **Axios** (Cliente HTTP con interceptor inteligente para consumo de API REST)
+* 📡 📡 **Axios** (Cliente HTTP con interceptor inteligente para consumo de backend a través de **AWS API Gateway**)
 * 🧪 **Vitest + React Testing Library** (Garantía de calidad)
 * 🔐 **@react-oauth/google** (Integración con Google Identity Services)
 
