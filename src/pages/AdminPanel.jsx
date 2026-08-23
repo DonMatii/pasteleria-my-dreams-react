@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { obtenerProductos } from "../service/ProductosService";
+import { obtenerEstadisticas } from "../service/EstadisticasService";
 import "./AdminPanel.css";
 import Swal from "sweetalert2";
 
@@ -18,8 +19,8 @@ function AdminPanel() {
 
   const username = sessionStorage.getItem("userName") || "Administradora";
   
-  // CORREGIDO: Apuntando al backend local en vez de Render
-  const urlApi = "http://localhost:8080/api/productos";
+  // ARQUITECTURA LIMPIA: Usando la variable de entorno del API Gateway
+  const urlApi = `${import.meta.env.VITE_API_BASE_URL}/api/productos`;
 
   const cargarDatos = () => {
     obtenerProductos().then((data) => {
@@ -28,14 +29,11 @@ function AdminPanel() {
     });
   };
 
-  // Función para consumir el segundo microservicio (Estadísticas - Puerto 8081)
+  // MODULARIZADO: Consumiendo el servicio de estadísticas sin hardcodear puertos
   const cargarEstadisticas = async () => {
     try {
-      const resp = await fetch("http://localhost:8081/api/estadisticas");
-      if (resp.ok) {
-        const data = await resp.json();
-        setStats(data);
-      }
+      const data = await obtenerEstadisticas();
+      setStats(data);
     } catch (error) {
       console.error("Error al conectar con estadisticas-service:", error);
     }
@@ -239,7 +237,6 @@ function AdminPanel() {
                 <option value="quequeArandano.jpg">quequeArandano.jpg</option>
                 <option value="quequeChoc.jpg">quequeChoc.jpg</option>
                 <option value="quequeMarmoladoVainilla.jpg">quequeMarmoladoVainilla.jpg</option>
-                <option value="quequePlatano.jpg">quequePlatano.jpg</option>
                 <option value="quequePlatano.jpg">quequePlatano.jpg</option>
                 <option value="quequeVainilla.jpg">quequeVainilla.jpg</option>
                 <option value="rollosDeCanela.jpg">rollosDeCanela.jpg</option>
