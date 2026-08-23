@@ -25,6 +25,7 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 * 📡 **Axios** (Cliente HTTP con interceptor inteligente para consumo de backend a través de **AWS API Gateway**)
 * 🧪 **Vitest + React Testing Library** (Garantía de calidad)
 * 🔐 **@react-oauth/google** (Integración con Google Identity Services)
+* ☁️ **AWS (Amazon Web Services):** Despliegue distribuido utilizando **S3** (Hosting del Frontend), **EC2** (Hosting de Microservicios) y **API Gateway** (Enrutamiento y gestión de CORS).
 
 ### **Backend & DevOps**
 * ☕ Java 21 (Lenguaje base del ecosistema)
@@ -94,7 +95,7 @@ Fase 2: Migración a React y creación de componentes reutilizables.
 
 Fase 3: Implementación de Pruebas Unitarias y validaciones de usuario.
 
-Fase 4 (Meta): Integración con Backend (Spring Boot), implementación de seguridad con Google OAuth 2.0 (IDaaS) y despliegue final.
+* **Fase 4 (Meta Alcanzada):** Integración total con Backend (Spring Boot), implementación de seguridad dual (Google OAuth 2.0 y Admin) y despliegue final en infraestructura Cloud (AWS S3, EC2 y API Gateway) operando al 100%.
 
 👩‍💻 Autor
 Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitHub](https://github.com/CatherineGodoy)
