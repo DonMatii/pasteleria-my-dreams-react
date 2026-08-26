@@ -88,7 +88,7 @@ npx vitest run --coverage
 npx vitest --ui
 ```
 
-🔄 Evolución del Proyecto (Hitos)
+## 🔄 Evolución del Proyecto (Hitos)
 Fase 1: Maquetación inicial (HTML/CSS/JS Estático).
 
 Fase 2: Migración a React y creación de componentes reutilizables.
@@ -97,5 +97,5 @@ Fase 3: Implementación de Pruebas Unitarias y validaciones de usuario.
 
 Fase 4 (Meta Alcanzada): Integración total con Backend (Spring Boot), seguridad dual y despliegue exitoso en infraestructura Cloud (AWS S3, EC2, API Gateway y RDS) operando al 100%.
 
-👩‍💻 Autor
+## 👩‍💻 Autor
 Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitHub](https://github.com/CatherineGodoy)
