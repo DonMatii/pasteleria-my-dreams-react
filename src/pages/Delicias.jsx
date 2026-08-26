@@ -40,8 +40,9 @@ function Delicias() {
         listaPlana = listaPlana.map(prod => ({
           ...prod,
           categoria: traductorCategorias[prod.categoria] || prod.categoria,
-          imagenUrl: prod.img,
-          descripcion: prod.desc,
+          // Unificamos para capturar el nombre de la imagen sin importar cómo venga de la BD
+          imagenUrl: prod.imagenUrl || prod.imagen || prod.img,
+          descripcion: prod.descripcion || prod.desc,
           precio: prod.precio ? prod.precio : 15000
         }));
 
@@ -58,12 +59,11 @@ function Delicias() {
   if (cargando) return <div className="loader">Cargando delicias...</div>;
 
   // Pantalla de aviso profesional si no hay sesión
-if (!isLoggedIn) {
+  if (!isLoggedIn) {
     return (
       <main className="main-content" style={{ textAlign: "center", padding: "60px 20px" }}>
         <h1 className="titulo-principal">Nuestro Catálogo</h1>
         <div style={{ marginTop: "40px", padding: "40px", border: "1px solid #e1b1b1", borderRadius: "15px", backgroundColor: "#fff5f5", maxWidth: "600px", margin: "40px auto" }}>
-          {/* Aquí le cambiamos el estilo para que sea más grande y llamativo */}
           <h2 style={{ color: "#d63384", fontSize: "2.5rem", marginBottom: "15px" }}>¡Hola!</h2>
           <p style={{ fontSize: "1.2rem" }}>Para ver nuestras creaciones exclusivas, por favor inicia sesión.</p>
           <a href="/login" className="boton-principal" style={{ display: "inline-block", marginTop: "25px", textDecoration: "none", padding: "12px 24px", fontSize: "1.1rem" }}>
@@ -89,7 +89,11 @@ if (!isLoggedIn) {
               {itemsFiltrados.map((prod) => (
                 <div className="producto" key={prod.id}>
                   <div className="img-wrapper">
-                    <img src={`/img/${prod.imagenUrl}`} alt={prod.nombre} />
+                    <img 
+                      src={`/img/${prod.imagenUrl}`} 
+                      alt={prod.nombre} 
+                      onError={(e) => { e.target.src = '/img/tortaMoka.jpg'; }} 
+                    />
                   </div>
                   <div className="info">
                     <h3>{prod.nombre}</h3>
