@@ -8,10 +8,10 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 
 ## ✨ Logros de esta Entrega Final
 
-* **Arquitectura de Microservicios:** Conexión en tiempo real con un backend modular basado en múltiples servicios independientes en Java Spring Boot (`catalogo-service` y `estadisticas-service`)[cite: 1] y una base de datos relacional (MySQL/XAMPP).
-* **Admin Panel Pro:** Panel de administración protegido para gestionar el catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar) y visualizar métricas operativas del sistema.
-* **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de clientes, garantizando una gestión de identidad robusta, combinada con autenticación local para administradores (Autenticación Dual).
-* **Persistencia de Datos:** Gestión de productos vinculada a una base de datos dinámica mediante Spring Data JPA, permitiendo actualizaciones de inventario en vivo[cite: 1].
+* **Arquitectura de Microservicios en la Nube:** Conexión en tiempo real con microservicios independientes en Java Spring Boot desplegados en AWS EC2, orquestados mediante **AWS API Gateway** con enrutamiento de proxy y gestión completa de CORS.
+* **Admin Panel Pro:** Panel de administración protegido para gestionar el inventario del catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar) y visualizar métricas operativas del sistema en vivo.
+* **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de clientes y acceso seguro, combinada con credenciales de administrador para la gestión del panel.
+* **Persistencia de Datos en AWS RDS:** Gestión de productos vinculada a una base de datos relacional alojada en la nube mediante Spring Data JPA e Hibernate, permitiendo sincronización inmediata.
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
 * **Calidad de Software:** Implementación de pruebas unitarias con **Vitest** y reporte de cobertura de código.
 
@@ -22,16 +22,16 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 ### **Frontend**
 * ⚛️ **React 19 + Vite 7** (Arquitectura moderna y rápida)
 * 🌐 **React Router 7** (Gestión de rutas dinámicas)
-* 📡 **Axios** (Cliente HTTP con interceptor inteligente para consumo de backend a través de **AWS API Gateway**)
-* 🧪 **Vitest + React Testing Library** (Garantía de calidad)
+* 📡 **Axios** (Cliente HTTP para el consumo del backend a través de **AWS API Gateway**)
+* 🧪 **Vitest + React Testing Library** (Garantía de calidad y pruebas unitarias)
 * 🔐 **@react-oauth/google** (Integración con Google Identity Services)
-* ☁️ **AWS (Amazon Web Services):** Despliegue distribuido utilizando **S3** (Hosting del Frontend), **EC2** (Hosting de Microservicios) y **API Gateway** (Enrutamiento y gestión de CORS).
+* ☁️ **AWS (Amazon Web Services):** Despliegue distribuido utilizando **S3** (Hosting del Frontend), **EC2** (Hosting de microservicios Java) y **API Gateway** (Enrutamiento centralizado).
 
 ### **Backend & DevOps**
 * ☕ Java 21 (Lenguaje base del ecosistema)
-* 🍃 **Spring Boot** (Lógica de negocio y microservicios desacoplados)[cite: 1]
-* 🗄️ **MySQL / XAMPP & Hibernate JPA** (Gestión de base de datos relacional y ORM)[cite: 1]
-* 🛡️ Spring Security + OAuth2 Resource Server (Gestión de seguridad y validación JWT)[cite: 1]
+* 🍃 **Spring Boot** (Lógica de negocio y microservicios desacoplados)
+* 🗄️ **AWS RDS (MySQL) & Hibernate JPA** (Gestión de base de datos relacional en la nube y ORM)
+* 🛡️ Spring Security (Gestión de seguridad y filtros de autorización)
 * 🏗️ Maven (Gestión de dependencias)
 * 📧 **Formspree** (Servicio externo de mensajería)
 
@@ -95,7 +95,7 @@ Fase 2: Migración a React y creación de componentes reutilizables.
 
 Fase 3: Implementación de Pruebas Unitarias y validaciones de usuario.
 
-* **Fase 4 (Meta Alcanzada):** Integración total con Backend (Spring Boot), implementación de seguridad dual (Google OAuth 2.0 y Admin) y despliegue final en infraestructura Cloud (AWS S3, EC2 y API Gateway) operando al 100%.
+Fase 4 (Meta Alcanzada): Integración total con Backend (Spring Boot), seguridad dual y despliegue exitoso en infraestructura Cloud (AWS S3, EC2, API Gateway y RDS) operando al 100%.
 
 👩‍💻 Autor
 Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitHub](https://github.com/CatherineGodoy)

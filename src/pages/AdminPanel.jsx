@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { obtenerProductos } from "../service/ProductosService";
+import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto } from "../service/ProductosService";
 import { obtenerEstadisticas } from "../service/EstadisticasService";
 import "./AdminPanel.css";
 import Swal from "sweetalert2";
@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 function AdminPanel() {
   const [productos, setProductos] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
-  const [stats, setStats] = useState(null); // Estado para el segundo microservicio de estadísticas
+  const [stats, setStats] = useState(null);
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: "",
     descripcion: "",
@@ -18,18 +18,20 @@ function AdminPanel() {
   });
 
   const username = sessionStorage.getItem("userName") || "Administradora";
-  
-  // ARQUITECTURA LIMPIA: Usando la variable de entorno del API Gateway
-  const urlApi = `${import.meta.env.VITE_API_BASE_URL}/api/productos`;
 
-  const cargarDatos = () => {
+const cargarDatos = () => {
     obtenerProductos().then((data) => {
-      const ordenados = (data || []).sort((a, b) => a.id - b.id);
+      /*Extraemos las listas del Map y las unimos en un solo Array plano
+        Así la tabla recibe exactamente lo que necesita sin cambiar su diseño
+      */
+      const arrayData = Array.isArray(data) ? data : Object.values(data).flat();
+      const ordenados = (arrayData || []).sort((a, b) => a.id - b.id);
       setProductos(ordenados);
+    }).catch(error => {
+      console.error("Error al cargar los datos del catálogo:", error);
     });
   };
 
-  // MODULARIZADO: Consumiendo el servicio de estadísticas sin hardcodear puertos
   const cargarEstadisticas = async () => {
     try {
       const data = await obtenerEstadisticas();
@@ -63,41 +65,35 @@ function AdminPanel() {
       return;
     }
 
-    const metodo = editandoId ? "PUT" : "POST";
-    const urlFinal = editandoId ? `${urlApi}/${editandoId}` : urlApi;
-
     try {
-      const resp = await fetch(urlFinal, {
-        method: metodo,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("userToken")}`,
-        },
-        body: JSON.stringify(nuevoProducto),
-      });
-
-      if (resp.ok) {
+      if (editandoId) {
+        await actualizarProducto(editandoId, nuevoProducto);
         Swal.fire({
           title: "¡Éxito!",
-          text: editandoId
-            ? "Producto actualizado correctamente"
-            : "🍰 ¡Nueva Delicia agregada!",
+          text: "Producto actualizado correctamente",
           icon: "success",
           confirmButtonColor: "#d95386",
           timer: 2000,
         });
-        resetearFormulario();
-        cargarDatos();
-        cargarEstadisticas(); // Actualizamos métricas también
       } else {
-        Swal.fire("Error", "No se pudo guardar. Verifica tu sesión.", "error");
+        await crearProducto(nuevoProducto);
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "🍰 ¡Nueva Delicia agregada!",
+          icon: "success",
+          confirmButtonColor: "#d95386",
+          timer: 2000,
+        });
       }
+      resetearFormulario();
+      cargarDatos();
+      cargarEstadisticas();
     } catch (error) {
-      Swal.fire("Error", "Fallo de conexión con el servidor.", "error");
+      Swal.fire("Error", "No se pudo guardar. Verifica tu conexión o sesión.", "error");
     }
   };
 
-  const eliminarProducto = (id) => {
+  const manejarEliminar = (id) => {
     Swal.fire({
       title: "¿Eliminar de vitrina?",
       text: "Esta acción no se puede deshacer",
@@ -109,16 +105,13 @@ function AdminPanel() {
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        const resp = await fetch(`${urlApi}/${id}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("userToken")}`,
-          },
-        });
-        if (resp.ok) {
+        try {
+          await eliminarProducto(id);
           Swal.fire("Eliminado", "El producto ha sido quitado.", "success");
           cargarDatos();
           cargarEstadisticas();
+        } catch (error) {
+          Swal.fire("Error", "No se pudo eliminar el producto.", "error");
         }
       }
     });
@@ -308,7 +301,7 @@ function AdminPanel() {
                     <button
                       className="admin-btn-pill"
                       style={{ backgroundColor: "#5d405d" }}
-                      onClick={() => eliminarProducto(prod.id)}
+                      onClick={() => manejarEliminar(prod.id)}
                       aria-label="🗑️"
                     >
                       🗑️
