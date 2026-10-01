@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Delicias from "./pages/Delicias";
 import Contacto from "./pages/Contacto";
+import Pedido from "./pages/Pedido";
 import Login from "./pages/Login";
 import AdminPanel from "./pages/AdminPanel"; 
 import ProtectedRoute from "./components/ProtectedRoute"; 
@@ -25,6 +26,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/delicias" element={<Delicias />} />
           <Route path="/contacto" element={<Contacto />} />
+          <Route path="/pedido" element={<Pedido />} />
           <Route path="/login" element={<Login />} />
 
           {/* RUTA PROTEGIDA */}

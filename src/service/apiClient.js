@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // 1. Centralizamos la URL del backend usando la variable de entorno
-const URL_BASE = import.meta.env.VITE_API_BASE_URL;
+// (exportada para que otros módulos, como el formulario de pedido, usen la misma fuente)
+export const URL_BASE = import.meta.env.VITE_API_BASE_URL;
 
 // 2. Creamos la instancia oficial para "8 Digital"
 const apiClient = axios.create({
