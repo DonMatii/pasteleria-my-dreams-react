@@ -1,11 +1,16 @@
-/* eslint-disable no-undef */
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Login from "../src/pages/Login";
 import * as AuthService from "../src/service/AuthService";
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, test, expect, beforeEach } from "vitest";
 import React from "react";
 import '@testing-library/jest-dom';
+
+// Login renderiza <GoogleLogin /> de @react-oauth/google, que exige
+// estar dentro de un GoogleOAuthProvider. En tests lo sustituimos por un stub.
+vi.mock("@react-oauth/google", () => ({
+  GoogleLogin: () => <div data-testid="google-login-stub" />,
+}));
 
 vi.mock("../src/service/AuthService", () => ({ 
   loginUsuario: vi.fn() 
@@ -19,21 +24,20 @@ describe("Pruebas de Seguridad - Login", () => {
 
   test("1. Muestra error ante credenciales vacías", async () => {
     render(<MemoryRouter><Login /></MemoryRouter>);
-    
-    // Como tus inputs tienen 'required', el navegador bloquea el submit.
-    // Para testear tu lógica de setError, eliminamos 'required' temporalmente en el test.
-    const userInput = screen.getByPlaceholderText("Ingresa tu usuario");
-    const passInput = screen.getByPlaceholderText("Contraseña");
-    
-    userInput.removeAttribute('required');
-    passInput.removeAttribute('required');
 
-    const boton = screen.getByRole("button", { name: /Ingresar/i });
-    fireEvent.click(boton);
-    
-    // Ahora sí, tu handleSubmit se ejecutará y mostrará el error
+    // El formulario usa noValidate y no tiene 'required', así que
+    // handleSubmit corre y aplica la validación propia de React.
+    const userInput = screen.getByPlaceholderText("Ej: admin");
+    const passInput = screen.getByPlaceholderText("Contraseña");
+
+    expect(userInput).toBeInTheDocument();
+    expect(passInput).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Ingresar/i }));
+
     const mensaje = await screen.findByText(/Por favor, completa todos los campos/i);
     expect(mensaje).toBeInTheDocument();
+    expect(AuthService.loginUsuario).not.toHaveBeenCalled();
   });
 
   test("2. Muestra error cuando el servicio de login falla con 401", async () => {
@@ -42,11 +46,13 @@ describe("Pruebas de Seguridad - Login", () => {
 
     render(<MemoryRouter><Login /></MemoryRouter>);
     
-    fireEvent.change(screen.getByPlaceholderText("Ingresa tu usuario"), { target: { value: "errorUser" } });
+    fireEvent.change(screen.getByPlaceholderText("Ej: admin"), { target: { value: "errorUser" } });
     fireEvent.change(screen.getByPlaceholderText("Contraseña"), { target: { value: "wrongPass" } });
     fireEvent.click(screen.getByRole("button", { name: /Ingresar/i }));
 
     expect(await screen.findByText(/Usuario o contraseña incorrectos/i)).toBeInTheDocument();
+    expect(AuthService.loginUsuario).toHaveBeenCalledWith("errorUser", "wrongPass");
+    expect(sessionStorage.getItem("userToken")).toBeNull();
   });
 
   test("3. Redirige y guarda datos en sessionStorage tras login exitoso", async () => {
@@ -54,7 +60,7 @@ describe("Pruebas de Seguridad - Login", () => {
 
     render(<MemoryRouter><Login /></MemoryRouter>);
     
-    fireEvent.change(screen.getByPlaceholderText("Ingresa tu usuario"), { target: { value: "admin" } });
+    fireEvent.change(screen.getByPlaceholderText("Ej: admin"), { target: { value: "admin" } });
     fireEvent.change(screen.getByPlaceholderText("Contraseña"), { target: { value: "123456" } });
     fireEvent.click(screen.getByRole("button", { name: /Ingresar/i }));
 
@@ -63,5 +69,12 @@ describe("Pruebas de Seguridad - Login", () => {
       expect(sessionStorage.getItem("userToken")).toBe("fake-token-123");
       expect(sessionStorage.getItem("userName")).toBe("admin");
     });
+  });
+
+  test("4. Renderiza la sección de acceso con Google (stub del OAuth)", () => {
+    render(<MemoryRouter><Login /></MemoryRouter>);
+
+    expect(screen.getByText(/Acceso para Clientes/i)).toBeInTheDocument();
+    expect(screen.getByTestId("google-login-stub")).toBeInTheDocument();
   });
 });

@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { vi, describe, it, expect, beforeEach } from "vitest";
@@ -6,12 +5,21 @@ import React from "react";
 
 import AdminPanel from "../src/pages/AdminPanel.jsx";
 import * as ProductosService from "../src/service/ProductosService";
+import * as EstadisticasService from "../src/service/EstadisticasService";
 import Swal from 'sweetalert2';
 import '@testing-library/jest-dom';
 
-// Mocks
+// AdminPanel ya NO usa fetch: llama a las funciones del servicio (axios).
 vi.mock("../src/service/ProductosService", () => ({
   obtenerProductos: vi.fn(),
+  crearProducto: vi.fn(),
+  actualizarProducto: vi.fn(),
+  eliminarProducto: vi.fn(),
+}));
+
+// El panel también consulta el microservicio de estadísticas al montar.
+vi.mock("../src/service/EstadisticasService", () => ({
+  obtenerEstadisticas: vi.fn(),
 }));
 
 vi.mock('sweetalert2', () => ({
@@ -19,8 +27,6 @@ vi.mock('sweetalert2', () => ({
     fire: vi.fn(() => Promise.resolve({ isConfirmed: true }))
   }
 }));
-
-global.fetch = vi.fn();
 
 describe("AdminPanel - Verificación Integral del CRUD", () => {
   
@@ -33,18 +39,26 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     ProductosService.obtenerProductos.mockResolvedValue([
       { id: 1, nombre: "Torta Chocolate", precio: 15000, categoria: "Nuestras Tortas", imagenUrl: "torta3Leches.jpg", descripcion: "Deliciosa" }
     ]);
+    ProductosService.crearProducto.mockResolvedValue({});
+    ProductosService.actualizarProducto.mockResolvedValue({});
+    ProductosService.eliminarProducto.mockResolvedValue({});
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      totalProductosCatalogo: 1,
+      categoriasActivas: 4,
+      estadoServicio: "UP",
+    });
   });
 
   it("1. READ: Debe listar productos correctamente", async () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
     expect(await screen.findByText(/Torta Chocolate/i)).toBeInTheDocument();
+    expect(ProductosService.obtenerProductos).toHaveBeenCalled();
   });
 
-  it("2. CREATE: Debe enviar POST al publicar nuevo producto", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+  it("2. CREATE: Debe llamar a crearProducto con los datos del formulario", async () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
-    // Llenamos TODOS los campos que tu validación manual requiere
+    // Llenamos TODOS los campos que la validación manual requiere
     fireEvent.change(screen.getByLabelText(/Nombre del Producto/i), { target: { value: "Brazo de Reina" } });
     fireEvent.change(screen.getByLabelText(/Precio/i), { target: { value: "8000" } });
     fireEvent.change(screen.getByLabelText(/Descripción/i), { target: { value: "Manjar y bizcocho" } });
@@ -56,20 +70,26 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     fireEvent.click(botonPublicar);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ 
-        method: "POST",
-        body: expect.stringContaining("Brazo de Reina") 
+      expect(ProductosService.crearProducto).toHaveBeenCalledWith(expect.objectContaining({ 
+        nombre: "Brazo de Reina",
+        precio: 8000,
+        categoria: "Sabores Frutales",
+        imagenUrl: "alfajor.jpg"
       }));
     });
+    expect(ProductosService.actualizarProducto).not.toHaveBeenCalled();
+    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
   });
 
-  it("3. UPDATE: Debe cambiar a modo edición y enviar PUT", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+  it("3. UPDATE: Debe cambiar a modo edición y llamar a actualizarProducto", async () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
     // Buscamos el botón de editar (el emoji con su aria-label)
     const botonEditar = await screen.findByLabelText("✏️");
     fireEvent.click(botonEditar);
+
+    // El formulario pasa a modo edición con los datos del producto
+    expect(screen.getByLabelText(/Nombre del Producto/i)).toHaveValue("Torta Chocolate");
 
     // Cambiamos el nombre
     fireEvent.change(screen.getByLabelText(/Nombre del Producto/i), { target: { value: "Torta Especial" } });
@@ -78,25 +98,31 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     fireEvent.click(botonActualizar);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/1"), expect.objectContaining({ method: "PUT" }));
+      expect(ProductosService.actualizarProducto).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ nombre: "Torta Especial" })
+      );
     });
+    expect(ProductosService.crearProducto).not.toHaveBeenCalled();
   });
 
-  it("4. DELETE: Debe pedir confirmación y enviar DELETE", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+  it("4. DELETE: Debe pedir confirmación y llamar a eliminarProducto", async () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
     const botonEliminar = await screen.findByLabelText("🗑️");
     fireEvent.click(botonEliminar);
 
+    // SweetAlert pide confirmación (mockeada como confirmada)
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/1"), expect.objectContaining({ method: "DELETE" }));
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "warning" }));
+      expect(ProductosService.eliminarProducto).toHaveBeenCalledWith(1);
+      // carga inicial + recarga tras eliminar
+      expect(ProductosService.obtenerProductos).toHaveBeenCalledTimes(2);
     });
   });
 
-  it("5. ERROR: Debe manejar fallos de red con SweetAlert", async () => {
-    // Simulamos fallo de red (ok: false)
-    fetch.mockResolvedValueOnce({ ok: false }); 
+  it("5. ERROR: Debe mostrar SweetAlert de error cuando crearProducto falla", async () => {
+    ProductosService.crearProducto.mockRejectedValueOnce(new Error("sin conexión"));
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
     // Llenamos campos para pasar la validación inicial de "Campos incompletos"
@@ -109,8 +135,13 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     fireEvent.click(screen.getByRole("button", { name: /Publicar/i }));
 
     await waitFor(() => {
-      // Verificamos que se llamó a Swal por el error de la respuesta (!resp.ok)
-      expect(Swal.fire).toHaveBeenCalledWith(expect.stringMatching(/Error/i), expect.any(String), "error");
+      // El catch de handleSubmit dispara el Swal de error del servicio
+      expect(ProductosService.crearProducto).toHaveBeenCalled();
+      expect(Swal.fire).toHaveBeenCalledWith(
+        "Error",
+        expect.stringMatching(/No se pudo guardar/i),
+        "error"
+      );
     });
   });
 });
