@@ -26,6 +26,7 @@ function Header() {
           <li><Link to="/">Inicio</Link></li>
           <li><Link to="/delicias">Delicias</Link></li>
           <li><Link to="/pedido">Pedido</Link></li>
+          <li><Link to="/estado">Estado</Link></li>
           <li><Link to="/contacto">Contacto</Link></li>
           
           {/* Mostramos Admin solo si el usuario es 'admin' en la sesión activa */}

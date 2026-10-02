@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Delicias from "./pages/Delicias";
 import Contacto from "./pages/Contacto";
 import Pedido from "./pages/Pedido";
+import EstadoPedido from "./pages/EstadoPedido";
 import Login from "./pages/Login";
 import AdminPanel from "./pages/AdminPanel"; 
 import ProtectedRoute from "./components/ProtectedRoute"; 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/delicias" element={<Delicias />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/pedido" element={<Pedido />} />
+          <Route path="/estado" element={<EstadoPedido />} />
           <Route path="/login" element={<Login />} />
 
           {/* RUTA PROTEGIDA */}

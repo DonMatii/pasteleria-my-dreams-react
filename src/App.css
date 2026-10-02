@@ -352,3 +352,79 @@ header nav ul li a:hover {
   padding: 40px 30px;
   text-align: center;
 }
+
+/* =========================================
+   7. CONSULTA DE ESTADO DE PEDIDO (RF-11)
+   ========================================= */
+.estado-resultado {
+  margin: 30px auto 60px auto;
+  text-align: center;
+}
+
+.estado-titulo {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: #5d405d;
+  margin-bottom: 12px;
+}
+
+.estado-subtitulo {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #5d405d;
+  margin: 20px 0 8px 0;
+  text-align: left;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 50px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #ffffff;
+  background-color: #9e9e9e;
+}
+
+.estado-recibido { background-color: #5d405d; }
+.estado-preparacion { background-color: #e0910a; }
+.estado-despachado { background-color: #2a7ab5; }
+.estado-entregado { background-color: #2e9e5b; }
+.estado-otro { background-color: #9e9e9e; }
+
+.estado-datos,
+.estado-productos {
+  list-style: none;
+  margin: 15px 0 0 0;
+  padding: 0;
+  text-align: left;
+  font-family: 'Montserrat', sans-serif;
+  color: #5d405d;
+}
+
+.estado-datos li {
+  margin-bottom: 8px;
+}
+
+.estado-productos li {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #fce4ec;
+}
+
+.estado-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 2px solid #fce4ec;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: #5d405d;
+}
