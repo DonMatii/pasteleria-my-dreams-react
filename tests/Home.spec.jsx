@@ -1,11 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 import Home from "../src/pages/Home";
 import '@testing-library/jest-dom';
 
 describe("Pruebas de la Página Principal (Home)", () => {
+  beforeEach(() => {
+    // Estado limpio: el banner de bienvenida depende de localStorage y sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+  });
   it("debe renderizar el título principal y el eslogan", () => {
     render(
       <BrowserRouter>
@@ -56,5 +61,35 @@ describe("Pruebas de la Página Principal (Home)", () => {
     
     const botonCatalogo = screen.getByRole("link", { name: /Ver Catálogo Completo/i });
     expect(botonCatalogo).toHaveAttribute("href", "/delicias");
+  });
+
+  it("muestra el banner de bienvenida solo con código pendiente y sesión activa", () => {
+    localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
+    sessionStorage.setItem("userName", "Catherine");
+
+    render(
+      <BrowserRouter>
+        <Home />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByTestId("banner-bienvenida")).toBeInTheDocument();
+    expect(screen.getByTestId("codigo-bienvenida-home")).toHaveTextContent("BIENVENIDO10");
+    expect(screen.getByRole("link", { name: /Usar mi descuento/i })).toHaveAttribute(
+      "href",
+      "/pedido"
+    );
+  });
+
+  it("no muestra el banner sin sesión de cliente", () => {
+    localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
+
+    render(
+      <BrowserRouter>
+        <Home />
+      </BrowserRouter>
+    );
+
+    expect(screen.queryByTestId("banner-bienvenida")).not.toBeInTheDocument();
   });
 });

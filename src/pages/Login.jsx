@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUsuario } from "../service/AuthService";
+import { registrarPrimeraConexion } from "../service/BienvenidaService";
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from "jwt-decode"; // <-- 1. Importamos la nueva herramienta
 import "../App.css";
@@ -40,6 +41,8 @@ function Login() {
         if (username.toLowerCase() === "admin") {
           navigate("/admin");
         } else {
+          // Primera conexion del cliente: gana el codigo de bienvenida solo una vez
+          registrarPrimeraConexion();
           window.location.href = "/";
         }
       }
@@ -133,6 +136,9 @@ function Login() {
                 // 3. Guardamos el token y usamos el nombre de pila (given_name)
                 sessionStorage.setItem("userToken", credentialResponse.credential);
                 sessionStorage.setItem("userName", decodedToken.given_name || decodedToken.name);
+
+                // Primera conexion con Google: gana el codigo de bienvenida solo una vez
+                registrarPrimeraConexion();
                 
                 window.location.href = "/";
               }}

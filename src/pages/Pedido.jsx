@@ -3,6 +3,11 @@ import "../App.css";
 import Swal from "sweetalert2";
 import { obtenerProductos } from "../service/ProductosService";
 import { URL_BASE } from "../service/apiClient";
+import {
+  obtenerCodigoBienvenida,
+  consumirCodigoBienvenida,
+  esCodigoValido,
+} from "../service/BienvenidaService";
 
 // RF-07: formulario nuevo para registrar un pedido real en el backend.
 // El formulario de contacto (Contacto.jsx / Formspree, RF-06) queda intacto.
@@ -20,6 +25,10 @@ const Pedido = () => {
 
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
+  // Codigo de bienvenida: prellenado solo si el cliente gano el descuento de primera conexion
+  const [codigoDescuento, setCodigoDescuento] = useState(
+    () => obtenerCodigoBienvenida() || ""
+  );
 
   // El catálogo real vive en GET /api/productos y se pide por el servicio existente
   useEffect(() => {
@@ -49,8 +58,20 @@ const Pedido = () => {
     ? Number(productoSeleccionado.precio || 0) * Number(formData.cantidad || 0)
     : 0;
 
+  // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido
+  const codigoValido = esCodigoValido(codigoDescuento);
+  const descuento = codigoValido ? Math.floor(total / 10) : 0;
+  const totalFinal = total - descuento;
+
   const handleChange = (e) => {
     const { id, value } = e.target;
+    if (id === "codigoDescuento") {
+      setCodigoDescuento(value);
+      if (errores.codigoDescuento) {
+        setErrores({ ...errores, codigoDescuento: "" });
+      }
+      return;
+    }
     if (id === "cantidad") {
       // Solo dígitos: la cantidad siempre será un entero
       setFormData({ ...formData, cantidad: value.replace(/\D/g, "") });
@@ -90,6 +111,11 @@ const Pedido = () => {
       esValido = false;
     }
 
+    if (codigoDescuento.trim() && !esCodigoValido(codigoDescuento)) {
+      nuevosErrores.codigoDescuento = "Código de descuento inválido.";
+      esValido = false;
+    }
+
     setErrores(nuevosErrores);
     return esValido;
   };
@@ -121,6 +147,10 @@ const Pedido = () => {
         },
       ],
     };
+    // Solo el codigo valido viaja al backend; uno invalido lo corta la validacion
+    if (codigoValido) {
+      cuerpoPedido.codigoDescuento = codigoDescuento.trim().toUpperCase();
+    }
 
     try {
       const response = await fetch(`${URL_BASE}/api/pedidos`, {
@@ -134,15 +164,24 @@ const Pedido = () => {
         const pedidoCreado = await response.json();
         const totalCreado = Number(pedidoCreado?.total ?? total);
         const codigoSeguimiento = pedidoCreado?.codigoConsulta || "";
+        // El codigo de bienvenida se canjea una sola vez
+        if (descuento > 0) {
+          consumirCodigoBienvenida();
+        }
+        const textoDescuento =
+          descuento > 0
+            ? ` Se aplicó tu descuento de bienvenida: -$${descuento.toLocaleString("es-CL")}.`
+            : "";
         Swal.fire({
           icon: "success",
           title: "¡Pedido registrado!",
           text: `Pedido N° ${pedidoCreado?.id} por $${totalCreado.toLocaleString(
             "es-CL"
-          )}. Tu código de seguimiento: ${codigoSeguimiento} (guárdalo para consultar el estado). Te enviaremos la confirmación a tu correo. 🧁`,
+          )}. Tu código de seguimiento: ${codigoSeguimiento} (guárdalo para consultar el estado).${textoDescuento} Te enviaremos la confirmación a tu correo. 🧁`,
           confirmButtonColor: "#d95386",
         });
         setFormData({ cliente: "", email: "", producto: "", cantidad: "1" });
+        setCodigoDescuento("");
         setErrores({});
       } else if (response.status === 400) {
         // 400: el backend devuelve { "mensaje": "..." } con la regla que falló
@@ -238,11 +277,41 @@ const Pedido = () => {
           </div>
 
           <div className="form-group">
+            <label htmlFor="codigoDescuento">Código de descuento (opcional):</label>
+            <input
+              type="text"
+              id="codigoDescuento"
+              value={codigoDescuento}
+              onChange={handleChange}
+              placeholder="Ej: BIENVENIDO10"
+              className={errores.codigoDescuento ? "input-error" : ""}
+            />
+            {errores.codigoDescuento && (
+              <span className="error-text">{errores.codigoDescuento}</span>
+            )}
+          </div>
+
+          <div className="form-group">
             <label>Total estimado:</label>
             <span className="precio-tag" data-testid="total-pedido">
               ${total.toLocaleString("es-CL")}
             </span>
           </div>
+
+          {codigoValido && (
+            <div className="form-group" data-testid="resumen-descuento">
+              <label>Descuento de bienvenida (-10%):</label>
+              <span className="precio-tag" data-testid="descuento-bienvenida">
+                -${descuento.toLocaleString("es-CL")}
+              </span>
+              <p
+                style={{ margin: "8px 0 0", fontWeight: "bold" }}
+                data-testid="total-final"
+              >
+                Total con descuento: ${totalFinal.toLocaleString("es-CL")}
+              </p>
+            </div>
+          )}
 
           <button type="submit" className="boton-principal" disabled={loading}>
             {loading ? "Registrando..." : "Registrar pedido"}

@@ -47,6 +47,8 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     obtenerProductos.mockResolvedValue(catalogoDePrueba);
+    // Estado limpio: sin flag de primera conexion ni codigo de bienvenida
+    localStorage.clear();
   });
 
   test("1. Debe renderizar la página y poblar el select con el catálogo", async () => {
@@ -173,5 +175,64 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
 
     // El botón vuelve a habilitarse
     expect(screen.getByRole("button", { name: /Registrar pedido/i })).toBeEnabled();
+  });
+
+  test("6. El código de bienvenida prellenado aplica -10% y se consume tras el éxito", async () => {
+    // Ganado en la primera conexión (BienvenidaService)
+    localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: vi.fn().mockResolvedValue({
+        id: 8,
+        total: 27000,
+        productos: [],
+        eventoPublicado: true,
+        codigoConsulta: "ffffffffffffffffffffffffffffffff",
+      }),
+    });
+
+    render(<Pedido />);
+    await llenarFormularioValido();
+
+    // El código viene prellenado y el ahorro se ve en vivo (30000 - 10%)
+    expect(screen.getByLabelText(/Código de descuento/i)).toHaveValue("BIENVENIDO10");
+    expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
+    expect(screen.getByTestId("total-final")).toHaveTextContent("$27.000");
+
+    fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
+
+    // El cuerpo del POST incluye el código para que el backend lo persista
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+      const cuerpo = JSON.parse(global.fetch.mock.calls[0][1].body);
+      expect(cuerpo.codigoDescuento).toBe("BIENVENIDO10");
+    });
+
+    // Se consume el código: la próxima compra ya no tendrá descuento
+    expect(localStorage.getItem("md_codigo_bienvenida")).toBeNull();
+
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({
+        icon: "success",
+        text: expect.stringContaining("descuento de bienvenida"),
+      })
+    );
+  });
+
+  test("7. Un código desconocido bloquea el envío sin llamar al backend", async () => {
+    global.fetch = vi.fn();
+
+    render(<Pedido />);
+    await llenarFormularioValido();
+
+    fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
+      target: { value: "AHORRO50" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
+
+    expect(await screen.findByText(/Código de descuento inválido/i)).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

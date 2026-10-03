@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';    
 import '../App.css';   
+import { obtenerCodigoBienvenida } from "../service/BienvenidaService";
 
 function Home() {
+  // Beneficio de primera conexion: visible mientras el codigo siga sin canjear
+  const [codigoBienvenida] = useState(() => obtenerCodigoBienvenida());
+  const usuarioConectado = sessionStorage.getItem("userName");
+
   const productosDestacados = [
     { 
       id: 1, 
@@ -37,6 +42,34 @@ function Home() {
           Somos un emprendimiento familiar que te entrega sabores que iluminan tus sueños.
         </p>
       </section>
+
+      {/* Premio por conectar: solo con codigo pendiente y sesion activa */}
+      {codigoBienvenida && usuarioConectado && (
+        <section
+          className="banner-bienvenida"
+          data-testid="banner-bienvenida"
+          style={{
+            margin: "0 auto 30px",
+            padding: "20px",
+            maxWidth: "640px",
+            backgroundColor: "#fff5f5",
+            border: "2px solid #d63384",
+            borderRadius: "15px",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ margin: "0 0 8px", fontSize: "1.1rem" }}>
+            🎉 ¡Bienvenido/a, <b>{usuarioConectado}</b>! Por conectar por primera vez,
+            tu primer pedido tiene <b>10% de descuento</b>.
+          </p>
+          <p style={{ margin: "0 0 15px" }}>
+            Código: <b data-testid="codigo-bienvenida-home">{codigoBienvenida}</b>
+          </p>
+          <Link to="/pedido" className="boton-principal" style={{ textDecoration: "none" }}>
+            Usar mi descuento
+          </Link>
+        </section>
+      )}
 
       <section className="productos-favoritos">
         <h2 className="titulo-seccion">Favoritos de la Casa</h2>
