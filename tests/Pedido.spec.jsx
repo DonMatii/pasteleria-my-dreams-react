@@ -235,4 +235,23 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
     expect(await screen.findByText(/Código de descuento inválido/i)).toBeInTheDocument();
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  test("8. El código de bienvenida ya canjeado bloquea el re-ingreso", async () => {
+    // Primera conexión ya gastada en este navegador: flag presente, código ausente
+    localStorage.setItem("md_primera_conexion", "1");
+    global.fetch = vi.fn();
+
+    render(<Pedido />);
+    await llenarFormularioValido();
+
+    fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
+      target: { value: "BIENVENIDO10" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
+
+    expect(await screen.findByText(/ya fue canjeado/i)).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+    // Tampoco se muestra el ahorro en vivo: no hay código disponible
+    expect(screen.queryByTestId("descuento-bienvenida")).not.toBeInTheDocument();
+  });
 });

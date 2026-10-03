@@ -58,9 +58,11 @@ const Pedido = () => {
     ? Number(productoSeleccionado.precio || 0) * Number(formData.cantidad || 0)
     : 0;
 
-  // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido
+  // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido Y siga disponible
+  // (disponible = no canjeado: el codigo se gana una sola vez por navegador)
   const codigoValido = esCodigoValido(codigoDescuento);
-  const descuento = codigoValido ? Math.floor(total / 10) : 0;
+  const codigoDisponible = Boolean(obtenerCodigoBienvenida());
+  const descuento = codigoValido && codigoDisponible ? Math.floor(total / 10) : 0;
   const totalFinal = total - descuento;
 
   const handleChange = (e) => {
@@ -116,6 +118,13 @@ const Pedido = () => {
       esValido = false;
     }
 
+    // Uso unico: un codigo ya canjeado (o nunca ganado en este navegador) no se vuelve a aplicar
+    if (codigoDescuento.trim() && esCodigoValido(codigoDescuento) && !codigoDisponible) {
+      nuevosErrores.codigoDescuento =
+        "El código de bienvenida ya fue canjeado o no está disponible.";
+      esValido = false;
+    }
+
     setErrores(nuevosErrores);
     return esValido;
   };
@@ -147,8 +156,8 @@ const Pedido = () => {
         },
       ],
     };
-    // Solo el codigo valido viaja al backend; uno invalido lo corta la validacion
-    if (codigoValido) {
+    // Solo un codigo valido y disponible viaja al backend; la validacion corta el re-ingreso
+    if (codigoValido && codigoDisponible) {
       cuerpoPedido.codigoDescuento = codigoDescuento.trim().toUpperCase();
     }
 
@@ -298,7 +307,7 @@ const Pedido = () => {
             </span>
           </div>
 
-          {codigoValido && (
+          {codigoValido && codigoDisponible && (
             <div className="form-group" data-testid="resumen-descuento">
               <label>Descuento de bienvenida (-10%):</label>
               <span className="precio-tag" data-testid="descuento-bienvenida">
