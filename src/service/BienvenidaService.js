@@ -26,3 +26,7 @@ export const consumirCodigoBienvenida = () => localStorage.removeItem(CLAVE_CODI
 // Único código aceptado (la página de pedido no envía cualquier texto)
 export const esCodigoValido = (codigo) =>
   (codigo || "").trim().toUpperCase() === CODIGO_BIENVENIDO;
+
+// true mientras este navegador nunca haya iniciado sesión (teaser de /pedido:
+// solo a ese invitado se le promete el -10% de primera conexión)
+export const esPrimeraConexion = () => !localStorage.getItem(CLAVE_PRIMERA_CONEXION);

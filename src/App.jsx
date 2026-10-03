@@ -9,6 +9,7 @@ import EstadoPedido from "./pages/EstadoPedido";
 import Login from "./pages/Login";
 import AdminPanel from "./pages/AdminPanel"; 
 import ProtectedRoute from "./components/ProtectedRoute"; 
+import TeaserPedido from "./components/TeaserPedido"; 
 import './App.css';
 import imgLogo from "./assets/img/logoPasteleria.png"; 
 
@@ -27,7 +28,14 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/delicias" element={<Delicias />} />
           <Route path="/contacto" element={<Contacto />} />
-          <Route path="/pedido" element={<Pedido />} />
+          <Route
+            path="/pedido"
+            element={
+              <ProtectedRoute teaser={<TeaserPedido />}>
+                <Pedido />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/estado" element={<EstadoPedido />} />
           <Route path="/login" element={<Login />} />
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { loginUsuario } from "../service/AuthService";
 import { registrarPrimeraConexion } from "../service/BienvenidaService";
 import { GoogleLogin } from '@react-oauth/google';
@@ -14,6 +14,16 @@ function Login() {
   const [campoError, setCampoError] = useState({ user: false, pass: false });
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Retorno post-login: solo rutas internas (ni vacío, ni //, ni http externo)
+  const destinoSeguro = () => {
+    const destino = searchParams.get("redirect");
+    if (destino && destino.startsWith("/") && !destino.startsWith("//")) {
+      return destino;
+    }
+    return "/";
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,7 +53,8 @@ function Login() {
         } else {
           // Primera conexion del cliente: gana el codigo de bienvenida solo una vez
           registrarPrimeraConexion();
-          window.location.href = "/";
+          // Vuelve a la ruta que puso el teaser (/pedido) o al Home por defecto
+          navigate(destinoSeguro(), { replace: true });
         }
       }
     } catch (err) {
@@ -139,8 +150,9 @@ function Login() {
 
                 // Primera conexion con Google: gana el codigo de bienvenida solo una vez
                 registrarPrimeraConexion();
-                
-                window.location.href = "/";
+
+                // Mismo retorno seguro que el form: /pedido desde el teaser o el Home
+                navigate(destinoSeguro(), { replace: true });
               }}
               onError={() => {
                 setError("El inicio de sesión con Google fue cancelado o falló.");
