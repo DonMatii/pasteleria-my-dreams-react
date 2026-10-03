@@ -3,7 +3,8 @@ import "../App.css";
 import { URL_BASE } from "../service/apiClient";
 
 // RF-11: consulta pública del estado de un pedido ya registrado.
-// El cliente ingresa el número que devolvió el backend y ve detalle + estado real.
+// El cliente ingresa el CÓDIGO OPACO de seguimiento (32 caracteres) que devolvió
+// el backend al crear el pedido — nunca un id secuencial adivinable (protección IDOR).
 // El formulario de contacto (RF-06) y el de pedido (RF-07) quedan intactos.
 
 // Estados válidos en pedidos-service y su etiqueta amigable para la UI
@@ -49,8 +50,8 @@ const EstadoPedido = () => {
   const [cargando, setCargando] = useState(false);
 
   const handleChange = (e) => {
-    // Solo dígitos: el número de pedido siempre es numérico
-    setNumeroPedido(e.target.value.replace(/\D/g, ""));
+    // El codigo de seguimiento es alfanumerico (UUID de 32 caracteres sin guiones)
+    setNumeroPedido(e.target.value.replace(/\s/g, ""));
     if (mensaje) setMensaje("");
   };
 
@@ -58,10 +59,10 @@ const EstadoPedido = () => {
     e.preventDefault();
 
     // Validamos antes de pegar a la API (mismo criterio que el formulario de pedido)
-    const id = numeroPedido.trim();
-    if (!id) {
+    const codigo = numeroPedido.trim();
+    if (!codigo) {
       setPedido(null);
-      setMensaje("Ingresa el número de tu pedido.");
+      setMensaje("Ingresa tu código de seguimiento.");
       return;
     }
 
@@ -70,14 +71,16 @@ const EstadoPedido = () => {
     setPedido(null);
 
     try {
-      const response = await fetch(`${URL_BASE}/api/pedidos/${id}`);
+      const response = await fetch(
+        `${URL_BASE}/api/pedidos/seguimiento/${encodeURIComponent(codigo)}`
+      );
 
       if (response.ok) {
         // 200: PedidoResponse con detalle, productos y estado
         setPedido(await response.json());
       } else if (response.status === 404) {
-        // 404: el backend responde sin body cuando el id no existe
-        setMensaje("No encontramos un pedido con ese número.");
+        // 404: el backend responde sin body cuando el codigo no existe
+        setMensaje("No encontramos un pedido con ese código.");
       } else {
         setMensaje("No pudimos consultar el pedido. Intenta nuevamente.");
       }
@@ -102,15 +105,14 @@ const EstadoPedido = () => {
       <div className="formulario-container">
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label htmlFor="numeroPedido">Número de pedido:</label>
+            <label htmlFor="numeroPedido">Código de seguimiento:</label>
             <input
-              type="number"
+              type="text"
               id="numeroPedido"
-              min="1"
               value={numeroPedido}
               onChange={handleChange}
               className={mensaje ? "input-error" : ""}
-              placeholder="Ej: 7"
+              placeholder="Ej: 3f9c2a1b..."
             />
             {mensaje && (
               <span className="error-text" role="alert">

@@ -19,6 +19,14 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // API key administrativa (X-Api-Key): los endpoints protegidos del backend
+    // (escrituras del catálogo, listados, estadísticas) la exigen. El valor vive
+    // en el entorno (VITE_ADMIN_API_KEY), nunca en el código.
+    const adminKey = import.meta.env.VITE_ADMIN_API_KEY;
+    if (adminKey) {
+      config.headers["X-Api-Key"] = adminKey;
+    }
     
     return config;
   },

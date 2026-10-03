@@ -91,6 +91,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
         total: 30000,
         productos: [],
         eventoPublicado: true,
+        codigoConsulta: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
       }),
     });
 
@@ -120,7 +121,12 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
     });
 
     expect(Swal.fire).toHaveBeenCalledWith(
-      expect.objectContaining({ icon: "success", title: "¡Pedido registrado!" })
+      expect.objectContaining({
+        icon: "success",
+        title: "¡Pedido registrado!",
+        // El modal muestra el codigo opaco de seguimiento (proteccion IDOR)
+        text: expect.stringContaining("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"),
+      })
     );
 
     // El formulario se resetea después del éxito

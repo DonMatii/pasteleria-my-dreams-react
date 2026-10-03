@@ -130,15 +130,16 @@ const Pedido = () => {
       });
 
       if (response.ok) {
-        // 201: el backend responde con PedidoResponse (id, total, productos, ...)
+        // 201: el backend responde con PedidoResponse (id, total, codigo de seguimiento, ...)
         const pedidoCreado = await response.json();
         const totalCreado = Number(pedidoCreado?.total ?? total);
+        const codigoSeguimiento = pedidoCreado?.codigoConsulta || "";
         Swal.fire({
           icon: "success",
           title: "¡Pedido registrado!",
           text: `Pedido N° ${pedidoCreado?.id} por $${totalCreado.toLocaleString(
             "es-CL"
-          )}. Te enviaremos la confirmación a tu correo. 🧁`,
+          )}. Tu código de seguimiento: ${codigoSeguimiento} (guárdalo para consultar el estado). Te enviaremos la confirmación a tu correo. 🧁`,
           confirmButtonColor: "#d95386",
         });
         setFormData({ cliente: "", email: "", producto: "", cantidad: "1" });
