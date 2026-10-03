@@ -112,3 +112,8 @@ Fase 4 (Meta Alcanzada): Integración total con Backend (Spring Boot), seguridad
 
 ## 👩‍💻 Autor
 Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitHub](https://github.com/CatherineGodoy)
+## Desarrollo local y demo (v2)
+
+- **Proxy de Vite:** `vite.config.js` enruta `/api/productos` → `:8080`, `/api/pedidos` → `:8082` y `/api/estadisticas` → `:8081`, emulando en local lo que hace la API Gateway de AWS.
+- **Entorno:** `.env.development` (gitignorado) define `VITE_API_BASE_URL=http://localhost:5173` (mismo origen, sin CORS) y `VITE_ADMIN_API_KEY`, que `apiClient` adjunta como header `X-Api-Key` a las llamadas administrativas. El `.env` principal conserva la URL de la API Gateway de AWS para producción.
+- **Flujo de pedido:** al registrar un pedido el modal muestra su **código de seguimiento** (UUID de 32 caracteres); la página `/estado` lo usa para consultar. Los ids secuenciales ya no se exponen (protección IDOR).
