@@ -75,6 +75,32 @@ describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
     expect(screen.getByTestId("total-estado")).toHaveTextContent("$30.000");
     expect(screen.getByText(/Catherine Test/)).toBeInTheDocument();
     expect(screen.getByText(/Selva Negra/)).toBeInTheDocument();
+    // Sin descuento no hay desglose: solo el total
+    expect(screen.queryByTestId("descuento-estado")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("subtotal-estado")).not.toBeInTheDocument();
+  });
+
+  test("6. Un pedido con descuento muestra el desglose completo", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        ...pedidoDePrueba,
+        subtotal: 30000,
+        descuento: 3000,
+        codigoDescuento: "BIENVENIDO10",
+        total: 27000,
+      }),
+    });
+
+    render(<EstadoPedido />);
+    consultar("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
+
+    // El total no cuadra con la suma de items: hay que explicar por qué (subtotal - descuento)
+    expect(await screen.findByTestId("subtotal-estado")).toHaveTextContent("$30.000");
+    expect(screen.getByTestId("descuento-estado")).toHaveTextContent("-$3.000");
+    expect(screen.getByText(/BIENVENIDO10/)).toBeInTheDocument();
+    expect(screen.getByTestId("total-estado")).toHaveTextContent("$27.000");
   });
 
   test("4. Un 404 muestra el mensaje amable sin errores crudos", async () => {

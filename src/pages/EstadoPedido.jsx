@@ -162,6 +162,25 @@ const EstadoPedido = () => {
             ))}
           </ul>
 
+          {Number(pedido.descuento) > 0 && (
+            <>
+              <div className="estado-total" data-testid="subtotal-estado">
+                <span>Subtotal:</span>
+                <span className="precio-tag">
+                  {formatearMoneda(pedido.subtotal)}
+                </span>
+              </div>
+              <div className="estado-total" data-testid="descuento-estado">
+                <span>
+                  {`Descuento de bienvenida${pedido.codigoDescuento ? ` (${pedido.codigoDescuento})` : ""}:`}
+                </span>
+                <span className="precio-tag">
+                  -{formatearMoneda(pedido.descuento)}
+                </span>
+              </div>
+            </>
+          )}
+
           <div className="estado-total">
             <span>Total:</span>
             <span className="precio-tag" data-testid="total-estado">
