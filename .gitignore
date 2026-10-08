@@ -38,3 +38,13 @@ odd/
 
 # Reportes de cobertura (generados por vitest)
 coverage
+
+# Terraform (infra/)
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+!*.tfvars.example
+infra/pasteleria-key.pem
+# .terraform.lock.hcl se mantiene trackeado a propósito (fija versiones de providers)

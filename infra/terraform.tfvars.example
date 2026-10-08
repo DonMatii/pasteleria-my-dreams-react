@@ -1,0 +1,33 @@
+# Ejemplo de variables para infra/. Copiar este archivo a terraform.tfvars
+# (gitignoreado, nunca se commitea) y ajustar los valores antes del plan/apply.
+# Alternativa sin escribir la contraseña en disco: exportar TF_VAR_db_password.
+
+aws_region  = "us-east-1"
+environment = "lab"
+
+# Práctica de laboratorio: abre SSH y puertos de app (8080-8083, 9092) y la
+# 3306 de RDS a cualquier IP. Endurecer antes de salir del lab, p. ej.:
+# admin_cidr = "200.10.20.30/32"
+admin_cidr = "0.0.0.0/0"
+
+db_username = "admin"
+# Contraseña de demo de la v1 (la misma que usaba la RDS anterior), necesaria
+# para restaurar 8_Digital_Proyects/dump-v1-productos.sql sin ajustes.
+# Descomentar SOLO en terraform.tfvars local (gitignorado):
+# db_password = "admin12348Digital"
+
+db_name             = "pasteleria_my_dreams"
+db_engine_version   = "8.0"
+db_instance_class   = "db.t4g.micro"
+db_allocated_storage = 20
+
+instance_type = "t3.micro"
+key_name      = "pasteleria-my-dreams"
+
+# Los nombres de bucket S3 son únicos globalmente: si el default ya existe,
+# cambiarlo por otro (p. ej. agregando un sufijo personal).
+web_bucket_name = "pasteleria-my-dreams-web-8digital"
+
+# Stage de la API Gateway: forma parte de la URL de invocación
+# https://<api-id>.execute-api.<region>.amazonaws.com/<stage>
+apigw_stage = "v2"
