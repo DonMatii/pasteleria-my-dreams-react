@@ -45,8 +45,10 @@ output "rds_db_name" {
 }
 
 output "website_endpoint" {
-  description = "Endpoint web del sitio estático del frontend en S3."
-  value       = aws_s3_bucket_website_configuration.web.website_endpoint
+  description = "Endpoint web del sitio estático del frontend en S3 (bucket fuera de Terraform, ver storage.tf)."
+  # Endpoint estilo website de us-east-1; si cambia la región, verificarlo en
+  # la consola (Properties > Static website hosting).
+  value = "http://${var.web_bucket_name}.s3-website-us-east-1.amazonaws.com"
 }
 
 output "api_gateway_invoke_url" {

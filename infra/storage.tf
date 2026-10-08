@@ -1,53 +1,21 @@
 # ---------------------------------------------------------------------------
 # S3: hosting del sitio estático del frontend React (build de Vite).
-# El bucket tiene nombre globalmente único (variable con default
-# distintivo); si ya está en uso, cambiarlo en terraform.tfvars.
+#
+# FUERA DE TERRAFORM — restricción del Learner Lab:
+# el Service Control Policy de la cuenta AWS Academy deniega con 403
+# s3:GetBucketObjectLockConfiguration y el proveedor AWS lo invoca al
+# refrescar aws_s3_bucket, lo que rompe cualquier `terraform plan` futuro
+# (issue conocida: hashicorp/terraform-provider-aws#7550/#17433; no hay
+# permiso que conceder porque la denegación es explícita a nivel organización).
+# Por eso el bucket se crea y configura A MANO en la consola, igual que en la
+# v1. Pasos (una sola vez):
+#   1. Crear bucket con el nombre de var.web_bucket_name.
+#   2. Properties > Static website hosting > Enable, index.html + error.html.
+#   3. Permissions > Block all public access > Off (4 flags).
+#   4. Permissions > Bucket policy > pegar la política de solo lectura:
+#      {"Version":"2012-10-17","Statement":[{"Sid":"LecturaPublicaSitioEstatico",
+#      "Effect":"Allow","Principal":"*","Action":["s3:GetObject"],
+#      "Resource":["arn:aws:s3::<nombre-del-bucket>/*"]}]}
+# El archivo del sitio se sube con el build (aws s3 sync o consola).
+# Detalle completo en odd/tasks/terraform-esqueleto.md.
 # ---------------------------------------------------------------------------
-
-resource "aws_s3_bucket" "web" {
-  bucket = var.web_bucket_name
-}
-
-# El bloqueo de acceso público viene activado por defecto en buckets nuevos;
-# se desactiva para permitir el sitio estático público.
-resource "aws_s3_bucket_public_access_block" "web" {
-  bucket                  = aws_s3_bucket.web.id
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
-# SPA de una sola página: cualquier ruta sin archivo vuelve a index.html.
-resource "aws_s3_bucket_website_configuration" "web" {
-  bucket = aws_s3_bucket.web.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "index.html"
-  }
-}
-
-# Política de solo lectura para el objeto del sitio. jsonencode evita
-# declarar data sources con "iam" en el nombre (restricción de lab: el
-# recurso resultante es una política de bucket, no un recurso IAM).
-resource "aws_s3_bucket_policy" "web" {
-  bucket     = aws_s3_bucket.web.id
-  depends_on = [aws_s3_bucket_public_access_block.web]
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "LecturaPublicaSitioEstatico"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = ["s3:GetObject"]
-        Resource  = ["${aws_s3_bucket.web.arn}/*"]
-      }
-    ]
-  })
-}
