@@ -1,7 +1,7 @@
 # 🧁 Pastelería My Dreams — Fullstack Web App
 
 ¡Bienvenido a la versión final de **Pastelería My Dreams**! 🚀
-Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstack** robusta y modular. Se reconstruyó como una **Single Page Application (SPA)** con React, conectada a una **arquitectura distribuida de microservicios** en Java Spring Boot y respaldada por una base de datos relacional (MySQL/XAMPP).
+Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstack** robusta y modular. Se reconstruyó como una **Single Page Application (SPA)** con React, conectada a una **arquitectura distribuida de microservicios** en Java Spring Boot y respaldada por una base de datos relacional MySQL (Amazon RDS en la nube; XAMPP o Docker en desarrollo local).
 
 ---
 
@@ -9,11 +9,11 @@ Este proyecto ha evolucionado de un sitio estático a una aplicación **Fullstac
 
 Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proyectos distintos: es el mismo código. La rama se corta al momento de entregar y queda congelada ahí.
 
-| Rama | Versión | Contenido |
-| :--- | :--- | :--- |
-| `version-1` | **Entrega 1** | Catálogo con CRUD, panel de administración, login con Google y contacto por Formspree. |
-| `version-2` | **Entrega 2** | Comunicación asíncrona con colas usando Apache Kafka. |
-| `version-3` | **Unidad 3** | Pendiente. |
+| Rama | Versión | Contenido | URL desplegada |
+| :--- | :--- | :--- | :--- |
+| `version-1` (tag `entrega-1`) | **Entrega 1** | Catálogo con CRUD, panel de administración, login con Google y contacto por Formspree. | http://pasteleria-my-dreams-frontend.s3-website-us-east-1.amazonaws.com/ |
+| `version-2` (tag `entrega-2`) | **Entrega 2** | Comunicación asíncrona con colas usando Apache Kafka. | http://pasteleria-my-dreams-web-8digital.s3-website-us-east-1.amazonaws.com/ |
+| `version-3` | **Unidad 3** | Pendiente. | — |
 
 `main` siempre lleva el último avance del desarrollo.
 
@@ -46,6 +46,8 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 * 🗄️ **AWS RDS (MySQL) & Hibernate JPA** (Gestión de base de datos relacional en la nube y ORM)
 * 🛡️ Spring Security (Gestión de seguridad y filtros de autorización)
 * 🏗️ Maven (Gestión de dependencias)
+* 📨 **Apache Kafka** (Cola de mensajes en EC2, tópico `pedidos`; comunicación asíncrona entre servicios)
+* 🌍 **Terraform** (Infraestructura como código en `infra/`)
 * 📧 **Formspree** (Servicio externo de mensajería)
 
 ---
@@ -56,7 +58,7 @@ Para levantar el proyecto localmente, sigue estos pasos:
 
 ```bash
 # 1. Clonar el repositorio
-git clone [https://github.com/CatherineGodoy/pasteleria-my-dreams-react.git](https://github.com/CatherineGodoy/pasteleria-my-dreams-react.git)
+git clone https://github.com/DonMatii/pasteleria-my-dreams-react.git
 ```
 
 ```bash
