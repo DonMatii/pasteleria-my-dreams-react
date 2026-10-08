@@ -33,7 +33,36 @@ locals {
     # advertised.listeners y se agrega la correcta al final del archivo; si la
     # verificación posterior falla, el user_data termina con error.
     TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 300")
-    PUBLIC_DNS=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-hostname)
+    # Carrera con la EIP: la asociación de la IP elástica ocurre en los
+    # primeros segundos y reemplaza la IP efímera. Si se captura el
+    # public-hostname antes de esa asociación, el broker anunciaría una IP
+    # que ya no existe y ningún otro servicio podría conectarse. Se muestrea
+    # hasta 24 veces con 5 s entre rondas y se considera estable cuando hay 3
+    # muestras consecutivas iguales y no vacías (2 coincidencias seguidas tras
+    # la primera). Si el bucle termina sin confirmar, se usa el último valor.
+    LAST_HOST=""
+    STABLE_COUNT=0
+    STABLE_HOST=""
+    for i in $(seq 1 24); do
+      HOST=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-hostname)
+      if [ -n "$HOST" ] && [ "$HOST" = "$LAST_HOST" ]; then
+        STABLE_COUNT=$((STABLE_COUNT + 1))
+      else
+        STABLE_COUNT=0
+      fi
+      LAST_HOST="$HOST"
+      if [ "$STABLE_COUNT" -ge 2 ]; then
+        STABLE_HOST="$HOST"
+        echo "public-hostname estable tras $i muestras: $HOST"
+        break
+      fi
+      sleep 5
+    done
+    if [ -z "$STABLE_HOST" ]; then
+      STABLE_HOST="$LAST_HOST"
+      echo "AVISO: public-hostname no confirmado como estable; se usa el ultimo valor: $STABLE_HOST" >&2
+    fi
+    PUBLIC_DNS="$STABLE_HOST"
     CONF=/opt/kafka/config/kraft/server.properties
     sed -i '/^advertised.listeners=/d' "$CONF"
     echo "advertised.listeners=PLAINTEXT://$PUBLIC_DNS:9092" >> "$CONF"

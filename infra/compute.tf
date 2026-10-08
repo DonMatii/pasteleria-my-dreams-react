@@ -113,3 +113,45 @@ resource "aws_instance" "notificaciones" {
     Port    = "8083"
   }
 }
+
+# ---------------------------------------------------------------------------
+# IPs elásticas (EIP): una por instancia para que la IP pública sea ESTABLE
+# entre reinicios del Learner Lab (la IP efímera que asigna el default VPC
+# cambia en cada arranque de sesión). Cuota del lab: 5 EIP por región y aquí
+# se usan exactamente 5 (4 servicios + Kafka), sin superarla.
+#
+# Costo: la EIP es gratis mientras está asociada a una instancia corriendo;
+# cuesta ~$0.005/h si queda asociada a una instancia parada (así AWS evita
+# que el IP se libere). Se acepta: entre sesiones del lab la instancia queda
+# detenida y la IP se conserva.
+# ---------------------------------------------------------------------------
+locals {
+  # Claves estables -> id de instancia. Las claves coinciden con las de
+  # rutas_api/hosts_api en apigw.tf; kafka viene de kafka.tf (referencia
+  # cruzada entre archivos, válida en Terraform).
+  instancias_eip = {
+    catalogo       = aws_instance.catalogo.id
+    estadisticas   = aws_instance.estadisticas.id
+    pedidos        = aws_instance.pedidos.id
+    notificaciones = aws_instance.notificaciones.id
+    kafka          = aws_instance.kafka.id
+  }
+}
+
+resource "aws_eip" "servicio" {
+  for_each = local.instancias_eip
+  domain   = "vpc"
+
+  tags = {
+    Name = "pasteleria-eip-${each.key}"
+  }
+}
+
+# La asociación es lo que hace que la IP estable reemplace a la efímera: la
+# API Gateway y los READMEs deben apuntar siempre a la EIP (se lee desde
+# aws_eip.servicio, nunca desde aws_instance.*.public_ip).
+resource "aws_eip_association" "servicio" {
+  for_each      = local.instancias_eip
+  instance_id   = each.value
+  allocation_id = aws_eip.servicio[each.key].allocation_id
+}

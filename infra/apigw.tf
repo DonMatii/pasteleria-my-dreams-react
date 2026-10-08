@@ -62,13 +62,16 @@ locals {
     }
   }]...)
 
-  # Destino por servicio: IP pública de su EC2. Se mantiene separado de
-  # rutas_api para que for_each solo reciba valores conocidos en plan.
+  # Destino por servicio: IP pública ESTABLE (EIP) de su EC2. Se lee desde
+  # aws_eip.servicio y jamás desde aws_instance.*.public_ip: en el primer
+  # apply esa IP sería la efímera previa a la asociación de la EIP y las
+  # integraciones apuntarían a una dirección que la asociación reemplaza.
+  # for_each solo recibe valores conocidos en plan.
   hosts_api = {
-    catalogo       = aws_instance.catalogo.public_ip
-    estadisticas   = aws_instance.estadisticas.public_ip
-    pedidos        = aws_instance.pedidos.public_ip
-    notificaciones = aws_instance.notificaciones.public_ip
+    catalogo       = aws_eip.servicio["catalogo"].public_ip
+    estadisticas   = aws_eip.servicio["estadisticas"].public_ip
+    pedidos        = aws_eip.servicio["pedidos"].public_ip
+    notificaciones = aws_eip.servicio["notificaciones"].public_ip
   }
 }
 
