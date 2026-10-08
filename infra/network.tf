@@ -35,7 +35,7 @@ resource "aws_security_group" "web" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description = "SSH de administración"
+    description = "SSH de administracion"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -43,7 +43,7 @@ resource "aws_security_group" "web" {
   }
 
   ingress {
-    description = "Puertos de los servicios: 8080 catálogo, 8081 estadísticas, 8082 pedidos, 8083 notificaciones"
+    description = "Puertos de los servicios: 8080 catalogo, 8081 estadisticas, 8082 pedidos, 8083 notificaciones"
     from_port   = 8080
     to_port     = 8083
     protocol    = "tcp"
@@ -75,7 +75,7 @@ resource "aws_security_group" "db" {
   }
 
   ingress {
-    description = "MySQL desde la red de administración (práctica de lab)"
+    description = "MySQL desde la red de administracion (practica de lab)"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
@@ -108,7 +108,7 @@ resource "aws_security_group" "kafka" {
   }
 
   ingress {
-    description = "Kafka desde la red de administración (pruebas del lab)"
+    description = "Kafka desde la red de administracion (pruebas del lab)"
     from_port   = 9092
     to_port     = 9092
     protocol    = "tcp"
@@ -116,7 +116,7 @@ resource "aws_security_group" "kafka" {
   }
 
   ingress {
-    description = "SSH de administración"
+    description = "SSH de administracion"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
