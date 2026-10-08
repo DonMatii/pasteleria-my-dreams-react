@@ -47,6 +47,21 @@ locals {
     }
   }
 
+  # Verbos HTTP cubiertos por el gateway (OPTIONS incluido: el preflight CORS
+  # pasa tal cual a los backends Spring).
+  verbos_api = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+
+  # Mapa aplanado servicio-verbo para for_each: claves estáticas, valores
+  # estáticos (prefijo y puerto salen de rutas_api).
+  metodos_ruta = merge([for svc, cfg in local.rutas_api : {
+    for verb in local.verbos_api : "${svc}-${verb}" => {
+      servicio = svc
+      verbo    = verb
+      prefijo  = cfg.prefijo
+      puerto   = cfg.puerto
+    }
+  }]...)
+
   # Destino por servicio: IP pública de su EC2. Se mantiene separado de
   # rutas_api para que for_each solo reciba valores conocidos en plan.
   hosts_api = {
@@ -74,32 +89,36 @@ resource "aws_api_gateway_resource" "ruta_proxy" {
   path_part   = "{proxy+}"
 }
 
-# Método ANY (cualquier verbo HTTP) sobre la coincidencia exacta.
+# Método concreto por verbo HTTP sobre la coincidencia exacta.
 resource "aws_api_gateway_method" "ruta" {
-  for_each      = local.rutas_api
+  for_each      = local.metodos_ruta
   rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.ruta[each.key].id
-  http_method   = "ANY"
+  resource_id   = aws_api_gateway_resource.ruta[each.value.servicio].id
+  http_method   = each.value.verbo
   authorization = "NONE"
 }
 
-# Integración HTTP_PROXY: reenvía la petición tal cual al EC2 destino.
+# Integración HTTP_PROXY por verbo: reenvía la petición tal cual al EC2
+# destino. Cada verbo tiene su propia integración con un integration_http_method
+# concreto (patrón estándar de la consola de AWS), en lugar de usar ANY como
+# método de integración.
 resource "aws_api_gateway_integration" "ruta" {
-  for_each                = local.rutas_api
+  for_each                = local.metodos_ruta
   rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.ruta[each.key].id
+  resource_id             = aws_api_gateway_resource.ruta[each.value.servicio].id
   http_method             = aws_api_gateway_method.ruta[each.key].http_method
   type                    = "HTTP_PROXY"
-  integration_http_method = "ANY"
-  uri                     = "http://${local.hosts_api[each.key]}:${each.value.puerto}/api/${each.value.prefijo}"
+  integration_http_method = each.value.verbo
+  uri                     = "http://${local.hosts_api[each.value.servicio]}:${each.value.puerto}/api/${each.value.prefijo}"
 }
 
-# Método ANY sobre el comodín {proxy+}, declarando el parámetro de ruta.
+# Método concreto por verbo sobre el comodín {proxy+}, declarando el parámetro
+# de ruta.
 resource "aws_api_gateway_method" "ruta_proxy" {
-  for_each      = local.rutas_api
+  for_each      = local.metodos_ruta
   rest_api_id   = aws_api_gateway_rest_api.api.id
-  resource_id   = aws_api_gateway_resource.ruta_proxy[each.key].id
-  http_method   = "ANY"
+  resource_id   = aws_api_gateway_resource.ruta_proxy[each.value.servicio].id
+  http_method   = each.value.verbo
   authorization = "NONE"
 
   request_parameters = {
@@ -108,15 +127,16 @@ resource "aws_api_gateway_method" "ruta_proxy" {
 }
 
 # Integración proxy del comodín: {proxy} en la URI se reemplaza por el tramo
-# de ruta restante, mapeado desde la petición.
+# de ruta restante, mapeado desde la petición. Igual que arriba, una integración
+# por verbo con integration_http_method concreto.
 resource "aws_api_gateway_integration" "ruta_proxy" {
-  for_each                = local.rutas_api
+  for_each                = local.metodos_ruta
   rest_api_id             = aws_api_gateway_rest_api.api.id
-  resource_id             = aws_api_gateway_resource.ruta_proxy[each.key].id
+  resource_id             = aws_api_gateway_resource.ruta_proxy[each.value.servicio].id
   http_method             = aws_api_gateway_method.ruta_proxy[each.key].http_method
   type                    = "HTTP_PROXY"
-  integration_http_method = "ANY"
-  uri                     = "http://${local.hosts_api[each.key]}:${each.value.puerto}/api/${each.value.prefijo}/{proxy}"
+  integration_http_method = each.value.verbo
+  uri                     = "http://${local.hosts_api[each.value.servicio]}:${each.value.puerto}/api/${each.value.prefijo}/{proxy}"
 
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
