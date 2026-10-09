@@ -52,7 +52,7 @@ describe("Pruebas de Formulario de Contacto - My Dreams", () => {
     fireEvent.change(screen.getByPlaceholderText(/12345678/i), { target: { value: "98765432" } });
     
     const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "pedido" } });
+    fireEvent.change(select, { target: { value: "consulta" } });
 
     const textarea = screen.getByPlaceholderText(/Escribe aquí\.\.\./i);
     fireEvent.change(textarea, { target: { value: "Hola, este es un mensaje de prueba con más de veinte caracteres para que pase la validación." } });

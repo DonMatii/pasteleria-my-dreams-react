@@ -32,9 +32,12 @@ const normalizarEstado = (estado) => {
 // Fecha ISO del backend → texto legible (mismo locale es-CL que usan los precios)
 const formatearFecha = (fecha) => {
   if (!fecha) return "—";
-  // El backend devuelve la fecha en UTC (sin offset). Forzar America/Santiago
-  // para que el cliente vea la hora local de Chile, no la del servidor.
-  const fechaParseada = new Date(fecha);
+  // El backend devuelve UTC sin sufijo Z (ej: 2026-10-09T20:46:19.47154).
+  // JS lo trataria como hora local si no forzamos Z; luego convertimos a Chile.
+  const esUtcSinSufijo =
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(fecha);
+  const texto = esUtcSinSufijo ? `${fecha}Z` : fecha;
+  const fechaParseada = new Date(texto);
   if (Number.isNaN(fechaParseada.getTime())) return String(fecha);
   return fechaParseada.toLocaleString("es-CL", {
     dateStyle: "long",

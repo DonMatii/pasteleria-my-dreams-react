@@ -159,7 +159,6 @@ const Contacto = () => {
               className={errores.asunto ? "input-error" : ""}
             >
               <option value="">Selecciona una opción...</option>
-              <option value="pedido">Hacer un pedido</option>
               <option value="consulta">Consulta general</option>
               <option value="felicitacion">Felicitaciones</option>
               <option value="reclamo">Reclamo</option>
