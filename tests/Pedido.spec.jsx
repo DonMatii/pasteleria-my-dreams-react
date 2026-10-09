@@ -32,6 +32,15 @@ const URL_PEDIDOS = `${import.meta.env.VITE_API_BASE_URL}/api/pedidos`;
 const esperarCatalogo = () =>
   screen.findByRole("button", { name: /Selva Negra/i });
 
+// Nuevo flujo: elegir tarjeta, poner cantidad y agregar al carrito
+const agregarProducto = (nombre, cantidad = "1") => {
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(nombre, "i") }));
+  fireEvent.change(screen.getByLabelText(/^Cantidad:/i), {
+    target: { value: cantidad },
+  });
+  fireEvent.click(screen.getByRole("button", { name: /Agregar al pedido/i }));
+};
+
 const llenarFormularioValido = async () => {
   fireEvent.change(await screen.findByLabelText(/Nombre del Cliente/i), {
     target: { value: "Catherine Test" },
@@ -39,8 +48,8 @@ const llenarFormularioValido = async () => {
   fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), {
     target: { value: "cat@test.com" },
   });
-  fireEvent.click(await screen.findByRole("button", { name: /Selva Negra/i }));
-  fireEvent.change(screen.getByLabelText(/Cantidad/i), { target: { value: "2" } });
+  await esperarCatalogo();
+  agregarProducto("Selva Negra", "2");
 };
 
 describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
@@ -73,7 +82,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
 
     expect(await screen.findByText(/Por favor, ingresa tu nombre/i)).toBeInTheDocument();
     expect(screen.getByText(/Ingresa un correo electrónico válido/i)).toBeInTheDocument();
-    expect(screen.getByText(/Selecciona un producto para tu pedido/i)).toBeInTheDocument();
+    expect(screen.getByText(/Agrega al menos un producto a tu pedido/i)).toBeInTheDocument();
 
     // Nada se envía si la validación falla
     expect(global.fetch).not.toHaveBeenCalled();
@@ -131,13 +140,56 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       })
     );
 
-    // El formulario se resetea después del éxito: ninguna tarjeta queda seleccionada
+    // El formulario se resetea después del éxito: carrito vacío
     expect(screen.getByLabelText(/Nombre del Cliente/i)).toHaveValue("");
     expect(screen.getByLabelText(/Correo Electrónico/i)).toHaveValue("");
     expect(
       screen.getByRole("button", { name: /Selva Negra/i })
     ).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByLabelText(/Cantidad/i)).toHaveValue(1);
+    expect(screen.queryByTestId("carrito-pedido")).not.toBeInTheDocument();
+  });
+
+  test("3b. Acepta varios productos en un mismo pedido (carrito)", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: vi.fn().mockResolvedValue({
+        id: 9,
+        total: 42000,
+        productos: [],
+        eventoPublicado: true,
+        codigoConsulta: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      }),
+    });
+
+    render(<Pedido />);
+    // Llenar datos de contacto primero
+    fireEvent.change(await screen.findByLabelText(/Nombre del Cliente/i), {
+      target: { value: "Catherine Test" },
+    });
+    fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), {
+      target: { value: "cat@test.com" },
+    });
+    await esperarCatalogo();
+
+    // Dos productos distintos: Selva Negra x2 + Manjar Lúcuma x1
+    agregarProducto("Selva Negra", "2");
+    agregarProducto("Manjar Lúcuma", "1");
+
+    // El total suma los dos items (30000 + 12000)
+    expect(screen.getByTestId("total-pedido")).toHaveTextContent("42.000");
+
+    fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
+
+    // El body lleva la lista COMPLETA que el backend espera
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+      const cuerpo = JSON.parse(global.fetch.mock.calls[0][1].body);
+      expect(cuerpo.productos).toEqual([
+        { nombre: "Selva Negra", cantidad: 2, precioUnitario: 15000 },
+        { nombre: "Manjar Lúcuma", cantidad: 1, precioUnitario: 12000 },
+      ]);
+    });
   });
 
   test("4. Un 400 del backend muestra el mensaje que devuelve la API", async () => {

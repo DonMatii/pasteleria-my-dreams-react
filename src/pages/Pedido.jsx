@@ -19,9 +19,13 @@ const Pedido = () => {
   const [formData, setFormData] = useState({
     cliente: "",
     email: "",
-    producto: "",
-    cantidad: "1",
   });
+
+  // Carrito simple: el pedido puede llevar varios productos.
+  // items = [{ id, nombre, precio, cantidad }]
+  const [items, setItems] = useState([]);
+  const [productoSel, setProductoSel] = useState("");
+  const [cantidadSel, setCantidadSel] = useState("1");
 
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
@@ -50,13 +54,73 @@ const Pedido = () => {
   }, []);
 
   const productoSeleccionado = productosCatalogo.find(
-    (prod) => String(prod.id) === String(formData.producto)
+    (prod) => String(prod.id) === String(productoSel)
   );
 
-  // Total en vivo: precioUnitario × cantidad (el backend recalcula el mismo total)
-  const total = productoSeleccionado
-    ? Number(productoSeleccionado.precio || 0) * Number(formData.cantidad || 0)
-    : 0;
+  // Total en vivo: suma de precio × cantidad de TODOS los items del carrito
+  // (el backend recalcula el mismo total a partir de la lista)
+  const total = items.reduce(
+    (suma, item) => suma + Number(item.precio) * Number(item.cantidad),
+    0
+  );
+
+  // Agregar el producto seleccionado (o sumar cantidad si ya esta en el carrito)
+  const agregarAlCarrito = () => {
+    if (!productoSeleccionado) {
+      setErrores({ ...errores, producto: "Selecciona un producto para tu pedido." });
+      return;
+    }
+    const cantidad = Number(cantidadSel);
+    if (!Number.isInteger(cantidad) || cantidad < 1) {
+      setErrores({
+        ...errores,
+        cantidad: "La cantidad debe ser un entero mayor o igual a 1.",
+      });
+      return;
+    }
+
+    const existente = items.find((it) => String(it.id) === String(productoSel));
+    if (existente) {
+      setItems(
+        items.map((it) =>
+          String(it.id) === String(productoSel)
+            ? { ...it, cantidad: Number(it.cantidad) + cantidad }
+            : it
+        )
+      );
+    } else {
+      setItems([
+        ...items,
+        {
+          id: productoSel,
+          nombre: productoSeleccionado.nombre,
+          precio: Number(productoSeleccionado.precio || 0),
+          cantidad,
+        },
+      ]);
+    }
+    // Limpia la seleccion para agregar otro producto distinto
+    setProductoSel("");
+    setCantidadSel("1");
+    setErrores({ ...errores, producto: "", cantidad: "" });
+  };
+
+  const quitarItem = (id) => {
+    setItems(items.filter((it) => String(it.id) !== String(id)));
+  };
+
+  const cambiarCantidadItem = (id, nueva) => {
+    const cantidad = Number(String(nueva).replace(/\D/g, ""));
+    if (!cantidad || cantidad < 1) {
+      // No se permiten cantidades invalidas: se ignora el cambio
+      return;
+    }
+    setItems(
+      items.map((it) =>
+        String(it.id) === String(id) ? { ...it, cantidad } : it
+      )
+    );
+  };
 
   // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido Y siga disponible
   // (disponible = no canjeado: el codigo se gana una sola vez por navegador)
@@ -74,12 +138,7 @@ const Pedido = () => {
       }
       return;
     }
-    if (id === "cantidad") {
-      // Solo dígitos: la cantidad siempre será un entero
-      setFormData({ ...formData, cantidad: value.replace(/\D/g, "") });
-    } else {
-      setFormData({ ...formData, [id]: value });
-    }
+    setFormData({ ...formData, [id]: value });
     if (errores[id]) setErrores({ ...errores, [id]: "" });
   };
 
@@ -102,14 +161,9 @@ const Pedido = () => {
       esValido = false;
     }
 
-    if (!formData.producto) {
-      nuevosErrores.producto = "Selecciona un producto para tu pedido.";
-      esValido = false;
-    }
-
-    const cantidad = Number(formData.cantidad);
-    if (!formData.cantidad || !Number.isInteger(cantidad) || cantidad < 1) {
-      nuevosErrores.cantidad = "La cantidad debe ser un entero mayor o igual a 1.";
+    if (!items.length) {
+      nuevosErrores.producto =
+        "Agrega al menos un producto a tu pedido.";
       esValido = false;
     }
 
@@ -144,17 +198,15 @@ const Pedido = () => {
     setLoading(true);
 
     // Cuerpo exacto de PedidoRequest (POST /api/pedidos): cliente + email + lista de productos.
-    // La UI registra un solo producto por pedido, pero el contrato acepta una lista.
+    // El carrito arma la lista completa que el backend espera.
     const cuerpoPedido = {
       cliente: formData.cliente.trim(),
       email: formData.email.trim(),
-      productos: [
-        {
-          nombre: productoSeleccionado.nombre,
-          cantidad: Number(formData.cantidad),
-          precioUnitario: Number(productoSeleccionado.precio),
-        },
-      ],
+      productos: items.map((it) => ({
+        nombre: it.nombre,
+        cantidad: Number(it.cantidad),
+        precioUnitario: Number(it.precio),
+      })),
     };
     // Solo un codigo valido y disponible viaja al backend; la validacion corta el re-ingreso
     if (codigoValido && codigoDisponible) {
@@ -189,7 +241,10 @@ const Pedido = () => {
           )}. Tu código de seguimiento: ${codigoSeguimiento} (guárdalo para consultar el estado).${textoDescuento} Te enviaremos la confirmación a tu correo. 🧁`,
           confirmButtonColor: "#d95386",
         });
-        setFormData({ cliente: "", email: "", producto: "", cantidad: "1" });
+        setFormData({ cliente: "", email: "" });
+        setItems([]);
+        setProductoSel("");
+        setCantidadSel("1");
         setCodigoDescuento("");
         setErrores({});
       } else if (response.status === 400) {
@@ -215,7 +270,7 @@ const Pedido = () => {
     <main className="main-content">
       <h1 className="titulo-principal">¡Haz tu pedido!</h1>
       <p className="subtitulo-home">
-        Elige tu delicia favorita y la registramos al instante.
+        Arma tu pedido con una o varias delicias y la registramos al instante.
       </p>
 
       <div className="formulario-container">
@@ -247,7 +302,7 @@ const Pedido = () => {
           </div>
 
           <div className="form-group">
-            <label id="etiqueta-producto">Producto:</label>
+            <label id="etiqueta-producto">Agrega tus productos:</label>
             {cargandoCatalogo && <p className="selector-estado">Cargando productos...</p>}
             <div
               className="pedido-selector-grid"
@@ -256,7 +311,7 @@ const Pedido = () => {
               data-testid="selector-productos"
             >
               {productosCatalogo.map((prod) => {
-                const seleccionado = String(prod.id) === String(formData.producto);
+                const seleccionado = String(prod.id) === String(productoSel);
                 return (
                   <button
                     key={prod.id}
@@ -264,7 +319,7 @@ const Pedido = () => {
                     className={`pedido-tarjeta${seleccionado ? " pedido-tarjeta-activa" : ""}`}
                     aria-pressed={seleccionado}
                     onClick={() => {
-                      setFormData({ ...formData, producto: String(prod.id) });
+                      setProductoSel(String(prod.id));
                       if (errores.producto) setErrores({ ...errores, producto: "" });
                     }}
                   >
@@ -288,19 +343,68 @@ const Pedido = () => {
             {errorCatalogo && <span className="error-text">{errorCatalogo}</span>}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="cantidad">Cantidad:</label>
-            <input
-              type="number"
-              id="cantidad"
-              min="1"
-              value={formData.cantidad}
-              onChange={handleChange}
-              className={errores.cantidad ? "input-error" : ""}
-              placeholder="1"
-            />
-            {errores.cantidad && <span className="error-text">{errores.cantidad}</span>}
+          <div className="form-group pedido-agregar-fila">
+            <div className="pedido-agregar-campo">
+              <label htmlFor="cantidadSel">Cantidad:</label>
+              <input
+                type="number"
+                id="cantidadSel"
+                min="1"
+                value={cantidadSel}
+                onChange={(e) =>
+                  setCantidadSel(e.target.value.replace(/\D/g, ""))
+                }
+                className={errores.cantidad ? "input-error" : ""}
+                placeholder="1"
+              />
+              {errores.cantidad && (
+                <span className="error-text">{errores.cantidad}</span>
+              )}
+            </div>
+            <button
+              type="button"
+              className="boton-secundario"
+              onClick={agregarAlCarrito}
+            >
+              Agregar al pedido
+            </button>
           </div>
+
+          {items.length > 0 && (
+            <div className="form-group" data-testid="carrito-pedido">
+              <label>Tu pedido:</label>
+              <ul className="pedido-carrito">
+                {items.map((it) => (
+                  <li key={it.id} className="pedido-carrito-item">
+                    <span className="pedido-carrito-nombre">{it.nombre}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      aria-label={`Cantidad de ${it.nombre}`}
+                      value={it.cantidad}
+                      onChange={(e) =>
+                        cambiarCantidadItem(it.id, e.target.value)
+                      }
+                      className="pedido-carrito-cantidad"
+                    />
+                    <span className="pedido-carrito-subtotal">
+                      ${(Number(it.precio) * Number(it.cantidad)).toLocaleString(
+                        "es-CL"
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      className="pedido-carrito-quitar"
+                      aria-label={`Quitar ${it.nombre}`}
+                      onClick={() => quitarItem(it.id)}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="codigoDescuento">Código de descuento (opcional):</label>

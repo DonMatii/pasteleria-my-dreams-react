@@ -56,7 +56,13 @@ function Delicias() {
     cargarTodo();
   }, [isLoggedIn]);
 
-  if (cargando) return <div className="loader">Cargando delicias...</div>;
+  if (cargando)
+    return (
+      <div className="loader-container">
+        <div className="spinner" />
+        <p className="loader-texto">Cargando delicias...</p>
+      </div>
+    );
 
   // Pantalla de aviso profesional si no hay sesión
   if (!isLoggedIn) {
