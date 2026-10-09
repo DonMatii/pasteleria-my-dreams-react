@@ -22,7 +22,7 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 ## ✨ Logros de esta Entrega Final
 
 * **Arquitectura de Microservicios en la Nube:** Conexión en tiempo real con microservicios independientes en Java Spring Boot desplegados en AWS EC2, orquestados mediante **AWS API Gateway** con enrutamiento de proxy y gestión completa de CORS.
-* **Admin Panel Pro:** Panel de administración protegido para gestionar el inventario del catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar) y visualizar métricas operativas del sistema en vivo.
+* **Admin Panel Pro:** Panel de administración protegido para gestionar el inventario del catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar) y visualizar en vivo los pedidos recibidos y el total de ventas, calculados a partir de los pedidos reales que llegan por Kafka.
 * **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de clientes y acceso seguro, combinada con credenciales de administrador para la gestión del panel.
 * **Persistencia de Datos en AWS RDS:** Gestión de productos vinculada a una base de datos relacional alojada en la nube mediante Spring Data JPA e Hibernate, permitiendo sincronización inmediata.
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
