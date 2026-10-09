@@ -145,7 +145,7 @@ const cargarDatos = () => {
 
         {/* Tarjeta del Segundo Microservicio: Estadísticas */}
         {stats && (
-          <div style={{ background: "#fff5f8", border: "1px solid #d95386", padding: "12px", borderRadius: "8px", marginBottom: "20px", display: "flex", justifyContent: "space-around", textAlign: "center" }}>
+          <div style={{ background: "#fff5f8", border: "1px solid #d95386", padding: "12px", borderRadius: "8px", marginBottom: "20px", display: "flex", flexWrap: "wrap", gap: "8px 16px", justifyContent: "space-around", textAlign: "center" }}>
             <div>
               <span style={{ display: "block", fontSize: "13px", color: "#666" }}>📦 Total Catálogo</span>
               <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.totalProductosCatalogo}</strong>
@@ -153,6 +153,16 @@ const cargarDatos = () => {
             <div>
               <span style={{ display: "block", fontSize: "13px", color: "#666" }}>🏷️ Categorías</span>
               <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.categoriasActivas}</strong>
+            </div>
+            <div>
+              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>🧾 Pedidos recibidos</span>
+              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.pedidosTotales ?? 0}</strong>
+            </div>
+            <div>
+              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>💰 Ventas totales</span>
+              <strong style={{ fontSize: "16px", color: "#d95386" }}>
+                ${Number(stats.montoTotalPedidos ?? 0).toLocaleString("es-CL")}
+              </strong>
             </div>
             <div>
               <span style={{ display: "block", fontSize: "13px", color: "#666" }}>⚙️ Estado MS</span>
