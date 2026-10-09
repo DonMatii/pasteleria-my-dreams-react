@@ -30,7 +30,7 @@ const catalogoDePrueba = {
 const URL_PEDIDOS = `${import.meta.env.VITE_API_BASE_URL}/api/pedidos`;
 
 const esperarCatalogo = () =>
-  screen.findByRole("option", { name: /Selva Negra/i });
+  screen.findByRole("button", { name: /Selva Negra/i });
 
 const llenarFormularioValido = async () => {
   fireEvent.change(await screen.findByLabelText(/Nombre del Cliente/i), {
@@ -39,7 +39,7 @@ const llenarFormularioValido = async () => {
   fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), {
     target: { value: "cat@test.com" },
   });
-  fireEvent.change(screen.getByRole("combobox"), { target: { value: "1" } });
+  fireEvent.click(await screen.findByRole("button", { name: /Selva Negra/i }));
   fireEvent.change(screen.getByLabelText(/Cantidad/i), { target: { value: "2" } });
 };
 
@@ -51,16 +51,16 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
     localStorage.clear();
   });
 
-  test("1. Debe renderizar la página y poblar el select con el catálogo", async () => {
+  test("1. Debe renderizar la página y poblar las tarjetas con el catálogo", async () => {
     render(<Pedido />);
 
     expect(screen.getByText(/¡Haz tu pedido!/i)).toBeInTheDocument();
-    expect(await esperarCatalogo()).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /Manjar Lúcuma/i })).toBeInTheDocument();
-    // Precio visible en la opción del select
-    expect(screen.getByRole("option", { name: /Selva Negra/i })).toHaveTextContent(
-      "$15.000"
-    );
+    const tarjetaSelva = await esperarCatalogo();
+    expect(screen.getByRole("button", { name: /Manjar Lúcuma/i })).toBeInTheDocument();
+    // La tarjeta muestra el precio del producto
+    expect(tarjetaSelva).toHaveTextContent("$15.000");
+    // Ninguna tarjeta empieza seleccionada
+    expect(tarjetaSelva).toHaveAttribute("aria-pressed", "false");
   });
 
   test("2. La validación bloquea el envío y muestra los errores", async () => {
@@ -131,10 +131,12 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       })
     );
 
-    // El formulario se resetea después del éxito
+    // El formulario se resetea después del éxito: ninguna tarjeta queda seleccionada
     expect(screen.getByLabelText(/Nombre del Cliente/i)).toHaveValue("");
     expect(screen.getByLabelText(/Correo Electrónico/i)).toHaveValue("");
-    expect(screen.getByRole("combobox")).toHaveValue("");
+    expect(
+      screen.getByRole("button", { name: /Selva Negra/i })
+    ).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByLabelText(/Cantidad/i)).toHaveValue(1);
   });
 

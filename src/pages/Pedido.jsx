@@ -247,26 +247,43 @@ const Pedido = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="producto">Producto:</label>
-            <select
-              id="producto"
-              value={formData.producto}
-              onChange={handleChange}
-              className={errores.producto ? "input-error" : ""}
+            <label id="etiqueta-producto">Producto:</label>
+            {cargandoCatalogo && <p className="selector-estado">Cargando productos...</p>}
+            <div
+              className="pedido-selector-grid"
+              role="group"
+              aria-labelledby="etiqueta-producto"
+              data-testid="selector-productos"
             >
-              <option value="">
-                {cargandoCatalogo
-                  ? "Cargando productos..."
-                  : errorCatalogo
-                  ? "Productos no disponibles"
-                  : "Selecciona un producto..."}
-              </option>
-              {productosCatalogo.map((prod) => (
-                <option key={prod.id} value={String(prod.id)}>
-                  {prod.nombre} — ${Number(prod.precio || 0).toLocaleString("es-CL")}
-                </option>
-              ))}
-            </select>
+              {productosCatalogo.map((prod) => {
+                const seleccionado = String(prod.id) === String(formData.producto);
+                return (
+                  <button
+                    key={prod.id}
+                    type="button"
+                    className={`pedido-tarjeta${seleccionado ? " pedido-tarjeta-activa" : ""}`}
+                    aria-pressed={seleccionado}
+                    onClick={() => {
+                      setFormData({ ...formData, producto: String(prod.id) });
+                      if (errores.producto) setErrores({ ...errores, producto: "" });
+                    }}
+                  >
+                    <img
+                      src={`/img/${prod.imagenUrl || "alfajor.jpg"}`}
+                      alt={prod.nombre}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = "/img/alfajor.jpg";
+                      }}
+                    />
+                    <span className="pedido-tarjeta-nombre">{prod.nombre}</span>
+                    <span className="pedido-tarjeta-precio">
+                      ${Number(prod.precio || 0).toLocaleString("es-CL")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
             {errores.producto && <span className="error-text">{errores.producto}</span>}
             {errorCatalogo && <span className="error-text">{errorCatalogo}</span>}
           </div>
