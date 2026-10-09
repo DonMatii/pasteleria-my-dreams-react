@@ -32,11 +32,14 @@ const normalizarEstado = (estado) => {
 // Fecha ISO del backend → texto legible (mismo locale es-CL que usan los precios)
 const formatearFecha = (fecha) => {
   if (!fecha) return "—";
+  // El backend devuelve la fecha en UTC (sin offset). Forzar America/Santiago
+  // para que el cliente vea la hora local de Chile, no la del servidor.
   const fechaParseada = new Date(fecha);
   if (Number.isNaN(fechaParseada.getTime())) return String(fecha);
   return fechaParseada.toLocaleString("es-CL", {
     dateStyle: "long",
     timeStyle: "short",
+    timeZone: "America/Santiago",
   });
 };
 
