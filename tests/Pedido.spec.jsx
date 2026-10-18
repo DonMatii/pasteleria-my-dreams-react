@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import Pedido from "../src/pages/Pedido";
+import { CarritoProvider } from "../src/context/CarritoContext";
 import { obtenerProductos } from "../src/service/ProductosService";
 import Swal from "sweetalert2";
 
@@ -18,6 +19,14 @@ vi.mock("sweetalert2", () => ({
     fire: vi.fn().mockResolvedValue({ isConfirmed: true }),
   },
 }));
+
+// Pedido usa el carrito compartido: siempre se renderiza con el provider
+const renderPedido = () =>
+  render(
+    <CarritoProvider>
+      <Pedido />
+    </CarritoProvider>
+  );
 
 // Respuesta simulada de GET /api/productos (Map agrupado por categoría)
 const catalogoDePrueba = {
@@ -61,7 +70,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   });
 
   test("1. Debe renderizar la página y poblar las tarjetas con el catálogo", async () => {
-    render(<Pedido />);
+    renderPedido();
 
     expect(screen.getByText(/¡Haz tu pedido!/i)).toBeInTheDocument();
     const tarjetaSelva = await esperarCatalogo();
@@ -75,7 +84,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   test("2. La validación bloquea el envío y muestra los errores", async () => {
     global.fetch = vi.fn();
 
-    render(<Pedido />);
+    renderPedido();
     await esperarCatalogo();
 
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
@@ -106,7 +115,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    render(<Pedido />);
+    renderPedido();
     await llenarFormularioValido();
 
     // Total en vivo: precioUnitario (15000) × cantidad (2)
@@ -162,7 +171,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    render(<Pedido />);
+    renderPedido();
     // Llenar datos de contacto primero
     fireEvent.change(await screen.findByLabelText(/Nombre del Cliente/i), {
       target: { value: "Catherine Test" },
@@ -201,7 +210,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
         .mockResolvedValue({ mensaje: "La cantidad de cada producto debe ser al menos 1" }),
     });
 
-    render(<Pedido />);
+    renderPedido();
     await llenarFormularioValido();
 
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
@@ -218,7 +227,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   test("5. Un fallo de red muestra el Swal de error de conexión", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("sin red"));
 
-    render(<Pedido />);
+    renderPedido();
     await llenarFormularioValido();
 
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
@@ -247,7 +256,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    render(<Pedido />);
+    renderPedido();
     await llenarFormularioValido();
 
     // El código viene prellenado y el ahorro se ve en vivo (30000 - 10%)
@@ -278,7 +287,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   test("7. Un código desconocido bloquea el envío sin llamar al backend", async () => {
     global.fetch = vi.fn();
 
-    render(<Pedido />);
+    renderPedido();
     await llenarFormularioValido();
 
     fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
@@ -295,7 +304,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
     localStorage.setItem("md_primera_conexion", "1");
     global.fetch = vi.fn();
 
-    render(<Pedido />);
+    renderPedido();
     await llenarFormularioValido();
 
     fireEvent.change(screen.getByLabelText(/Código de descuento/i), {

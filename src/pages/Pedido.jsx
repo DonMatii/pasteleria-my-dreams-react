@@ -3,6 +3,7 @@ import "../App.css";
 import Swal from "sweetalert2";
 import { obtenerProductos } from "../service/ProductosService";
 import { URL_BASE } from "../service/apiClient";
+import { useCarrito } from "../context/CarritoContext";
 import {
   obtenerCodigoBienvenida,
   consumirCodigoBienvenida,
@@ -21,9 +22,16 @@ const Pedido = () => {
     email: "",
   });
 
-  // Carrito simple: el pedido puede llevar varios productos.
-  // items = [{ id, nombre, precio, cantidad }]
-  const [items, setItems] = useState([]);
+  // Carrito compartido con Delicias (contexto)
+  const {
+    items,
+    agregarAlCarrito: agregarItemAlCarrito,
+    quitarItem,
+    cambiarCantidad: cambiarCantidadItem,
+    limpiarCarrito,
+    total,
+  } = useCarrito();
+
   const [productoSel, setProductoSel] = useState("");
   const [cantidadSel, setCantidadSel] = useState("1");
 
@@ -57,13 +65,6 @@ const Pedido = () => {
     (prod) => String(prod.id) === String(productoSel)
   );
 
-  // Total en vivo: suma de precio × cantidad de TODOS los items del carrito
-  // (el backend recalcula el mismo total a partir de la lista)
-  const total = items.reduce(
-    (suma, item) => suma + Number(item.precio) * Number(item.cantidad),
-    0
-  );
-
   // Agregar el producto seleccionado (o sumar cantidad si ya esta en el carrito)
   const agregarAlCarrito = () => {
     if (!productoSeleccionado) {
@@ -79,47 +80,13 @@ const Pedido = () => {
       return;
     }
 
-    const existente = items.find((it) => String(it.id) === String(productoSel));
-    if (existente) {
-      setItems(
-        items.map((it) =>
-          String(it.id) === String(productoSel)
-            ? { ...it, cantidad: Number(it.cantidad) + cantidad }
-            : it
-        )
-      );
-    } else {
-      setItems([
-        ...items,
-        {
-          id: productoSel,
-          nombre: productoSeleccionado.nombre,
-          precio: Number(productoSeleccionado.precio || 0),
-          cantidad,
-        },
-      ]);
-    }
+    // Delega al carrito compartido la persistencia del item
+    agregarItemAlCarrito(productoSeleccionado, cantidad);
+
     // Limpia la seleccion para agregar otro producto distinto
     setProductoSel("");
     setCantidadSel("1");
     setErrores({ ...errores, producto: "", cantidad: "" });
-  };
-
-  const quitarItem = (id) => {
-    setItems(items.filter((it) => String(it.id) !== String(id)));
-  };
-
-  const cambiarCantidadItem = (id, nueva) => {
-    const cantidad = Number(String(nueva).replace(/\D/g, ""));
-    if (!cantidad || cantidad < 1) {
-      // No se permiten cantidades invalidas: se ignora el cambio
-      return;
-    }
-    setItems(
-      items.map((it) =>
-        String(it.id) === String(id) ? { ...it, cantidad } : it
-      )
-    );
   };
 
   // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido Y siga disponible
@@ -242,7 +209,7 @@ const Pedido = () => {
           confirmButtonColor: "#d95386",
         });
         setFormData({ cliente: "", email: "" });
-        setItems([]);
+        limpiarCarrito();
         setProductoSel("");
         setCantidadSel("1");
         setCodigoDescuento("");

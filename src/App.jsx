@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { CarritoProvider } from "./context/CarritoContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -15,47 +16,49 @@ import imgLogo from "./assets/img/logoPasteleria.png";
 
 function App() {
   return (
-    <div className="app-container">
-      <div className="logo-container">
-        <img src={imgLogo} alt="Logo My Dreams" className="logo-img" />
+    <CarritoProvider>
+      <div className="app-container">
+        <div className="logo-container">
+          <img src={imgLogo} alt="Logo My Dreams" className="logo-img" />
+        </div>
+
+        <Header />
+
+        <main className="main-content">
+          <Routes>
+            {/* RUTAS PÚBLICAS */}
+            <Route path="/" element={<Home />} />
+            <Route path="/delicias" element={<Delicias />} />
+            <Route path="/contacto" element={<Contacto />} />
+            <Route
+              path="/pedido"
+              element={
+                <ProtectedRoute teaser={<TeaserPedido />}>
+                  <Pedido />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/estado" element={<EstadoPedido />} />
+            <Route path="/login" element={<Login />} />
+
+            {/* RUTA PROTEGIDA */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Si la ruta no existe, vuelve al Home */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+
+        <Footer />
       </div>
-
-      <Header />
-
-      <main className="main-content">
-        <Routes>
-          {/* RUTAS PÚBLICAS */}
-          <Route path="/" element={<Home />} />
-          <Route path="/delicias" element={<Delicias />} />
-          <Route path="/contacto" element={<Contacto />} />
-          <Route
-            path="/pedido"
-            element={
-              <ProtectedRoute teaser={<TeaserPedido />}>
-                <Pedido />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/estado" element={<EstadoPedido />} />
-          <Route path="/login" element={<Login />} />
-
-          {/* RUTA PROTEGIDA */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute>
-                <AdminPanel />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Si la ruta no existe, vuelve al Home */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </main>
-
-      <Footer />
-    </div>
+    </CarritoProvider>
   );
 }
 

@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import logoPasteleria from "../assets/img/logoPasteleria.png"; 
+import { useCarrito } from "../context/CarritoContext";
+import logoPasteleria from "../assets/img/logoPasteleria.png";
 
 function Header() {
   const navigate = useNavigate();
+  const { cantidadTotal } = useCarrito();
   // ✅ Leemos de sessionStorage para coherencia con el Login
   const username = sessionStorage.getItem("userName");
 
@@ -28,6 +30,13 @@ function Header() {
           <li><Link to="/pedido">Pedido</Link></li>
           <li><Link to="/estado">Estado</Link></li>
           <li><Link to="/contacto">Contacto</Link></li>
+          
+          {/* Ícono del carrito con contador de items */}
+          <li>
+            <Link to="/pedido" className="carrito-link" aria-label={`Carrito: ${cantidadTotal} productos`}>
+              🛒 {cantidadTotal > 0 && <span className="carrito-contador">{cantidadTotal}</span>}
+            </Link>
+          </li>
           
           {/* Mostramos Admin solo si el usuario es 'admin' en la sesión activa */}
           {username?.toLowerCase() === 'admin' && (

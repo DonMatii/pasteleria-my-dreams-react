@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { obtenerProductos } from "../service/ProductosService";
+import { useCarrito } from "../context/CarritoContext";
 import "../App.css";
 
 function Delicias() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
-  // Detectamos si existe un token en la sesión
-  const [isLoggedIn] = useState(!!sessionStorage.getItem("userToken"));
+  const { agregarAlCarrito } = useCarrito();
 
   const secciones = [
     { titulo: "Sabores Frutales", cats: ["Sabores Frutales", "Pies", "Kutchen", "Tartas"] },
@@ -19,12 +19,6 @@ function Delicias() {
   ];
 
   useEffect(() => {
-    // Si no está logueado, no intentamos consultar la API
-    if (!isLoggedIn) {
-      setCargando(false);
-      return;
-    }
-
     const cargarTodo = async () => {
       try {
         const datos = await obtenerProductos();
@@ -54,7 +48,7 @@ function Delicias() {
       }
     };
     cargarTodo();
-  }, [isLoggedIn]);
+  }, []);
 
   if (cargando)
     return (
@@ -63,22 +57,6 @@ function Delicias() {
         <p className="loader-texto">Cargando delicias...</p>
       </div>
     );
-
-  // Pantalla de aviso profesional si no hay sesión
-  if (!isLoggedIn) {
-    return (
-      <main className="main-content" style={{ textAlign: "center", padding: "60px 20px" }}>
-        <h1 className="titulo-principal">Nuestro Catálogo</h1>
-        <div style={{ marginTop: "40px", padding: "40px", border: "1px solid #e1b1b1", borderRadius: "15px", backgroundColor: "#fff5f5", maxWidth: "600px", margin: "40px auto" }}>
-          <h2 style={{ color: "#d63384", fontSize: "2.5rem", marginBottom: "15px" }}>¡Hola!</h2>
-          <p style={{ fontSize: "1.2rem" }}>Para ver nuestras creaciones exclusivas, por favor inicia sesión.</p>
-          <a href="/login" className="boton-principal" style={{ display: "inline-block", marginTop: "25px", textDecoration: "none", padding: "12px 24px", fontSize: "1.1rem" }}>
-            Ir a Iniciar Sesión
-          </a>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="main-content">
@@ -107,6 +85,13 @@ function Delicias() {
                     <span className="precio-tag">
                       ${Number(prod.precio).toLocaleString("es-CL")}
                     </span>
+                    <button
+                      type="button"
+                      className="boton-agregar"
+                      onClick={() => agregarAlCarrito(prod, 1)}
+                    >
+                      Agregar al carrito
+                    </button>
                   </div>
                 </div>
               ))}

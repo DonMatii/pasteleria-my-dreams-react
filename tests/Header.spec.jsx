@@ -3,6 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 import Header from "../src/components/Header";
+import { CarritoProvider } from "../src/context/CarritoContext";
 import '@testing-library/jest-dom';
 
 describe("Pruebas de Navegación del Header", () => {
@@ -11,7 +12,7 @@ describe("Pruebas de Navegación del Header", () => {
   });
 
   it("1. Debe contener los enlaces básicos de navegación", () => {
-    render(<MemoryRouter><Header /></MemoryRouter>);
+    render(<MemoryRouter><CarritoProvider><Header /></CarritoProvider></MemoryRouter>);
     expect(screen.getByText(/Inicio/i)).toBeInTheDocument();
     expect(screen.getByText(/Delicias/i)).toBeInTheDocument();
   });
@@ -20,7 +21,7 @@ describe("Pruebas de Navegación del Header", () => {
     // CLAVE: Tu Header.jsx evalúa que el NOMBRE sea 'admin'
     sessionStorage.setItem('userName', 'admin'); 
 
-    render(<MemoryRouter><Header /></MemoryRouter>);
+    render(<MemoryRouter><CarritoProvider><Header /></CarritoProvider></MemoryRouter>);
 
     // Buscamos el enlace que contiene la palabra Admin, ignorando el emoji
     const adminLink = screen.getByRole('link', { name: /Admin/i });
