@@ -610,6 +610,10 @@ header nav ul li a:hover {
 /* =========================================
    SELECTOR DE CANTIDAD EN MODAL (SweetAlert2)
    ========================================= */
+.swal2-popup .swal2-title {
+  color: #d95386;
+}
+
 .swal-texto {
   margin-bottom: 16px;
   font-size: 1.05rem;
