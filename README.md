@@ -125,7 +125,7 @@ Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitH
 
 ## Desarrollo local (v3)
 
-- **Home renovado:** hero de bienvenida, una *Delicia del Día* elegida al azar (con alta directa al carrito) y tres *Favoritos de la Casa* también aleatorios. Si la API no responde, se usan productos de respaldo para que la página nunca quede vacía. Un único botón del hero lleva al catálogo.
+- **Home renovado:** hero de bienvenida, una *Delicia del Día* elegida al azar (con alta directa al carrito) y tres *Favoritos de la Casa* también aleatorios, cada uno con su propio botón de alta al carrito y selector de cantidad. Si la API no responde, se usan productos de respaldo para que la página nunca quede vacía. Un único botón del hero lleva al catálogo.
 - **Botón volver arriba:** aparece flotante abajo a la derecha al bajar más de 300 px y vuelve al inicio con scroll suave; está presente en todas las páginas.
 - **Catálogo público:** `/delicias` se puede consultar sin iniciar sesión. El login solo se pide al finalizar el pedido.
 - **Carrito compartido:** `CarritoContext` es la única fuente de verdad del carrito. Delicias, el mini carrito y el formulario de pedido leen del mismo contexto, así el pedido nace ya poblado con lo que el cliente eligió.

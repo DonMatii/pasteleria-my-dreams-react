@@ -78,6 +78,15 @@
   box-shadow: 0 20px 40px rgba(217, 83, 134, 0.15);
 }
 
+/* Botón de alta al carrito dentro de las tarjetas de favoritos:
+   misma línea que boton-principal, más compacto para el ancho de la tarjeta */
+.producto .boton-agregar-tarjeta {
+  margin-top: 12px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
 /* --- DELICIA DEL DÍA (producto destacado al azar) --- */
 
 .delicia-dia {

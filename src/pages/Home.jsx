@@ -163,7 +163,7 @@ function Home() {
         </section>
       )}
 
-      <section className="productos-favoritos">
+      <section className="productos-favoritos" data-testid="favoritos-casa">
         <h2 className="titulo-seccion">Favoritos de la Casa</h2>
         <p className="seccion-subtitulo">
           Descubre nuestras recetas más populares y sabrosas
@@ -188,6 +188,16 @@ function Home() {
                 <span className="precio-tag">
                   ${Number(prod.precio).toLocaleString("es-CL")}
                 </span>
+                <button
+                  type="button"
+                  className="boton-principal boton-agregar-tarjeta"
+                  onClick={() => manejarAgregar(prod)}
+                >
+                  Agregar al carrito
+                </button>
+                {agregado === prod.nombre && (
+                  <span className="agregado-feedback">✓ Agregado</span>
+                )}
               </div>
             </div>
           ))}
