@@ -18,9 +18,7 @@ const TeaserPedido = () => {
       >
         <h1 className="titulo-principal">¡Haz tu pedido!</h1>
         <p className="subtitulo-home">
-          {primera
-            ? "Inicia sesión para descubrir tus delicias y pedir al instante."
-            : "Inicia sesión para ver las delicias y continuar con tu pedido."}
+          ¿Ya elegiste tus delicias? Inicia sesión para pedir.
         </p>
 
         {primera && (
