@@ -55,25 +55,37 @@ function Delicias() {
   const manejarAgregar = async (prod) => {
     const { value: cantidad } = await Swal.fire({
       title: prod.nombre,
-      text: "¿Cuántos quieres agregar a tu carrito de compras?",
-      input: "number",
-      inputLabel: "Cantidad",
-      inputValue: 1,
-      inputAttributes: {
-        min: 1,
-        step: 1,
-      },
-      inputValidator: (valor) => {
-        const num = Number(valor);
-        if (!valor || !Number.isInteger(num) || num < 1) {
-          return "Ingresa una cantidad válida (mínimo 1).";
-        }
-      },
+      html: `
+        <p class="swal-texto">¿Cuántos quieres agregar a tu carrito de compras?</p>
+        <div class="selector-cantidad">
+          <button type="button" class="btn-cantidad" id="btn-menos" aria-label="Restar cantidad">−</button>
+          <input type="number" id="input-cantidad" value="1" min="1" readonly />
+          <button type="button" class="btn-cantidad" id="btn-mas" aria-label="Sumar cantidad">+</button>
+        </div>
+      `,
       showCancelButton: true,
       confirmButtonText: "Agregar",
       cancelButtonText: "Cancelar",
       confirmButtonColor: "#d95386",
       cancelButtonColor: "#b04e6f",
+      didOpen: () => {
+        const input = document.getElementById("input-cantidad");
+        document.getElementById("btn-menos").addEventListener("click", () => {
+          const val = Number(input.value);
+          if (val > 1) input.value = val - 1;
+        });
+        document.getElementById("btn-mas").addEventListener("click", () => {
+          input.value = Number(input.value) + 1;
+        });
+      },
+      preConfirm: () => {
+        const val = Number(document.getElementById("input-cantidad").value);
+        if (!Number.isInteger(val) || val < 1) {
+          Swal.showValidationMessage("Ingresa una cantidad válida (mínimo 1).");
+          return;
+        }
+        return val;
+      },
     });
 
     if (cantidad) {

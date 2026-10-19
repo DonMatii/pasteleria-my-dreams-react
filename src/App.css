@@ -607,6 +607,63 @@ header nav ul li a:hover {
   font-size: 0.85rem;
 }
 
+/* =========================================
+   SELECTOR DE CANTIDAD EN MODAL (SweetAlert2)
+   ========================================= */
+.swal-texto {
+  margin-bottom: 16px;
+  font-size: 1.05rem;
+  color: #5d405d;
+}
+
+.selector-cantidad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 10px 0 4px;
+}
+
+.btn-cantidad {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #d95386;
+  background-color: white;
+  color: #d95386;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+  line-height: 1;
+}
+
+.btn-cantidad:hover {
+  background-color: #d95386;
+  color: white;
+}
+
+.selector-cantidad input {
+  width: 70px;
+  height: 44px;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #5d405d;
+  border: 2px solid #f3d7e3;
+  border-radius: 10px;
+  -moz-appearance: textfield;
+}
+
+.selector-cantidad input::-webkit-outer-spin-button,
+.selector-cantidad input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .carrito-link {
   position: relative;
   background: none;
