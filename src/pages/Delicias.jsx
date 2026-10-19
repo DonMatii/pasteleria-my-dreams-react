@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
-import { obtenerProductos } from "../service/ProductosService";
+import { obtenerProductos, aplanarCatalogo } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
+import { pedirCantidad } from "../utils/pedirCantidad";
 import "../App.css";
 
 function Delicias() {
@@ -24,25 +24,7 @@ function Delicias() {
     const cargarTodo = async () => {
       try {
         const datos = await obtenerProductos();
-        let listaPlana = Object.values(datos).flat();
-
-        const traductorCategorias = {
-          "tortas": "Tortas",
-          "queques": "Queques",
-          "tartas": "Tartas",
-          "personales": "Tentaciones Individuales"
-        };
-
-        listaPlana = listaPlana.map(prod => ({
-          ...prod,
-          categoria: traductorCategorias[prod.categoria] || prod.categoria,
-          // Unificamos para capturar el nombre de la imagen sin importar cómo venga de la BD
-          imagenUrl: prod.imagenUrl || prod.imagen || prod.img,
-          descripcion: prod.descripcion || prod.desc,
-          precio: prod.precio ? prod.precio : 15000
-        }));
-
-        setProductos(listaPlana);
+        setProductos(aplanarCatalogo(datos));
       } catch (error) {
         console.error("Error al cargar:", error);
       } finally {
@@ -53,43 +35,10 @@ function Delicias() {
   }, []);
 
   const manejarAgregar = async (prod) => {
-    const { value: cantidad } = await Swal.fire({
-      title: prod.nombre,
-      html: `
-        <p class="swal-texto">¿Cuántos quieres agregar a tu carrito de compras?</p>
-        <div class="selector-cantidad">
-          <button type="button" class="btn-cantidad" id="btn-menos" aria-label="Restar cantidad">−</button>
-          <input type="number" id="input-cantidad" value="1" min="1" readonly />
-          <button type="button" class="btn-cantidad" id="btn-mas" aria-label="Sumar cantidad">+</button>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: "Agregar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d95386",
-      cancelButtonColor: "#b04e6f",
-      didOpen: () => {
-        const input = document.getElementById("input-cantidad");
-        document.getElementById("btn-menos").addEventListener("click", () => {
-          const val = Number(input.value);
-          if (val > 1) input.value = val - 1;
-        });
-        document.getElementById("btn-mas").addEventListener("click", () => {
-          input.value = Number(input.value) + 1;
-        });
-      },
-      preConfirm: () => {
-        const val = Number(document.getElementById("input-cantidad").value);
-        if (!Number.isInteger(val) || val < 1) {
-          Swal.showValidationMessage("Ingresa una cantidad válida (mínimo 1).");
-          return;
-        }
-        return val;
-      },
-    });
+    const cantidad = await pedirCantidad(prod);
 
     if (cantidad) {
-      agregarAlCarrito(prod, Number(cantidad));
+      agregarAlCarrito(prod, cantidad);
       setAgregado(prod.nombre);
       setTimeout(() => setAgregado(null), 2000);
     }

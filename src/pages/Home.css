@@ -12,16 +12,27 @@
   
   /* 3. Bordes: Redondeado elegante y el marco rosado que resalta */
   border-radius: 50px; 
-  background-color: #ffffff; 
-  border: 2px solid #fce4ec; 
+  
+  /* 4. Imagen de fondo del catalogo con degradado rosado encima para que el
+        texto siga siendo legible sin perder el ambiente pastelería. */
+  background-image: 
+    linear-gradient(rgba(255, 245, 248, 0.82), rgba(252, 228, 236, 0.92)),
+    url("/img/tartaletaFrutas.jpg");
+  background-size: cover;
+  background-position: center;
   
   text-align: center;
   
-  /* 4. Sombra: Sutil pero con un toque rosado para que flote sobre el fondo */
+  /* 5. Sombra: Sutil pero con un toque rosado para que flote sobre el fondo */
   box-shadow: 0 15px 35px rgba(217, 83, 134, 0.08);
 
-  /* 5. RECORTE DE ALTURA: Ajustamos el aire de abajo para que sea compacto */
+  /* 6. RECORTE DE ALTURA: Ajustamos el aire de abajo para que sea compacto */
   padding: 60px 40px 40px 40px; 
+}
+
+/* Botón del hero: un poco más holgado que el genérico */
+.hero-boton {
+  margin-top: 25px;
 }
 
 /* Ajustes para el título principal */
@@ -71,4 +82,78 @@
 .producto:hover {
   transform: translateY(-12px);
   box-shadow: 0 20px 40px rgba(217, 83, 134, 0.15);
+}
+
+/* --- DELICIA DEL DÍA (producto destacado al azar) --- */
+
+.delicia-dia {
+  max-width: 800px;
+  margin: 0 auto 50px;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.delicia-card {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background-color: #ffffff;
+  border: 2px solid #fce4ec;
+  border-radius: 30px;
+  padding: 20px;
+  box-shadow: 0 15px 35px rgba(217, 83, 134, 0.12);
+  text-align: left;
+}
+
+.delicia-img {
+  flex: 0 0 260px;
+}
+
+.delicia-img img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 20px;
+  display: block;
+}
+
+.delicia-info {
+  flex: 1;
+}
+
+.delicia-info h3 {
+  font-family: 'Great Vibes', cursive;
+  font-size: 2.2rem;
+  color: #d95386;
+  margin: 0 0 10px;
+}
+
+.delicia-info p {
+  color: #5d405d;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  margin: 0 0 15px;
+}
+
+.delicia-info .precio-tag {
+  display: block;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+/* En pantallas angostas la tarjeta se apila (imagen arriba, datos abajo) */
+@media (max-width: 640px) {
+  .delicia-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .delicia-img {
+    flex: none;
+    width: 100%;
+  }
+
+  .delicia-img img {
+    height: 200px;
+  }
 }

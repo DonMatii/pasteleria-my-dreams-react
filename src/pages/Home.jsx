@@ -1,46 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './Home.css';    
-import '../App.css';   
+import './Home.css';
+import '../App.css';
 import { obtenerCodigoBienvenida } from "../service/BienvenidaService";
+import { obtenerProductos, aplanarCatalogo } from "../service/ProductosService";
+import { useCarrito } from "../context/CarritoContext";
+import { pedirCantidad } from "../utils/pedirCantidad";
+
+// Respaldo: si la API no responde, la home muestra estos productos en vez de quedar vacía.
+const productosRespaldo = [
+  {
+    id: 1,
+    nombre: 'Kutchen de Manzana',
+    descripcion: 'Delicioso kutchen casero con manzanas frescas y un toque de canela.',
+    imagenUrl: 'kutchenDeManzana.jpg',
+    precio: 5500,
+  },
+  {
+    id: 2,
+    nombre: 'Pie de Limón',
+    descripcion: 'Nuestra receta clásica con merengue suizo dorado a la perfección.',
+    imagenUrl: 'pieDeLimon.jpg',
+    precio: 6500,
+  },
+  {
+    id: 3,
+    nombre: 'Torta Crema Piña',
+    descripcion: 'Bizcocho esponjoso relleno de crema chantilly y trozos de piña natural.',
+    imagenUrl: 'tortaCremaPina.jpg',
+    precio: 7000,
+  },
+];
+
+// Mezcla de Fisher-Yates: cada visita muestra una selección distinta del catálogo.
+const mezclar = (lista) => {
+  const copia = [...lista];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+};
 
 function Home() {
   // Beneficio de primera conexion: visible mientras el codigo siga sin canjear
   const [codigoBienvenida] = useState(() => obtenerCodigoBienvenida());
   const usuarioConectado = sessionStorage.getItem("userName");
+  const { agregarAlCarrito } = useCarrito();
 
-  const productosDestacados = [
-    { 
-      id: 1, 
-      nombre: 'Kutchen de Manzana', 
-      descripcion: 'Delicioso kutchen casero con manzanas frescas y un toque de canela.', 
-      imagen: 'kutchenDeManzana.jpg', 
-      precio: '$5.500' 
-    },
-    { 
-      id: 2, 
-      nombre: 'Pie de Limón', 
-      descripcion: 'Nuestra receta clásica con merengue suizo dorado a la perfección.', 
-      imagen: 'pieDeLimon.jpg', 
-      precio: '$6.500' 
-    },
-    { 
-      id: 3, 
-      nombre: 'Torta Crema Piña', 
-      descripcion: 'Bizcocho esponjoso relleno de crema chantilly y trozos de piña natural.', 
-      imagen: 'tortaCremaPina.jpg', 
-      precio: '$7.000' 
+  const [delicia, setDelicia] = useState(null);   // producto aleatorio destacado
+  const [favoritos, setFavoritos] = useState([]); // 3 productos distintos de la delicia
+  const [agregado, setAgregado] = useState(null); // feedback "Agregado"
+
+  useEffect(() => {
+    const cargarProductos = async () => {
+      let lista = productosRespaldo;
+      try {
+        const datos = await obtenerProductos();
+        const plana = aplanarCatalogo(datos);
+        if (plana.length > 0) lista = plana;
+      } catch (error) {
+        console.error("Error al cargar productos en Home:", error);
+      }
+
+      const mezcla = mezclar(lista);
+      setDelicia(mezcla[0]);
+      setFavoritos(mezcla.slice(1, 4));
+    };
+
+    cargarProductos();
+  }, []);
+
+  const manejarAgregar = async (prod) => {
+    const cantidad = await pedirCantidad(prod);
+
+    if (cantidad) {
+      agregarAlCarrito(prod, cantidad);
+      setAgregado(prod.nombre);
+      setTimeout(() => setAgregado(null), 2000);
     }
-  ];
+  };
 
   return (
     <main className="main-content">
-      {/* Hero: Clase específica para el banner de bienvenida */}
+      {/* Hero: banner de bienvenida con imagen de fondo del catalogo */}
       <section className="hero">
         <h1 className="titulo-principal">Bienvenido a Pastelería My Dreams</h1>
         <p className="subtitulo-home">
           Somos un emprendimiento familiar que te entrega sabores que iluminan tus sueños.
         </p>
+        <Link to="/delicias" className="boton-principal hero-boton">
+          Ver nuestras delicias
+        </Link>
       </section>
 
       {/* Premio por conectar: solo con codigo pendiente y sesion activa */}
@@ -71,6 +122,47 @@ function Home() {
         </section>
       )}
 
+      {/* Delicia del día: producto elegido al azar, con alta directa al carrito */}
+      {delicia && (
+        <section className="delicia-dia" data-testid="delicia-dia">
+          <h2 className="titulo-seccion">Delicia del Día</h2>
+          <p className="seccion-subtitulo">
+            Elegida al azar entre todas nuestras creaciones
+          </p>
+
+          <div className="delicia-card">
+            <div className="delicia-img">
+              <img
+                src={`/img/${delicia.imagenUrl}`}
+                alt={delicia.nombre}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/img/alfajor.jpg";
+                }}
+              />
+            </div>
+
+            <div className="delicia-info">
+              <h3>{delicia.nombre}</h3>
+              <p>{delicia.descripcion}</p>
+              <span className="precio-tag">
+                ${Number(delicia.precio).toLocaleString("es-CL")}
+              </span>
+              <button
+                type="button"
+                className="boton-principal"
+                onClick={() => manejarAgregar(delicia)}
+              >
+                Agregar al carrito
+              </button>
+              {agregado === delicia.nombre && (
+                <span className="agregado-feedback">✓ Agregado</span>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="productos-favoritos">
         <h2 className="titulo-seccion">Favoritos de la Casa</h2>
         <p className="seccion-subtitulo">
@@ -78,13 +170,12 @@ function Home() {
         </p>
 
         <div className="vitrina">
-          {productosDestacados.map((prod) => (
+          {favoritos.map((prod) => (
             <div className="producto" key={prod.id}>
               <div className="img-wrapper">
-                {/* Cargamos desde la carpeta public/img/ */}
-                <img 
-                  src={`/img/${prod.imagen}`} 
-                  alt={prod.nombre} 
+                <img
+                  src={`/img/${prod.imagenUrl}`}
+                  alt={prod.nombre}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/img/alfajor.jpg";
@@ -94,7 +185,9 @@ function Home() {
               <div className="info">
                 <h3>{prod.nombre}</h3>
                 <p>{prod.descripcion}</p>
-                <span className="precio-tag">{prod.precio}</span>
+                <span className="precio-tag">
+                  ${Number(prod.precio).toLocaleString("es-CL")}
+                </span>
               </div>
             </div>
           ))}
