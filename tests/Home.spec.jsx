@@ -87,11 +87,15 @@ describe("Pruebas de la Página Principal (Home)", () => {
     expect(await screen.findByText(/Kutchen de Manzana/i)).toBeInTheDocument();
   });
 
-  it("debe tener el botón que redirige al catálogo completo", () => {
+  it("debe tener un único botón que redirige al catálogo, el del hero", () => {
     renderHome();
 
-    const botones = screen.getAllByRole("link", { name: /Ver Catálogo Completo/i });
-    expect(botones[0]).toHaveAttribute("href", "/delicias");
+    // Cathi: un solo CTA al catálogo (no duplicar "Ver delicias" + "Ver catálogo")
+    const enlacesCatalogo = screen
+      .getAllByRole("link")
+      .filter((enlace) => enlace.getAttribute("href") === "/delicias");
+    expect(enlacesCatalogo).toHaveLength(1);
+    expect(enlacesCatalogo[0]).toHaveTextContent(/Ver nuestras delicias/i);
   });
 
   it("muestra el banner de bienvenida solo con código pendiente y sesión activa", () => {

@@ -192,13 +192,6 @@ function Home() {
             </div>
           ))}
         </div>
-
-        {/* Botón de navegación al catálogo */}
-        <div className="btn-container-home">
-          <Link to="/delicias" className="boton-principal">
-            Ver Catálogo Completo
-          </Link>
-        </div>
       </section>
     </main>
   );
