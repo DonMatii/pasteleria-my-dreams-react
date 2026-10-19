@@ -13,7 +13,7 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 | :--- | :--- | :--- | :--- |
 | `version-1` (tag `entrega-1`) | **Entrega 1** | Catálogo con CRUD, panel de administración, login con Google y contacto por Formspree. | http://pasteleria-my-dreams-frontend.s3-website-us-east-1.amazonaws.com/ |
 | `version-2` (tag `entrega-2`) | **Entrega 2** | Comunicación asíncrona con colas usando Apache Kafka. | http://pasteleria-my-dreams-web-8digital.s3-website-us-east-1.amazonaws.com/ |
-| `version-3` | **Unidad 3** | Pendiente. | — |
+| `version-3` | **Unidad 3** | Catálogo público sin iniciar sesión, carrito compartido entre páginas y mini carrito lateral con selector de cantidad. | — |
 
 `main` siempre lleva el último avance del desarrollo.
 
@@ -122,3 +122,11 @@ Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitH
 - **Fecha y hora local:** la página `/estado-pedido` muestra la fecha del pedido convertida a la zona horaria de Chile (`America/Santiago`), no la hora del servidor UTC.
 - **Correo con detalle:** el email de confirmación incluye cada producto con su cantidad (ej: `Selva Negra x2, Manjar Nuez x8`), total de artículos y monto.
 - **Código de bienvenida:** el primer inicio de sesión de un cliente (Google o el usuario demo `cliente`/`cliente123`) registra la primera conexión y entrega el código `BIENVENIDO10` (una sola vez por navegador, en `localStorage`). Un banner en el Home lo muestra; en `/pedido` se prellena, muestra el descuento en vivo y se consume al confirmar. El backend persiste `subtotal`, `descuento` y `total` con **-10%** (ver README de `pedidos-service`).
+
+## Desarrollo local (v3)
+
+- **Catálogo público:** `/delicias` se puede consultar sin iniciar sesión. El login solo se pide al finalizar el pedido.
+- **Carrito compartido:** `CarritoContext` es la única fuente de verdad del carrito. Delicias, el mini carrito y el formulario de pedido leen del mismo contexto, así el pedido nace ya poblado con lo que el cliente eligió.
+- **Mini carrito:** panel lateral que se abre desde el ícono del header, con miniatura del producto, contador de cantidad, subtotal, total, vaciar carrito e ir al pedido.
+- **Selector de cantidad:** al agregar un producto desde el catálogo se abre un modal con botones `−` y `+` para elegir cuántas unidades llevar.
+- **Proxy local:** `vite.config.js` enruta `/api/productos` → `:8080`, `/api/pedidos` → `:8082` y `/api/estadisticas` → `:8081`. El catálogo se sirve desde `catalogo-service` en local; apunta a MySQL local con las variables `DB_URL`, `DB_USER` y `DB_PASS` (ver `.env.example` de cada microservicio).
