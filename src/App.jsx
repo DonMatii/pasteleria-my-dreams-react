@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import AdminPanel from "./pages/AdminPanel"; 
 import ProtectedRoute from "./components/ProtectedRoute"; 
 import TeaserPedido from "./components/TeaserPedido"; 
+import BotonVolverArriba from "./components/BotonVolverArriba";
 import './App.css';
 import imgLogo from "./assets/img/logoPasteleria.png"; 
 
@@ -57,6 +58,8 @@ function App() {
         </main>
 
         <Footer />
+
+        <BotonVolverArriba />
       </div>
     </CarritoProvider>
   );

@@ -13,9 +13,8 @@
   /* 3. Bordes: Redondeado elegante y el marco rosado que resalta */
   border-radius: 50px; 
   
-  /* 4. Fondo: degradado suave del rosa de la marca, sin foto, para que el
-        hero se vea limpio pero no quede un rectángulo blanco plano. */
-  background-image: linear-gradient(160deg, #ffffff 0%, #fff5f8 60%, #fce4ec 100%);
+  /* 4. Fondo: el mismo de la pagina, para que el hero no desentoné */
+  background-color: #fff0f5;
   
   text-align: center;
   

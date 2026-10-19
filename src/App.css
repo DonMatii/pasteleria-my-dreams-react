@@ -922,3 +922,46 @@ header nav ul li a:hover {
   text-decoration: underline;
   padding: 4px;
 }
+
+/* =========================================
+   BOTÓN VOLVER AL INICIO
+   ========================================= */
+.volver-arriba {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 900;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+
+  background-color: #d95386;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(217, 83, 134, 0.35);
+
+  /* Oculto de fábrica: se revela con la clase modificadora */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(15px);
+  transition: opacity 0.3s, transform 0.3s, visibility 0.3s, background-color 0.2s;
+}
+
+.volver-arriba--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.volver-arriba:hover {
+  background-color: #b04e6f;
+}
+
+.volver-arriba:active {
+  transform: translateY(2px);
+}
