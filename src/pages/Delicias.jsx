@@ -6,6 +6,7 @@ import "../App.css";
 function Delicias() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [agregado, setAgregado] = useState(null); // nombre del producto agregado recién
   const { agregarAlCarrito } = useCarrito();
 
   const secciones = [
@@ -50,6 +51,13 @@ function Delicias() {
     cargarTodo();
   }, []);
 
+  const manejarAgregar = (prod) => {
+    agregarAlCarrito(prod, 1);
+    setAgregado(prod.nombre);
+    // Limpia el feedback después de 2 segundos
+    setTimeout(() => setAgregado(null), 2000);
+  };
+
   if (cargando)
     return (
       <div className="loader-container">
@@ -88,10 +96,13 @@ function Delicias() {
                     <button
                       type="button"
                       className="boton-agregar"
-                      onClick={() => agregarAlCarrito(prod, 1)}
+                      onClick={() => manejarAgregar(prod)}
                     >
                       Agregar al carrito
                     </button>
+                    {agregado === prod.nombre && (
+                      <span className="agregado-feedback">✓ Agregado</span>
+                    )}
                   </div>
                 </div>
               ))}

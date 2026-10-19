@@ -599,6 +599,14 @@ header nav ul li a:hover {
   transform: scale(0.98);
 }
 
+.agregado-feedback {
+  display: block;
+  margin-top: 4px;
+  color: #2e7d32;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 .carrito-link {
   position: relative;
   font-size: 1.3rem;
@@ -622,4 +630,191 @@ header nav ul li a:hover {
   align-items: center;
   justify-content: center;
   padding: 0 2px;
+}
+
+/* =========================================
+   8. MINI CARRITO: panel lateral desplegable
+   ========================================= */
+.mini-carrito-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mini-carrito-panel {
+  background-color: white;
+  width: 380px;
+  max-width: 90vw;
+  height: 100%;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow-y: auto;
+  animation: deslizarDerecha 0.25s ease;
+}
+
+@keyframes deslizarDerecha {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.mini-carrito-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f3d7e3;
+}
+
+.mini-carrito-header h2 {
+  margin: 0;
+  color: #5d405d;
+  font-size: 1.4rem;
+}
+
+.mini-carrito-cerrar {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #b04e6f;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.mini-carrito-vacio {
+  text-align: center;
+  padding: 40px 0;
+  color: #5d405d;
+}
+
+.mini-carrito-vacio p {
+  margin-bottom: 16px;
+}
+
+.mini-carrito-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.mini-carrito-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: #fff5f8;
+  border: 1px solid #f3d7e3;
+  border-radius: 10px;
+}
+
+.mini-carrito-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-carrito-nombre {
+  font-weight: 600;
+  color: #5d405d;
+  font-size: 0.9rem;
+}
+
+.mini-carrito-precio-unit {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.mini-carrito-controles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-carrito-controles button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #d95386;
+  background-color: white;
+  color: #d95386;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-carrito-controles button:hover {
+  background-color: #d95386;
+  color: white;
+}
+
+.mini-carrito-cantidad {
+  font-weight: 700;
+  color: #5d405d;
+  min-width: 24px;
+  text-align: center;
+}
+
+.mini-carrito-subtotal {
+  font-weight: 700;
+  color: #d95386;
+  font-size: 0.95rem;
+  min-width: 80px;
+  text-align: right;
+}
+
+.mini-carrito-quitar {
+  background: none;
+  border: none;
+  color: #b04e6f;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.mini-carrito-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px solid #f3d7e3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mini-carrito-resumen {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: #5d405d;
+  font-size: 1.1rem;
+}
+
+.mini-carrito-total {
+  color: #d95386;
+  font-weight: 700;
+}
+
+.mini-carrito-finalizar {
+  text-align: center;
+  text-decoration: none;
+}
+
+.mini-carrito-vaciar {
+  background: none;
+  border: none;
+  color: #b04e6f;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px;
 }

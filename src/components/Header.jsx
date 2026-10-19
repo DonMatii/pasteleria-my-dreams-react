@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
+import MiniCarrito from "./MiniCarrito";
 import logoPasteleria from "../assets/img/logoPasteleria.png";
 
 function Header() {
   const navigate = useNavigate();
   const { cantidadTotal } = useCarrito();
+  const [carritoAbierto, setCarritoAbierto] = useState(false);
   // ✅ Leemos de sessionStorage para coherencia con el Login
   const username = sessionStorage.getItem("userName");
 
@@ -31,11 +34,16 @@ function Header() {
           <li><Link to="/estado">Estado</Link></li>
           <li><Link to="/contacto">Contacto</Link></li>
           
-          {/* Ícono del carrito con contador de items */}
+          {/* Ícono del carrito con contador de items — abre el mini carrito */}
           <li>
-            <Link to="/pedido" className="carrito-link" aria-label={`Carrito: ${cantidadTotal} productos`}>
+            <button
+              type="button"
+              className="carrito-link"
+              aria-label={`Carrito: ${cantidadTotal} productos`}
+              onClick={() => setCarritoAbierto(true)}
+            >
               🛒 {cantidadTotal > 0 && <span className="carrito-contador">{cantidadTotal}</span>}
-            </Link>
+            </button>
           </li>
           
           {/* Mostramos Admin solo si el usuario es 'admin' en la sesión activa */}
@@ -66,6 +74,9 @@ function Header() {
           )}
         </ul>
       </nav>
+
+      {/* Mini carrito: panel lateral con los items del carrito compartido */}
+      <MiniCarrito abierto={carritoAbierto} onCerrar={() => setCarritoAbierto(false)} />
     </header>
   );
 }
