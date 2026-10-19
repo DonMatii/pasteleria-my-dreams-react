@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import { obtenerProductos } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import "../App.css";
@@ -51,11 +52,35 @@ function Delicias() {
     cargarTodo();
   }, []);
 
-  const manejarAgregar = (prod) => {
-    agregarAlCarrito(prod, 1);
-    setAgregado(prod.nombre);
-    // Limpia el feedback después de 2 segundos
-    setTimeout(() => setAgregado(null), 2000);
+  const manejarAgregar = async (prod) => {
+    const { value: cantidad } = await Swal.fire({
+      title: prod.nombre,
+      text: "¿Cuántos quieres agregar a tu carrito de compras?",
+      input: "number",
+      inputLabel: "Cantidad",
+      inputValue: 1,
+      inputAttributes: {
+        min: 1,
+        step: 1,
+      },
+      inputValidator: (valor) => {
+        const num = Number(valor);
+        if (!valor || !Number.isInteger(num) || num < 1) {
+          return "Ingresa una cantidad válida (mínimo 1).";
+        }
+      },
+      showCancelButton: true,
+      confirmButtonText: "Agregar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d95386",
+      cancelButtonColor: "#b04e6f",
+    });
+
+    if (cantidad) {
+      agregarAlCarrito(prod, Number(cantidad));
+      setAgregado(prod.nombre);
+      setTimeout(() => setAgregado(null), 2000);
+    }
   };
 
   if (cargando)
