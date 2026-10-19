@@ -34,7 +34,7 @@ const TeaserPedido = () => {
           data-testid="teaser-cta"
           style={{ display: "inline-block", textDecoration: "none" }}
         >
-          {primera ? "Iniciar sesión y obtener mi 10%" : "Iniciar sesión"}
+          {primera ? "Iniciar sesión y reclamar mi código" : "Iniciar sesión"}
         </Link>
       </div>
     </main>
