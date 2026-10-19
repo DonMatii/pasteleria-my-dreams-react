@@ -708,9 +708,24 @@ header nav ul li a:hover {
   margin-bottom: 20px;
 }
 
-.mini-carrito-vacio .boton-secundario {
-  font-size: 1rem;
+.boton-secundario {
+  display: inline-block;
   padding: 12px 24px;
+  background-color: transparent;
+  color: #d95386;
+  border: 2px solid #d95386;
+  border-radius: 50px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.boton-secundario:hover {
+  background-color: #d95386;
+  color: white;
 }
 
 .mini-carrito-lista {
