@@ -816,9 +816,15 @@ header nav ul li a:hover {
 }
 
 .mini-carrito-nombre {
-  font-weight: 600;
-  color: #5d405d;
+  display: inline-block;
+  font-weight: 700;
+  color: #d95386;
   font-size: 1rem;
+  background-color: white;
+  border: 1px solid #f3d7e3;
+  border-radius: 8px;
+  padding: 4px 10px;
+  box-shadow: 0 1px 3px rgba(217, 83, 134, 0.15);
 }
 
 .mini-carrito-precio-unit {
