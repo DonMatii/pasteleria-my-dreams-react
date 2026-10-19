@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback } from "react";
 
 // Contexto compartido del carrito entre Delicias y Pedido.
-// items = [{ id, nombre, precio, cantidad }]
+// items = [{ id, nombre, precio, cantidad, imagenUrl }]
 const CarritoContext = createContext(null);
 
 export function CarritoProvider({ children }) {
@@ -25,6 +25,7 @@ export function CarritoProvider({ children }) {
           nombre: producto.nombre,
           precio: Number(producto.precio || 0),
           cantidad: Number(cantidad) || 1,
+          imagenUrl: producto.imagenUrl || producto.imagen || producto.img || "",
         },
       ]);
     }

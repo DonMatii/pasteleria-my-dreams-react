@@ -49,6 +49,13 @@ function MiniCarrito({ abierto, onCerrar }) {
             <ul className="mini-carrito-lista">
               {items.map((it) => (
                 <li key={it.id} className="mini-carrito-item">
+                  {it.imagenUrl && (
+                    <img
+                      src={`/img/${it.imagenUrl}`}
+                      alt={it.nombre}
+                      className="mini-carrito-img"
+                    />
+                  )}
                   <div className="mini-carrito-item-info">
                     <span className="mini-carrito-nombre">{it.nombre}</span>
                     <span className="mini-carrito-precio-unit">
