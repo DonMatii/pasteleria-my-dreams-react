@@ -3,25 +3,24 @@
    ========================================= */
 
 .hero {
-  /* 1. Tamaño: más angosto para que se vea como una tarjeta centrada */
-  max-width: 800px; 
+  /* 1. Tamaño: igual al cuadrito de la bienvenida (640px) */
+  max-width: 640px; 
   width: 90%; 
   
   /* 2. Ubicación: la despegamos del techo para que luzcan las curvas */
   margin: 50px auto 60px auto; 
   
-  /* 3. Bordes: Redondeado elegante y el marco rosado que resalta */
-  border-radius: 50px; 
-  
-  /* 4. Fondo: el mismo de la pagina, para que el hero no desentoné */
-  background-color: #fff0f5;
+  /* 3. Bordes: mismo redondeado y marco rosado que la tarjeta de la delicia */
+  border-radius: 30px; 
+  background-color: #ffffff;
+  border: 2px solid #fce4ec;
   
   text-align: center;
   
-  /* 5. Sombra: Sutil pero con un toque rosado para que flote sobre el fondo */
+  /* 4. Sombra: Sutil pero con un toque rosado para que flote sobre el fondo */
   box-shadow: 0 15px 35px rgba(217, 83, 134, 0.08);
 
-  /* 6. RECORTE DE ALTURA: Ajustamos el aire de abajo para que sea compacto */
+  /* 5. RECORTE DE ALTURA: Ajustamos el aire de abajo para que sea compacto */
   padding: 60px 40px 40px 40px; 
 }
 
@@ -33,7 +32,7 @@
 /* Ajustes para el título principal */
 .hero .titulo-principal {
   margin-top: 0 !important; 
-  font-size: 3.8rem !important; /* Un poco más grande para que sea el foco */
+  font-size: 3rem !important; /* Ajustado al ancho de 640px para que no se corte */
   line-height: 1.1;
   margin-bottom: 10px;
   color: #d95386; /* El rosa de tu marca */
