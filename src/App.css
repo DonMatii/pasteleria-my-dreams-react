@@ -609,10 +609,18 @@ header nav ul li a:hover {
 
 .carrito-link {
   position: relative;
-  font-size: 1.3rem;
-  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #5d405d;
   display: inline-flex;
   align-items: center;
+  transition: color 0.3s;
+}
+
+.carrito-link:hover {
+  color: #d95386;
 }
 
 .carrito-contador {
@@ -646,13 +654,13 @@ header nav ul li a:hover {
 
 .mini-carrito-panel {
   background-color: white;
-  width: 380px;
+  width: 420px;
   max-width: 90vw;
   height: 100%;
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: 28px;
   overflow-y: auto;
   animation: deslizarDerecha 0.25s ease;
 }
@@ -666,34 +674,43 @@ header nav ul li a:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
   border-bottom: 2px solid #f3d7e3;
 }
 
 .mini-carrito-header h2 {
   margin: 0;
   color: #5d405d;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
 }
 
 .mini-carrito-cerrar {
   background: none;
   border: none;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   color: #b04e6f;
   cursor: pointer;
   padding: 4px;
+  line-height: 1;
 }
 
 .mini-carrito-vacio {
   text-align: center;
-  padding: 40px 0;
+  padding: 50px 0;
   color: #5d405d;
+  font-size: 1.15rem;
 }
 
 .mini-carrito-vacio p {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.mini-carrito-vacio .boton-secundario {
+  font-size: 1rem;
+  padding: 12px 24px;
 }
 
 .mini-carrito-lista {
@@ -725,11 +742,11 @@ header nav ul li a:hover {
 .mini-carrito-nombre {
   font-weight: 600;
   color: #5d405d;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .mini-carrito-precio-unit {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #888;
 }
 
@@ -768,7 +785,7 @@ header nav ul li a:hover {
 .mini-carrito-subtotal {
   font-weight: 700;
   color: #d95386;
-  font-size: 0.95rem;
+  font-size: 1rem;
   min-width: 80px;
   text-align: right;
 }
@@ -796,7 +813,7 @@ header nav ul li a:hover {
   justify-content: space-between;
   font-weight: 600;
   color: #5d405d;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
 .mini-carrito-total {
@@ -807,13 +824,15 @@ header nav ul li a:hover {
 .mini-carrito-finalizar {
   text-align: center;
   text-decoration: none;
+  font-size: 1.1rem;
+  padding: 14px;
 }
 
 .mini-carrito-vaciar {
   background: none;
   border: none;
   color: #b04e6f;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
   text-decoration: underline;
   padding: 4px;

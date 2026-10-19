@@ -21,7 +21,7 @@ function MiniCarrito({ abierto, onCerrar }) {
         onClick={(e) => e.stopPropagation()}
         aria-label="Carrito de compras"
       >
-        <header className="mini-carrito-header">
+        <div className="mini-carrito-header">
           <h2>Tu carrito</h2>
           <button
             type="button"
@@ -31,7 +31,7 @@ function MiniCarrito({ abierto, onCerrar }) {
           >
             ✕
           </button>
-        </header>
+        </div>
 
         {items.length === 0 ? (
           <div className="mini-carrito-vacio">
@@ -90,7 +90,7 @@ function MiniCarrito({ abierto, onCerrar }) {
               ))}
             </ul>
 
-            <footer className="mini-carrito-footer">
+            <div className="mini-carrito-footer">
               <div className="mini-carrito-resumen">
                 <span>Productos: {cantidadTotal}</span>
                 <span
@@ -116,7 +116,7 @@ function MiniCarrito({ abierto, onCerrar }) {
               >
                 Vaciar carrito
               </button>
-            </footer>
+            </div>
           </>
         )}
       </aside>
