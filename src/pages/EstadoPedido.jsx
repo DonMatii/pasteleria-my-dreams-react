@@ -15,6 +15,9 @@ const ETIQUETAS_ESTADO = {
   ENTREGADO: "Entregado",
 };
 
+// Orden real del flujo de estados: alimenta la línea de avance del resultado
+const ORDEN_ESTADOS = ["RECIBIDO", "EN_PREPARACION", "DESPACHADO", "ENTREGADO"];
+
 // Clase visual (chip de color) para cada estado
 const CLASES_ESTADO = {
   RECIBIDO: "estado-recibido",
@@ -100,6 +103,9 @@ const EstadoPedido = () => {
 
   const estadoActual = normalizarEstado(pedido?.estado);
   const claseEstado = CLASES_ESTADO[estadoActual] || "estado-otro";
+  // Posición en el flujo: alimenta la línea de avance (si el estado viene
+  // de una versión vieja y no está en la lista, no se dibuja la línea)
+  const indiceActual = ORDEN_ESTADOS.indexOf(estadoActual);
 
   return (
     <main className="main-content">
@@ -138,60 +144,96 @@ const EstadoPedido = () => {
           className="formulario-container estado-resultado"
           aria-live="polite"
         >
-          <h2 className="estado-titulo">Pedido N° {pedido.id}</h2>
+          <div className="estado-cabecera">
+            <h2 className="estado-titulo">Pedido N° {pedido.id}</h2>
+            <span
+              className={`estado-badge ${claseEstado}`}
+              data-testid="estado-badge"
+            >
+              {ETIQUETAS_ESTADO[estadoActual] || estadoActual}
+            </span>
+          </div>
 
-          <span
-            className={`estado-badge ${claseEstado}`}
-            data-testid="estado-badge"
-          >
-            {ETIQUETAS_ESTADO[estadoActual] || estadoActual}
-          </span>
+          {indiceActual >= 0 && (
+            <ol className="estado-progreso" data-testid="estado-progreso">
+              {ORDEN_ESTADOS.map((clave, indice) => (
+                <li
+                  key={clave}
+                  className={[
+                    "estado-paso",
+                    indice < indiceActual ? "estado-paso-hecho" : "",
+                    clave === estadoActual ? "estado-paso-actual" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  <span className="estado-paso-punto">
+                    {indice < indiceActual ? "✓" : indice + 1}
+                  </span>
+                  <span className="estado-paso-nombre">
+                    {ETIQUETAS_ESTADO[clave]}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
 
           <ul className="estado-datos">
-            <li>
-              <strong>Cliente:</strong> {pedido.cliente || "—"}
+            <li className="estado-dato">
+              <span className="estado-dato-label">Cliente</span>
+              <span className="estado-dato-valor">{pedido.cliente || "—"}</span>
             </li>
-            <li>
-              <strong>Fecha:</strong> {formatearFecha(pedido.fecha)}
+            <li className="estado-dato">
+              <span className="estado-dato-label">Fecha</span>
+              <span className="estado-dato-valor">
+                {formatearFecha(pedido.fecha)}
+              </span>
             </li>
           </ul>
 
           <h3 className="estado-subtitulo">Productos</h3>
           <ul className="estado-productos">
             {(pedido.productos || []).map((producto, indice) => (
-              <li key={`${pedido.id}-${indice}`}>
-                <span>
-                  {producto.nombre} × {producto.cantidad}
+              <li key={`${pedido.id}-${indice}`} className="estado-producto">
+                <span className="estado-producto-nombre">
+                  {producto.nombre}
+                  <span className="estado-producto-cant">
+                    × {producto.cantidad}
+                  </span>
                 </span>
-                <span>{formatearMoneda(producto.subtotal)}</span>
+                <span className="estado-producto-subtotal">
+                  {formatearMoneda(producto.subtotal)}
+                </span>
               </li>
             ))}
           </ul>
 
-          {Number(pedido.descuento) > 0 && (
-            <>
-              <div className="estado-total" data-testid="subtotal-estado">
-                <span>Subtotal:</span>
-                <span className="precio-tag">
-                  {formatearMoneda(pedido.subtotal)}
-                </span>
-              </div>
-              <div className="estado-total" data-testid="descuento-estado">
-                <span>
-                  {`Descuento de bienvenida${pedido.codigoDescuento ? ` (${pedido.codigoDescuento})` : ""}:`}
-                </span>
-                <span className="precio-tag">
-                  -{formatearMoneda(pedido.descuento)}
-                </span>
-              </div>
-            </>
-          )}
-
-          <div className="estado-total">
-            <span>Total:</span>
-            <span className="precio-tag" data-testid="total-estado">
-              {formatearMoneda(pedido.total)}
-            </span>
+          <div className="estado-resumen">
+            {Number(pedido.descuento) > 0 && (
+              <>
+                <div className="estado-total" data-testid="subtotal-estado">
+                  <span>Subtotal</span>
+                  <span className="estado-monto">
+                    {formatearMoneda(pedido.subtotal)}
+                  </span>
+                </div>
+                <div
+                  className="estado-total estado-descuento"
+                  data-testid="descuento-estado"
+                >
+                  <span>
+                    {`Descuento de bienvenida${pedido.codigoDescuento ? ` (${pedido.codigoDescuento})` : ""}`}
+                  </span>
+                  <span>-{formatearMoneda(pedido.descuento)}</span>
+                </div>
+              </>
+            )}
+            <div className="estado-total estado-total-final">
+              <span>Total</span>
+              <span className="estado-total-monto" data-testid="total-estado">
+                {formatearMoneda(pedido.total)}
+              </span>
+            </div>
           </div>
         </section>
       )}

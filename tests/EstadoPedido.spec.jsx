@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import EstadoPedido from "../src/pages/EstadoPedido";
@@ -134,5 +134,40 @@ describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
     expect(await screen.findByText(/Error de conexión/i)).toBeInTheDocument();
     // El botón vuelve a habilitarse
     expect(screen.getByRole("button", { name: /Consultar/i })).toBeEnabled();
+  });
+
+  test("7. La línea de avance marca las etapas completadas y la actual", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue(pedidoDePrueba),
+    });
+
+    render(<EstadoPedido />);
+    consultar("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
+
+    const progreso = await screen.findByTestId("estado-progreso");
+    const pasos = within(progreso).getAllByRole("listitem");
+    expect(pasos).toHaveLength(4);
+    // Recibido ya pasó, En preparación es la actual, las otras dos no
+    expect(pasos[0]).toHaveClass("estado-paso-hecho");
+    expect(pasos[1]).toHaveClass("estado-paso-actual");
+    expect(pasos[1]).toHaveTextContent("En preparación");
+    expect(pasos[2]).not.toHaveClass("estado-paso-hecho");
+    expect(pasos[3]).not.toHaveClass("estado-paso-hecho");
+  });
+
+  test("7b. Los datos del pedido se leen en dos columnas (etiqueta y valor)", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue(pedidoDePrueba),
+    });
+
+    render(<EstadoPedido />);
+    consultar("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
+
+    const filaCliente = (await screen.findByText("Cliente")).closest("li");
+    expect(filaCliente).toHaveTextContent("Catherine Test");
   });
 });

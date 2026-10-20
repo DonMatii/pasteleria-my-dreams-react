@@ -31,7 +31,7 @@ function Login() {
   return (
     <main className="main-content">
       <h1 className="titulo-principal">Pastelería My Dreams</h1>
-      <p className="subtitulo-home">Bienvenido al Sistema</p>
+      <p className="subtitulo-home">Inicia sesión para continuar</p>
 
       <div className="formulario-container">
         {error && (
