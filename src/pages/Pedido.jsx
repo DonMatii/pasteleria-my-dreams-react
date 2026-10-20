@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../App.css";
 import Swal from "sweetalert2";
-import { obtenerProductos } from "../service/ProductosService";
+import { obtenerProductos, obtenerDeliciaDelDia } from "../service/ProductosService";
 import { URL_BASE } from "../service/apiClient";
 import { useCarrito } from "../context/CarritoContext";
 import {
@@ -61,6 +61,24 @@ const Pedido = () => {
     cargarProductos();
   }, []);
 
+  // Delicia del día: el backend aplica -10% sobre TODO el pedido si el carrito
+  // la incluye (match por nombre). Aquí solo estimamos el ahorro en vivo.
+  const [deliciaDelDia, setDeliciaDelDia] = useState(null);
+
+  useEffect(() => {
+    const cargarDelicia = async () => {
+      try {
+        const delicia = await obtenerDeliciaDelDia();
+        if (delicia && delicia.nombre) setDeliciaDelDia(delicia);
+      } catch (error) {
+        // Sin delicia informada no se muestra ningún descuento extra
+        console.error("Error al cargar la delicia del día en Pedido:", error);
+      }
+    };
+
+    cargarDelicia();
+  }, []);
+
   const productoSeleccionado = productosCatalogo.find(
     (prod) => String(prod.id) === String(productoSel)
   );
@@ -94,7 +112,19 @@ const Pedido = () => {
   const codigoValido = esCodigoValido(codigoDescuento);
   const codigoDisponible = Boolean(obtenerCodigoBienvenida());
   const descuento = codigoValido && codigoDisponible ? Math.floor(total / 10) : 0;
-  const totalFinal = total - descuento;
+
+  // Descuento de la delicia del día: match por nombre (trim + ignore case),
+  // la misma regla que aplica el backend sobre TODO el pedido
+  const carritoIncluyeDelicia =
+    Boolean(deliciaDelDia) &&
+    items.some(
+      (it) =>
+        it.nombre &&
+        it.nombre.trim().toLowerCase() ===
+          deliciaDelDia.nombre.trim().toLowerCase()
+    );
+  const descuentoDelicia = carritoIncluyeDelicia ? Math.floor(total / 10) : 0;
+  const totalFinal = total - descuento - descuentoDelicia;
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -395,12 +425,24 @@ const Pedido = () => {
             </span>
           </div>
 
-          {codigoValido && codigoDisponible && (
+          {(codigoValido && codigoDisponible) || descuentoDelicia > 0 ? (
             <div className="form-group" data-testid="resumen-descuento">
-              <label>Descuento de bienvenida (-10%):</label>
-              <span className="precio-tag" data-testid="descuento-bienvenida">
-                -${descuento.toLocaleString("es-CL")}
-              </span>
+              {codigoValido && codigoDisponible && (
+                <>
+                  <label>Descuento de bienvenida (-10%):</label>
+                  <span className="precio-tag" data-testid="descuento-bienvenida">
+                    -${descuento.toLocaleString("es-CL")}
+                  </span>
+                </>
+              )}
+              {descuentoDelicia > 0 && (
+                <>
+                  <label>Descuento Delicia del Día (-10%):</label>
+                  <span className="precio-tag" data-testid="descuento-delicia">
+                    -${descuentoDelicia.toLocaleString("es-CL")}
+                  </span>
+                </>
+              )}
               <p
                 style={{ margin: "8px 0 0", fontWeight: "bold" }}
                 data-testid="total-final"
@@ -408,7 +450,7 @@ const Pedido = () => {
                 Total con descuento: ${totalFinal.toLocaleString("es-CL")}
               </p>
             </div>
-          )}
+          ) : null}
 
           <button type="submit" className="boton-principal" disabled={loading}>
             {loading ? "Registrando..." : "Registrar pedido"}

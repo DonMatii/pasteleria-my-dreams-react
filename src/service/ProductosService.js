@@ -31,6 +31,19 @@ export const aplanarCatalogo = (datos) => {
     }));
 };
 
+// La delicia del día la decide el backend (misma para todos los usuarios
+// en un mismo día calendario). Si el endpoint falla (red o 404), el
+// llamador decide el fallback; aquí se propaga el error tal cual.
+export const obtenerDeliciaDelDia = async () => {
+  try {
+    const response = await apiClient.get("/api/productos/delicia-del-dia");
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener la delicia del día:", error);
+    throw error;
+  }
+};
+
 export const crearProducto = async (producto) => {
   try {
     const response = await apiClient.post("/api/productos", producto);

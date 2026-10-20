@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import './Home.css';
 import '../App.css';
 import { obtenerCodigoBienvenida } from "../service/BienvenidaService";
-import { obtenerProductos, aplanarCatalogo } from "../service/ProductosService";
+import { obtenerProductos, aplanarCatalogo, obtenerDeliciaDelDia } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 
@@ -48,7 +48,10 @@ function Home() {
   const usuarioConectado = sessionStorage.getItem("userName");
   const { agregarAlCarrito } = useCarrito();
 
-  const [delicia, setDelicia] = useState(null);   // producto aleatorio destacado
+  const [delicia, setDelicia] = useState(null);   // producto destacado del día
+  // true cuando la delicia vino del backend (mismo sorteo para todos);
+  // false = fallback aleatorio local, sin badge de descuento
+  const [deliciaDelDiaReal, setDeliciaDelDiaReal] = useState(false);
   const [favoritos, setFavoritos] = useState([]); // 3 productos distintos de la delicia
   const [agregado, setAgregado] = useState(null); // feedback "Agregado"
 
@@ -63,8 +66,31 @@ function Home() {
         console.error("Error al cargar productos en Home:", error);
       }
 
+      // La delicia del día la decide el backend (misma para todos);
+      // si el endpoint falla, caemos al sorteo aleatorio de siempre
+      let deliciaDelDia = null;
+      try {
+        deliciaDelDia = await obtenerDeliciaDelDia();
+      } catch (error) {
+        console.error("Error al cargar la delicia del día en Home:", error);
+      }
+
+      if (deliciaDelDia && deliciaDelDia.nombre) {
+        // Con delicia real del backend: los favoritos la excluyen (por id)
+        const favoritosSinDelicia = mezclar(
+          lista.filter((prod) => prod.id !== deliciaDelDia.id)
+        ).slice(0, 3);
+        setDelicia(deliciaDelDia);
+        setDeliciaDelDiaReal(true);
+        setFavoritos(favoritosSinDelicia);
+        return;
+      }
+
+      // Fallback: sorteo local; sin badge de descuento porque el backend
+      // no confirmó la delicia de hoy
       const mezcla = mezclar(lista);
       setDelicia(mezcla[0]);
+      setDeliciaDelDiaReal(false);
       setFavoritos(mezcla.slice(1, 4));
     };
 
@@ -127,7 +153,9 @@ function Home() {
         <section className="delicia-dia" data-testid="delicia-dia">
           <h2 className="titulo-seccion">Delicia del Día</h2>
           <p className="seccion-subtitulo">
-            Elegida al azar entre todas nuestras creaciones
+            {deliciaDelDiaReal
+              ? "La especialidad de hoy, con un 10% de descuento en tu pedido"
+              : "Elegida al azar entre todas nuestras creaciones"}
           </p>
 
           <div className="delicia-card">
@@ -143,6 +171,12 @@ function Home() {
             </div>
 
             <div className="delicia-info">
+              {/* Solo el backend confirma el descuento: en fallback no hay badge */}
+              {deliciaDelDiaReal && (
+                <span className="delicia-badge" data-testid="badge-delicia">
+                  -10% hoy
+                </span>
+              )}
               <h3>{delicia.nombre}</h3>
               <p>{delicia.descripcion}</p>
               <span className="precio-tag">

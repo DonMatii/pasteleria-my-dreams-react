@@ -124,6 +124,20 @@
   flex: 1;
 }
 
+/* Badge "-10% hoy": solo se muestra cuando la delicia viene del backend
+   (sufijo local a la tarjeta de la delicia, no afecta a otros estilos) */
+.delicia-info .delicia-badge {
+  display: inline-block;
+  background-color: #d95386;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
 .delicia-info h3 {
   font-family: 'Great Vibes', cursive;
   font-size: 2.2rem;

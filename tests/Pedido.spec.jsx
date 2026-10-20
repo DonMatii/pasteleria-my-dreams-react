@@ -5,12 +5,13 @@ import "@testing-library/jest-dom";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import Pedido from "../src/pages/Pedido";
 import { CarritoProvider } from "../src/context/CarritoContext";
-import { obtenerProductos } from "../src/service/ProductosService";
+import { obtenerProductos, obtenerDeliciaDelDia } from "../src/service/ProductosService";
 import Swal from "sweetalert2";
 
 // Mockeamos el servicio del catálogo: el select nunca debe pegar a la API real
 vi.mock("../src/service/ProductosService", () => ({
   obtenerProductos: vi.fn(),
+  obtenerDeliciaDelDia: vi.fn(),
 }));
 
 // Mock de SweetAlert2 para que no explote en el test
@@ -65,6 +66,8 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     obtenerProductos.mockResolvedValue(catalogoDePrueba);
+    // Por defecto el backend no informa delicia del día: ningún descuento extra
+    obtenerDeliciaDelDia.mockRejectedValue(new Error("sin delicia del día"));
     // Estado limpio: sin flag de primera conexion ni codigo de bienvenida
     localStorage.clear();
   });
@@ -316,5 +319,60 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
     expect(global.fetch).not.toHaveBeenCalled();
     // Tampoco se muestra el ahorro en vivo: no hay código disponible
     expect(screen.queryByTestId("descuento-bienvenida")).not.toBeInTheDocument();
+  });
+
+  test("9. El carrito con la delicia del día muestra el -10% y el total resta ambos descuentos", async () => {
+    // La delicia llega del backend; match por nombre (trim + ignore case),
+    // igual que lo decide pedidos-service
+    obtenerDeliciaDelDia.mockResolvedValue({ id: 1, nombre: "  SELVA NEGRA  " });
+    // Código de bienvenida vigente: ambos descuentos se acumulan
+    localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: vi.fn().mockResolvedValue({
+        id: 10,
+        total: 24000,
+        productos: [],
+        eventoPublicado: true,
+        codigoConsulta: "dddddddddddddddddddddddddddddddd",
+      }),
+    });
+
+    renderPedido();
+    await llenarFormularioValido();
+
+    // 30.000 en el carrito: bienvenida -3.000 y delicia -3.000 (estimado)
+    expect(await screen.findByTestId("descuento-delicia")).toHaveTextContent("-$3.000");
+    expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
+    // total final = total − bienvenida − delicia
+    expect(screen.getByTestId("total-final")).toHaveTextContent("$24.000");
+  });
+
+  test("10. Sin la delicia en el carrito no aparece su línea de descuento", async () => {
+    // La delicia de hoy es otro producto, no el que está en el carrito
+    obtenerDeliciaDelDia.mockResolvedValue({ id: 2, nombre: "Manjar Lúcuma" });
+    localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: vi.fn().mockResolvedValue({
+        id: 11,
+        total: 27000,
+        productos: [],
+        eventoPublicado: true,
+        codigoConsulta: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      }),
+    });
+
+    renderPedido();
+    await llenarFormularioValido();
+
+    // El descuento de bienvenida sigue intacto y el total solo lo resta a él
+    expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
+    expect(screen.queryByTestId("descuento-delicia")).not.toBeInTheDocument();
+    expect(screen.getByTestId("total-final")).toHaveTextContent("$27.000");
   });
 });

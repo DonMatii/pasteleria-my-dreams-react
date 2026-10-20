@@ -125,12 +125,13 @@ Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitH
 
 ## Desarrollo local (v3)
 
-- **Home renovado:** hero de bienvenida, una *Delicia del Día* elegida al azar (con alta directa al carrito) y tres *Favoritos de la Casa* también aleatorios, cada uno con su propio botón de alta al carrito y selector de cantidad. Si la API no responde, se usan productos de respaldo para que la página nunca quede vacía. Un único botón del hero lleva al catálogo.
+- **Home renovado:** hero de bienvenida, una *Delicia del Día* y tres *Favoritos de la Casa*, cada uno con su propio botón de alta al carrito y selector de cantidad. La delicia la define el backend (`GET /api/productos/delicia-del-dia`: el mismo producto para todos en un mismo día) y su tarjeta muestra el badge **-10% hoy**; los favoritos se sortean al azar excluyendo ese producto. Si el endpoint no responde, la delicia vuelve a la selección aleatoria de siempre, sin badge, y se usan productos de respaldo para que la página nunca quede vacía. Un único botón del hero lleva al catálogo.
 - **Botón volver arriba:** aparece flotante abajo a la derecha al bajar más de 300 px y vuelve al inicio con scroll suave; está presente en todas las páginas.
 - **Favicon:** la pestaña del navegador muestra el logo de la pastelería (`/img/logoPasteleria.png`).
 - **Catálogo público:** `/delicias` se puede consultar sin iniciar sesión. El login solo se pide al finalizar el pedido.
 - **Carrito compartido:** `CarritoContext` es la única fuente de verdad del carrito. Delicias, el mini carrito y el formulario de pedido leen del mismo contexto, así el pedido nace ya poblado con lo que el cliente eligió.
 - **Mini carrito:** panel lateral que se abre desde el ícono del header, con miniatura del producto, contador de cantidad, subtotal, total, vaciar carrito e ir al pedido.
 - **Selector de cantidad:** al agregar un producto desde el catálogo se abre un modal con botones `−` y `+` para elegir cuántas unidades llevar.
+- **Descuento de la delicia del día:** si el carrito incluye la delicia (coincidencia por nombre), el resumen del pedido estima el **-10% sobre todo el pedido**, acumulable al `BIENVENIDO10`. El monto final lo aplica el backend (fuente real en la confirmación del pedido).
 - **Teaser de pedido:** el invitado que llega a `/pedido` sin sesión ve por qué conectarse; si nunca inició sesión se le invita a *reclamar su código de bienvenida* (el código es de un solo uso por email).
 - **Proxy local:** `vite.config.js` enruta `/api/productos` → `:8080`, `/api/pedidos` → `:8082` y `/api/estadisticas` → `:8081`. El catálogo se sirve desde `catalogo-service` en local; apunta a MySQL local con las variables `DB_URL`, `DB_USER` y `DB_PASS` (ver `.env.example` de cada microservicio).

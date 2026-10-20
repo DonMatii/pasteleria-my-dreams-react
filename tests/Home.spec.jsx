@@ -4,13 +4,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import React from "react";
 import Home from "../src/pages/Home";
 import { CarritoProvider, useCarrito } from "../src/context/CarritoContext";
-import { obtenerProductos } from "../src/service/ProductosService";
+import { obtenerProductos, obtenerDeliciaDelDia } from "../src/service/ProductosService";
 import { pedirCantidad } from "../src/utils/pedirCantidad";
 import '@testing-library/jest-dom';
 
 // El Home ahora lee el catálogo real: nunca pega a la API en los tests
 vi.mock("../src/service/ProductosService", () => ({
   obtenerProductos: vi.fn(),
+  obtenerDeliciaDelDia: vi.fn(),
   aplanarCatalogo: vi.fn((datos) => Object.values(datos).flat()),
 }));
 
@@ -72,6 +73,10 @@ describe("Pruebas de la Página Principal (Home)", () => {
     sessionStorage.clear();
     obtenerProductos.mockResolvedValue(catalogoDePrueba);
     pedirCantidad.mockReset();
+    // Por defecto el endpoint de la delicia falla: la home debe caer al
+    // sorteo aleatorio local sin badge de descuento
+    obtenerDeliciaDelDia.mockReset();
+    obtenerDeliciaDelDia.mockRejectedValue(new Error("sin delicia del día"));
   });
 
   it("debe renderizar el título principal y el eslogan", () => {
@@ -101,6 +106,68 @@ describe("Pruebas de la Página Principal (Home)", () => {
     // Ningún producto se repite entre delicia y favoritos
     const nombres = titulos.map((t) => t.textContent);
     expect(new Set(nombres).size).toBe(nombres.length);
+  });
+
+  it("muestra la delicia real del día con badge -10% cuando el endpoint responde", async () => {
+    // La delicia del día la decide el backend (mismo shape que el catálogo)
+    obtenerDeliciaDelDia.mockResolvedValue({
+      id: 4,
+      nombre: "Brownie de Nuez",
+      precio: 3500,
+      imagenUrl: "brownieChocolateNuez.jpg",
+      descripcion: "Intenso sabor a chocolate.",
+    });
+
+    renderHome();
+
+    // El badge de descuento solo existe cuando el backend confirmó la delicia
+    const badge = await screen.findByTestId("badge-delicia");
+    expect(badge).toHaveTextContent(/-10% hoy/);
+
+    // La tarjeta de la delicia muestra el producto que vino del endpoint
+    const seccion = await screen.findByTestId("delicia-dia");
+    expect(
+      within(seccion).getByRole("heading", { level: 3, name: "Brownie de Nuez" })
+    ).toBeInTheDocument();
+
+    // El copy de la sección refleja la regla real del descuento
+    expect(within(seccion).getByText(/La especialidad de hoy/i)).toBeInTheDocument();
+  });
+
+  it("la delicia del endpoint nunca aparece entre los favoritos de la casa", async () => {
+    obtenerDeliciaDelDia.mockResolvedValue({
+      id: 4,
+      nombre: "Brownie de Nuez",
+      precio: 3500,
+      imagenUrl: "brownieChocolateNuez.jpg",
+      descripcion: "Intenso sabor a chocolate.",
+    });
+
+    renderHome();
+
+    const favoritos = await screen.findByTestId("favoritos-casa");
+    // 3 favoritos, todos distintos de la delicia (excluida por id)
+    expect(within(favoritos).getAllByRole("heading", { level: 3 })).toHaveLength(3);
+    expect(within(favoritos).queryByText("Brownie de Nuez")).not.toBeInTheDocument();
+    // La delicia igual tiene su propia tarjeta
+    expect(await screen.findByTestId("delicia-dia")).toBeInTheDocument();
+  });
+
+  it("sin badge y con selección aleatoria si el endpoint de la delicia falla", async () => {
+    obtenerDeliciaDelDia.mockRejectedValue(new Error("404"));
+
+    renderHome();
+
+    expect(await screen.findByTestId("delicia-dia")).toBeInTheDocument();
+    // Nunca se promete un descuento que el backend no confirmó
+    expect(screen.queryByTestId("badge-delicia")).not.toBeInTheDocument();
+    // Fallback visible: 1 delicia + 3 favoritos
+    const titulos = await screen.findAllByRole("heading", { level: 3 });
+    expect(titulos).toHaveLength(4);
+    // El copy sigue siendo honesto: sorteo aleatorio del catálogo local
+    expect(
+      screen.getByText(/Elegida al azar entre todas nuestras creaciones/i)
+    ).toBeInTheDocument();
   });
 
   it("permite agregar un favorito de la casa al carrito con el selector de cantidad", async () => {

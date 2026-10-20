@@ -12,6 +12,7 @@ import '@testing-library/jest-dom';
 // AdminPanel ya NO usa fetch: llama a las funciones del servicio (axios).
 vi.mock("../src/service/ProductosService", () => ({
   obtenerProductos: vi.fn(),
+  obtenerDeliciaDelDia: vi.fn(),
   crearProducto: vi.fn(),
   actualizarProducto: vi.fn(),
   eliminarProducto: vi.fn(),

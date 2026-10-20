@@ -9,6 +9,7 @@ import "@testing-library/jest-dom";
 // La app completa se monta sin pegar a la API real
 vi.mock("../src/service/ProductosService", () => ({
   obtenerProductos: vi.fn(),
+  obtenerDeliciaDelDia: vi.fn(),
   aplanarCatalogo: vi.fn((datos) => Object.values(datos).flat()),
 }));
 
