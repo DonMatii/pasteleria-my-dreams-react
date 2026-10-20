@@ -38,3 +38,16 @@ footer {
   text-align: center;
   font-family: "Montserrat", sans-serif;
 }
+
+/* Acceso discreto al panel de administracion (no se anuncia
+   en la navegacion principal; practica profesional de consolas admin) */
+.footer-admin {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.footer-admin a {
+  color: #ffffff;
+  text-decoration: underline;
+}

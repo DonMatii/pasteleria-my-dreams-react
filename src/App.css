@@ -173,6 +173,23 @@ header nav ul li a:hover {
   height: 230px; 
   overflow: hidden; 
   border-radius: 15px;
+  position: relative;
+}
+
+/* Badge "-10% hoy" de la delicia del día, flotando sobre la imagen del catálogo */
+.img-wrapper .delicia-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  background-color: #d95386;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(217, 83, 134, 0.35);
 }
 
 .img-wrapper img {

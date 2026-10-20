@@ -1,17 +1,28 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { MemoryRouter } from "react-router-dom";
+import { describe, test, expect } from "vitest";
 import React from "react";
 import Footer from "../src/components/Footer";
+import "@testing-library/jest-dom";
 
-describe("Pruebas del Componente Footer", () => {
-  it("debe mostrar el copyright y los créditos", () => {
-    render(<Footer />);
-    
-    // Usamos una expresión regular más flexible por si cambiaste el año
-    expect(screen.getByText(/Pastelería My Dreams/i)).toBeInTheDocument();
-    
-    const firma = screen.getByText(/Catherine Godoy/i);
-    expect(firma).toBeInTheDocument();
-    expect(firma.tagName).toBe('STRONG');
+// El footer es la única puerta visible hacia el panel de administración
+// (práctica profesional: la consola admin no se anuncia en la navegación principal).
+describe("Footer con acceso de administración", () => {
+  const montar = () =>
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>
+    );
+
+  test("muestra el copyright del proyecto", () => {
+    montar();
+    expect(screen.getByText(/Todos los derechos reservados/i)).toBeInTheDocument();
+  });
+
+  test("incluye el enlace discreto al panel de administración", () => {
+    montar();
+    const enlace = screen.getByRole("link", { name: /Panel de administración/i });
+    expect(enlace).toHaveAttribute("href", "/admin/login");
   });
 });

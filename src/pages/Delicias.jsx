@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { obtenerProductos, aplanarCatalogo } from "../service/ProductosService";
+import { obtenerProductos, obtenerDeliciaDelDia, aplanarCatalogo } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 import "../App.css";
@@ -8,6 +8,7 @@ function Delicias() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [agregado, setAgregado] = useState(null); // nombre del producto agregado recién
+  const [deliciaDelDia, setDeliciaDelDia] = useState(null); // producto con -10% de hoy
   const { agregarAlCarrito } = useCarrito();
 
   const secciones = [
@@ -27,6 +28,15 @@ function Delicias() {
         setProductos(aplanarCatalogo(datos));
       } catch (error) {
         console.error("Error al cargar:", error);
+      }
+
+      // La delicia del día viene del backend (mismo sorteo que el Home);
+      // si falla, el catálogo se muestra igual, solo que sin badge
+      try {
+        const delicia = await obtenerDeliciaDelDia();
+        if (delicia && delicia.id != null) setDeliciaDelDia(delicia);
+      } catch (error) {
+        console.error("Error al cargar la delicia del día en Delicias:", error);
       } finally {
         setCargando(false);
       }
@@ -67,6 +77,10 @@ function Delicias() {
               {itemsFiltrados.map((prod) => (
                 <div className="producto" key={prod.id}>
                   <div className="img-wrapper">
+                    {/* Badge de la delicia del día: solo el backend confirma el descuento */}
+                    {deliciaDelDia && prod.id === deliciaDelDia.id && (
+                      <span className="delicia-badge" data-testid="badge-delicia">-10% hoy</span>
+                    )}
                     <img 
                       src={`/img/${prod.imagenUrl}`} 
                       alt={prod.nombre} 
