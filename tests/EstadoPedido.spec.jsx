@@ -75,6 +75,11 @@ describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
     expect(screen.getByTestId("total-estado")).toHaveTextContent("$30.000");
     expect(screen.getByText(/Catherine Test/)).toBeInTheDocument();
     expect(screen.getByText(/Selva Negra/)).toBeInTheDocument();
+    // El título no expone el número interno: el cliente llegó con su código
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
+      "Tu pedido"
+    );
+    expect(screen.queryByText(/N°/)).not.toBeInTheDocument();
     // Sin descuento no hay desglose: solo el total
     expect(screen.queryByTestId("descuento-estado")).not.toBeInTheDocument();
     expect(screen.queryByTestId("subtotal-estado")).not.toBeInTheDocument();
@@ -88,6 +93,8 @@ describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
         ...pedidoDePrueba,
         subtotal: 30000,
         descuento: 3000,
+        descuentoBienvenida: 3000,
+        descuentoDelicia: 0,
         codigoDescuento: "BIENVENIDO10",
         total: 27000,
       }),
@@ -101,6 +108,35 @@ describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
     expect(screen.getByTestId("descuento-estado")).toHaveTextContent("-$3.000");
     expect(screen.getByText(/BIENVENIDO10/)).toBeInTheDocument();
     expect(screen.getByTestId("total-estado")).toHaveTextContent("$27.000");
+  });
+
+  test("6b. Un pedido que solo usa la Delicia del Día ve ese nombre, no bienvenida", async () => {
+    // Caso real: correo que ya canjeó BIENVENIDO10; solo corre el -10% del día
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue({
+        ...pedidoDePrueba,
+        subtotal: 192500,
+        descuento: 19250,
+        descuentoBienvenida: 0,
+        descuentoDelicia: 19250,
+        codigoDescuento: null,
+        total: 173250,
+      }),
+    });
+
+    render(<EstadoPedido />);
+    consultar("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
+
+    expect(await screen.findByTestId("descuento-delicia-estado")).toHaveTextContent(
+      "Descuento Delicia del Día (-10%)"
+    );
+    expect(screen.getByTestId("descuento-delicia-estado")).toHaveTextContent(
+      "-$19.250"
+    );
+    // El resumen no llama "bienvenida" a un descuento que no lo es
+    expect(screen.queryByText(/bienvenida/i)).not.toBeInTheDocument();
   });
 
   test("4. Un 404 muestra el mensaje amable sin errores crudos", async () => {

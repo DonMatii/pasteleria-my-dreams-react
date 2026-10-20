@@ -145,7 +145,7 @@ const EstadoPedido = () => {
           aria-live="polite"
         >
           <div className="estado-cabecera">
-            <h2 className="estado-titulo">Pedido N° {pedido.id}</h2>
+            <h2 className="estado-titulo">Tu pedido</h2>
             <span
               className={`estado-badge ${claseEstado}`}
               data-testid="estado-badge"
@@ -217,15 +217,37 @@ const EstadoPedido = () => {
                     {formatearMoneda(pedido.subtotal)}
                   </span>
                 </div>
-                <div
-                  className="estado-total estado-descuento"
-                  data-testid="descuento-estado"
-                >
-                  <span>
-                    {`Descuento de bienvenida${pedido.codigoDescuento ? ` (${pedido.codigoDescuento})` : ""}`}
-                  </span>
-                  <span>-{formatearMoneda(pedido.descuento)}</span>
-                </div>
+                {Number(pedido.descuentoBienvenida) > 0 && (
+                  <div
+                    className="estado-total estado-descuento"
+                    data-testid="descuento-estado"
+                  >
+                    <span>
+                      {`Descuento de bienvenida${pedido.codigoDescuento ? ` (${pedido.codigoDescuento})` : ""}`}
+                    </span>
+                    <span>-{formatearMoneda(pedido.descuentoBienvenida)}</span>
+                  </div>
+                )}
+                {Number(pedido.descuentoDelicia) > 0 && (
+                  <div
+                    className="estado-total estado-descuento"
+                    data-testid="descuento-delicia-estado"
+                  >
+                    <span>Descuento Delicia del Día (-10%)</span>
+                    <span>-{formatearMoneda(pedido.descuentoDelicia)}</span>
+                  </div>
+                )}
+                {/* Respaldo: respuestas sin desglose (por ejemplo, backend viejo) */}
+                {Number(pedido.descuentoBienvenida) === 0 &&
+                  Number(pedido.descuentoDelicia) === 0 && (
+                    <div
+                      className="estado-total estado-descuento"
+                      data-testid="descuento-estado"
+                    >
+                      <span>Descuento</span>
+                      <span>-{formatearMoneda(pedido.descuento)}</span>
+                    </div>
+                  )}
               </>
             )}
             <div className="estado-total estado-total-final">

@@ -204,16 +204,26 @@ const Pedido = () => {
         if (descuento > 0) {
           consumirCodigoBienvenida();
         }
-        // El descuento real lo aplica la base de datos; el front solo estima en vivo
-        const descuentoAplicado = Number(pedidoCreado?.descuento ?? 0) || descuento;
-        const textoDescuento =
-          descuentoAplicado > 0
-            ? ` Se aplicó tu descuento de bienvenida: -$${descuentoAplicado.toLocaleString("es-CL")}.`
-            : "";
+        // El desglose real lo decide el backend: bienvenida solo si canjeó el
+        // código, delicia si el pedido incluyó la delicia del día
+        const descBienvenida = Number(pedidoCreado?.descuentoBienvenida ?? 0);
+        const descDelicia = Number(pedidoCreado?.descuentoDelicia ?? 0);
+        const descTotal = Number(pedidoCreado?.descuento ?? 0);
+        let textoDescuento = "";
+        if (descBienvenida > 0) {
+          textoDescuento += ` Se aplicó tu descuento de bienvenida (BIENVENIDO10): -$${descBienvenida.toLocaleString("es-CL")}.`;
+        }
+        if (descDelicia > 0) {
+          textoDescuento += ` Descuento Delicia del Día (-10%): -$${descDelicia.toLocaleString("es-CL")}.`;
+        }
+        if (textoDescuento === "" && descTotal > 0) {
+          textoDescuento = ` Se aplicaron descuentos: -$${descTotal.toLocaleString("es-CL")}.`;
+        }
+        // El número de pedido es interno: al cliente lo que le sirve es el código
         Swal.fire({
           icon: "success",
           title: "¡Pedido registrado!",
-          text: `Pedido N° ${pedidoCreado?.id} por $${totalCreado.toLocaleString(
+          text: `Pedido por $${totalCreado.toLocaleString(
             "es-CL"
           )}. Tu código de seguimiento: ${codigoSeguimiento} (guárdalo para consultar el estado).${textoDescuento} Te enviaremos la confirmación a tu correo. 🧁`,
           confirmButtonColor: "#d95386",

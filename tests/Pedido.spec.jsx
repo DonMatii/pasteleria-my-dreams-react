@@ -274,6 +274,10 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
       json: vi.fn().mockResolvedValue({
         id: 8,
         total: 27000,
+        descuento: 3000,
+        descuentoBienvenida: 3000,
+        descuentoDelicia: 0,
+        codigoDescuento: "BIENVENIDO10",
         productos: [],
         eventoPublicado: true,
         codigoConsulta: "ffffffffffffffffffffffffffffffff",
@@ -302,9 +306,44 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     expect(Swal.fire).toHaveBeenCalledWith(
       expect.objectContaining({
         icon: "success",
-        text: expect.stringContaining("descuento de bienvenida"),
+        text: expect.stringContaining(
+          "descuento de bienvenida (BIENVENIDO10): -$3.000"
+        ),
       })
     );
+    // El mensaje no expone el número interno del pedido: para eso está el código
+    expect(Swal.fire.mock.calls.at(-1)[0].text).not.toContain("N°");
+  });
+
+  test("9. Sin código de bienvenida el mensaje nombra la Delicia del Día y oculta el número interno", async () => {
+    // Este correo ya canjeó BIENVENIDO10 en una compra anterior: el backend
+    // solo aplica el descuento de la delicia y el mensaje debe decir eso
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: vi.fn().mockResolvedValue({
+        id: 15,
+        total: 155250,
+        descuento: 19250,
+        descuentoBienvenida: 0,
+        descuentoDelicia: 19250,
+        codigoDescuento: null,
+        productos: [],
+        eventoPublicado: true,
+        codigoConsulta: "abcdef0123456789abcdef0123456789",
+      }),
+    });
+
+    llenarFormularioValido();
+
+    fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
+
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalled());
+    const texto = Swal.fire.mock.calls.at(-1)[0].text;
+    expect(texto).toContain("Descuento Delicia del Día (-10%): -$19.250");
+    expect(texto).not.toContain("bienvenida");
+    expect(texto).not.toContain("N°");
+    expect(texto).toContain("abcdef0123456789abcdef0123456789");
   });
 
   test("7. Un código desconocido bloquea el envío sin llamar al backend", async () => {
@@ -331,6 +370,8 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
         id: 12,
         total: 27000,
         descuento: 3000,
+        descuentoBienvenida: 3000,
+        descuentoDelicia: 0,
         codigoDescuento: "BIENVENIDO10",
         productos: [],
         eventoPublicado: true,
