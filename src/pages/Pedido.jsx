@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
-import { obtenerDeliciaDelDia } from "../service/ProductosService";
+import {
+  obtenerProductos,
+  obtenerDeliciaDelDia,
+  aplanarCatalogo,
+} from "../service/ProductosService";
 import { URL_BASE } from "../service/apiClient";
 import {
   esCodigoValido,
@@ -24,6 +28,7 @@ const Pedido = () => {
   // Carrito compartido con Delicias (contexto)
   const {
     items,
+    agregarAlCarrito,
     quitarItem,
     cambiarCantidad: cambiarCantidadItem,
     limpiarCarrito,
@@ -54,6 +59,37 @@ const Pedido = () => {
 
     cargarDelicia();
   }, []);
+
+  // Ventanita del catálogo: seguir agregando delicias sin salir del checkout
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [catalogoModal, setCatalogoModal] = useState([]);
+  const [cargandoModal, setCargandoModal] = useState(false);
+  const [errorModal, setErrorModal] = useState("");
+  const [cantidadesModal, setCantidadesModal] = useState({});
+
+  useEffect(() => {
+    if (!modalAbierto) return undefined;
+    let activo = true;
+    const cargarCatalogo = async () => {
+      setCargandoModal(true);
+      setErrorModal("");
+      try {
+        const datos = await obtenerProductos();
+        if (activo) setCatalogoModal(aplanarCatalogo(datos));
+      } catch (error) {
+        if (activo) {
+          console.error("Error al cargar el catálogo en la ventanita:", error);
+          setErrorModal("No se pudo cargar el catálogo. Intenta nuevamente.");
+        }
+      } finally {
+        if (activo) setCargandoModal(false);
+      }
+    };
+    cargarCatalogo();
+    return () => {
+      activo = false;
+    };
+  }, [modalAbierto]);
 
   // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido Y siga disponible
   // (disponible = no canjeado: el codigo se gana una sola vez por navegador)
@@ -117,13 +153,6 @@ const Pedido = () => {
       esValido = false;
     }
 
-    // Uso unico: un codigo ya canjeado (o nunca ganado en este navegador) no se vuelve a aplicar
-    if (codigoDescuento.trim() && esCodigoValido(codigoDescuento) && !codigoDisponible) {
-      nuevosErrores.codigoDescuento =
-        "El código de bienvenida ya fue canjeado o no está disponible.";
-      esValido = false;
-    }
-
     setErrores(nuevosErrores);
     return esValido;
   };
@@ -153,8 +182,8 @@ const Pedido = () => {
         precioUnitario: Number(it.precio),
       })),
     };
-    // Solo un codigo valido y disponible viaja al backend; la validacion corta el re-ingreso
-    if (codigoValido && codigoDisponible) {
+    // Un codigo valido viaja al backend: el uso unico por email lo decide la base de datos
+    if (codigoValido) {
       cuerpoPedido.codigoDescuento = codigoDescuento.trim().toUpperCase();
     }
 
@@ -170,13 +199,15 @@ const Pedido = () => {
         const pedidoCreado = await response.json();
         const totalCreado = Number(pedidoCreado?.total ?? total);
         const codigoSeguimiento = pedidoCreado?.codigoConsulta || "";
-        // El codigo de bienvenida se canjea una sola vez
+        // El codigo de bienvenida se canjea una sola vez en este navegador
         if (descuento > 0) {
           consumirCodigoBienvenida();
         }
+        // El descuento real lo aplica la base de datos; el front solo estima en vivo
+        const descuentoAplicado = Number(pedidoCreado?.descuento ?? 0) || descuento;
         const textoDescuento =
-          descuento > 0
-            ? ` Se aplicó tu descuento de bienvenida: -$${descuento.toLocaleString("es-CL")}.`
+          descuentoAplicado > 0
+            ? ` Se aplicó tu descuento de bienvenida: -$${descuentoAplicado.toLocaleString("es-CL")}.`
             : "";
         Swal.fire({
           icon: "success",
@@ -298,13 +329,14 @@ const Pedido = () => {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/delicias"
+              <button
+                type="button"
                 className="pedido-seguir"
                 data-testid="seguir-agregando"
+                onClick={() => setModalAbierto(true)}
               >
                 + Seguir agregando delicias
-              </Link>
+              </button>
               {errores.producto && (
                 <span className="error-text">{errores.producto}</span>
               )}
@@ -372,6 +404,77 @@ const Pedido = () => {
           </button>
         </form>
       </div>
+
+      {modalAbierto && (
+        <div
+          className="modal-overlay"
+          data-testid="modal-catalogo"
+          onClick={() => setModalAbierto(false)}
+        >
+          <div
+            className="modal-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Agregar más delicias"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-cabecera">
+              <h3>Agrega más delicias</h3>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setModalAbierto(false)}
+              >
+                ✕
+              </button>
+            </div>
+            {cargandoModal && <p className="modal-estado">Cargando catálogo...</p>}
+            {errorModal && <p className="error-text">{errorModal}</p>}
+            <div className="modal-grid">
+              {catalogoModal.map((prod) => (
+                <div className="modal-tarjeta" key={prod.id}>
+                  <img
+                    src={`/img/${prod.imagenUrl || "alfajor.jpg"}`}
+                    alt={prod.nombre}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.target.src = "/img/alfajor.jpg";
+                    }}
+                  />
+                  <span className="modal-tarjeta-nombre">{prod.nombre}</span>
+                  <span className="modal-tarjeta-precio">
+                    ${Number(prod.precio).toLocaleString("es-CL")}
+                  </span>
+                  <div className="modal-tarjeta-fila">
+                    <input
+                      type="number"
+                      min="1"
+                      aria-label={`Cantidad modal de ${prod.nombre}`}
+                      value={cantidadesModal[prod.id] ?? 1}
+                      onChange={(e) =>
+                        setCantidadesModal((prev) => ({
+                          ...prev,
+                          [prod.id]: e.target.value,
+                        }))
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="boton-agregar"
+                      onClick={() => {
+                        agregarAlCarrito(prod, Number(cantidadesModal[prod.id]) || 1);
+                        setCantidadesModal((prev) => ({ ...prev, [prod.id]: "1" }));
+                      }}
+                    >
+                      Agregar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

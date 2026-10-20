@@ -513,14 +513,131 @@ header nav ul li a:hover {
 .pedido-seguir {
   display: inline-block;
   margin-top: 12px;
-  color: #d95386;
+  padding: 9px 16px;
+  background: #f7f2f6;
+  border: 1px dashed #e6c8d8;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
+  color: #d95386;
   font-size: 0.9rem;
-  text-decoration: underline;
+  transition: background 0.2s;
 }
 
 .pedido-seguir:hover {
+  background: #ffe9f3;
+}
+
+/* Ventanita del catálogo: seguir agregando sin salir del checkout */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(93, 32, 74, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modal-panel {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 760px;
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 22px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.modal-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.modal-cabecera h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2rem;
+  color: #d95386;
+  margin: 0;
+}
+
+.modal-cabecera button {
+  border: none;
+  background: transparent;
+  font-size: 1.3rem;
   color: #b04e6f;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.modal-estado {
+  text-align: center;
+  color: #7d6a7d;
+  font-size: 0.95rem;
+  padding: 18px 0;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.modal-tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #f3d7e3;
+  border-radius: 14px;
+  background: #fffafd;
+}
+
+.modal-tarjeta img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.modal-tarjeta-nombre {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #5d405d;
+  text-align: center;
+}
+
+.modal-tarjeta-precio {
+  font-weight: 800;
+  color: #d95386;
+}
+
+.modal-tarjeta-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-tarjeta-fila input {
+  width: 56px;
+  padding: 6px 4px;
+  border: 1px solid #f3d7e3;
+  border-radius: 8px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.modal-tarjeta-fila .boton-agregar {
+  margin-top: 0;
+  padding: 8px 14px;
+  font-size: 0.85rem;
 }
 
 /* Resumen del checkout: jerarquía clara, el TOTAL final es lo más destacado */
@@ -574,12 +691,15 @@ header nav ul li a:hover {
   font-size: 1.9rem;
 }
 
-.pedido-carrito-cantidad {
-  width: 60px;
-  padding: 4px 6px;
+/* La fila vive dentro de .form-group: este selector gana al ancho completo que ese contenedor aplica a todos sus input */
+.pedido-carrito-item input.pedido-carrito-cantidad {
+  width: 64px;
+  flex: 0 0 auto;
+  padding: 6px 4px;
   border: 1px solid #f3d7e3;
   border-radius: 8px;
   text-align: center;
+  background: #fff;
 }
 
 .pedido-carrito-subtotal {

@@ -9,12 +9,16 @@ import {
   CarritoProvider,
   useCarrito,
 } from "../src/context/CarritoContext";
-import { obtenerDeliciaDelDia } from "../src/service/ProductosService";
+import {
+  obtenerProductos,
+  obtenerDeliciaDelDia,
+} from "../src/service/ProductosService";
 import Swal from "sweetalert2";
 
-// Mockeamos el servicio de la delicia: el checkout no vuelve a pedir el catálogo
-// (la selección vive en el carrito compartido que se llena desde /delicias)
-vi.mock("../src/service/ProductosService", () => ({
+// Mockeamos los fetch del catálogo; aplanarCatalogo queda REAL para probar
+// el mismo aplanado que usa /delicias (la ventanita lo reutiliza)
+vi.mock("../src/service/ProductosService", async (importOriginal) => ({
+  ...await importOriginal(),
   obtenerProductos: vi.fn(),
   obtenerDeliciaDelDia: vi.fn(),
 }));
@@ -29,6 +33,16 @@ vi.mock("sweetalert2", () => ({
 // Productos del catálogo real (llegan al carrito desde Delicias/Home)
 const selvaNegra = { id: 1, nombre: "Selva Negra", precio: 15000, imagenUrl: "selva.jpg" };
 const manjarLucuma = { id: 2, nombre: "Manjar Lúcuma", precio: 12000, imagenUrl: "manjar.jpg" };
+
+// Respuesta cruda de GET /api/productos (mapa agrupado por categoría), como la real
+const catalogoCrudo = {
+  tortas: [
+    { id: 9, nombre: "Torta Moka", precio: 15000, imagenUrl: "moka.jpg", categoria: "tortas" },
+  ],
+  personales: [
+    { id: 13, nombre: "Muffins Plátano Arándano", precio: 2500, imagenUrl: "muffin.jpg", categoria: "personales" },
+  ],
+};
 
 // Siembra el carrito compartido en el mismo provider (flujo real de compra:
 // el cliente elige en el catálogo y /pedido es el checkout)
@@ -68,6 +82,8 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     vi.clearAllMocks();
     // Por defecto el backend no informa delicia del día: ningún descuento extra
     obtenerDeliciaDelDia.mockRejectedValue(new Error("sin delicia del día"));
+    // La ventanita del catálogo responde con el mapa por categoría
+    obtenerProductos.mockResolvedValue(catalogoCrudo);
     // Estado limpio: sin flag de primera conexion ni codigo de bienvenida
     localStorage.clear();
   });
@@ -98,10 +114,10 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
 
     expect(screen.getByTestId("total-pedido")).toHaveTextContent("$30.000");
     expect(screen.getByTestId("total-final")).toHaveTextContent("$30.000");
-    expect(screen.getByRole("link", { name: /Seguir agregando delicias/i })).toHaveAttribute(
-      "href",
-      "/delicias"
-    );
+    // El botón abre la ventanita del catálogo, no navega fuera del checkout
+    expect(
+      screen.getByRole("button", { name: /Seguir agregando delicias/i })
+    ).toBeInTheDocument();
   });
 
   test("2. La validación bloquea el envío y muestra los errores", async () => {
@@ -305,10 +321,22 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  test("8. El código de bienvenida ya canjeado bloquea el re-ingreso", async () => {
-    // Primera conexión ya gastada en este navegador: flag presente, código ausente
-    localStorage.setItem("md_primera_conexion", "1");
-    global.fetch = vi.fn();
+  test("8. El código escrito a mano viaja al backend: el uso único lo decide la base de datos", async () => {
+    // Navegador nuevo (sin la marca local): el cliente también puede usar su
+    // código legítimo; quien rechaza el doble canje por email es el backend
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: vi.fn().mockResolvedValue({
+        id: 12,
+        total: 27000,
+        descuento: 3000,
+        codigoDescuento: "BIENVENIDO10",
+        productos: [],
+        eventoPublicado: true,
+        codigoConsulta: "99999999999999999999999999999999",
+      }),
+    });
 
     llenarFormularioValido();
 
@@ -317,10 +345,46 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
 
-    expect(await screen.findByText(/ya fue canjeado/i)).toBeInTheDocument();
-    expect(global.fetch).not.toHaveBeenCalled();
-    // Tampoco se muestra el ahorro en vivo: no hay código disponible
-    expect(screen.queryByTestId("descuento-bienvenida")).not.toBeInTheDocument();
+    // El código llega al backend aunque el navegador no tenga la marca local
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+      const cuerpo = JSON.parse(global.fetch.mock.calls[0][1].body);
+      expect(cuerpo.codigoDescuento).toBe("BIENVENIDO10");
+    });
+
+    // La confirmación menciona el descuento que aplicó la base de datos
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({
+        icon: "success",
+        text: expect.stringContaining("descuento de bienvenida"),
+      })
+    );
+  });
+
+  test("8b. El backend rechaza el BIENVENIDO10 ya canjeado para ese email", async () => {
+    // Mismo email en otro navegador: la base de datos lo rechaza con su mensaje
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: vi.fn().mockResolvedValue({
+        mensaje: "El código de descuento ya fue canjeado para este email",
+      }),
+    });
+
+    llenarFormularioValido();
+
+    fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
+      target: { value: "BIENVENIDO10" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
+
+    await waitFor(() => {
+      expect(Swal.fire).toHaveBeenCalledWith(
+        "Error",
+        "El código de descuento ya fue canjeado para este email",
+        "error"
+      );
+    });
   });
 
   test("9. El carrito con la delicia del día muestra el -10% y el total resta ambos descuentos", async () => {
@@ -385,5 +449,47 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
 
     expect(screen.getByTestId("total-pedido")).toHaveTextContent("$45.000");
     expect(screen.getByTestId("total-final")).toHaveTextContent("$45.000");
+  });
+
+  test("12. La ventanita 'Seguir agregando' abre el catálogo y agrega sin salir del checkout", async () => {
+    renderPedido([{ ...selvaNegra, cantidad: 2 }]);
+
+    fireEvent.click(screen.getByRole("button", { name: /Seguir agregando delicias/i }));
+
+    // El catálogo carga desde el servicio y se aplana igual que en /delicias
+    expect(await screen.findByTestId("modal-catalogo")).toBeInTheDocument();
+    expect(await screen.findByText("Torta Moka")).toBeInTheDocument();
+    expect(screen.getByText("Muffins Plátano Arándano")).toBeInTheDocument();
+
+    // Agrego 2 muffins desde la ventanita: el total del checkout sube en vivo
+    const tarjeta = screen
+      .getByText("Muffins Plátano Arándano")
+      .closest(".modal-tarjeta");
+    fireEvent.change(
+      within(tarjeta).getByLabelText(/Cantidad modal de Muffins Plátano Arándano/i),
+      { target: { value: "2" } }
+    );
+    fireEvent.click(within(tarjeta).getByRole("button", { name: "Agregar" }));
+
+    // 30.000 de la Selva Negra + 2 × 2.500 de muffins
+    expect(screen.getByTestId("total-pedido")).toHaveTextContent("$35.000");
+    // La ventanita queda abierta para seguir agregando
+    expect(screen.getByTestId("modal-catalogo")).toBeInTheDocument();
+
+    // Cerrar la ventanita vuelve al checkout
+    fireEvent.click(screen.getByRole("button", { name: /Cerrar/i }));
+    expect(screen.queryByTestId("modal-catalogo")).not.toBeInTheDocument();
+  });
+
+  test("12b. Si el catálogo no carga, la ventanita muestra el error en vez de quedarse muda", async () => {
+    obtenerProductos.mockRejectedValue(new Error("sin red"));
+
+    renderPedido([{ ...selvaNegra, cantidad: 2 }]);
+
+    fireEvent.click(screen.getByRole("button", { name: /Seguir agregando delicias/i }));
+
+    expect(
+      await screen.findByText(/No se pudo cargar el catálogo/i)
+    ).toBeInTheDocument();
   });
 });
