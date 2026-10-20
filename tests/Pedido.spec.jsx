@@ -1,14 +1,19 @@
 /* eslint-disable no-undef */
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import React, { useEffect } from "react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { vi, describe, test, expect, beforeEach } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import Pedido from "../src/pages/Pedido";
-import { CarritoProvider } from "../src/context/CarritoContext";
-import { obtenerProductos, obtenerDeliciaDelDia } from "../src/service/ProductosService";
+import {
+  CarritoProvider,
+  useCarrito,
+} from "../src/context/CarritoContext";
+import { obtenerDeliciaDelDia } from "../src/service/ProductosService";
 import Swal from "sweetalert2";
 
-// Mockeamos el servicio del catálogo: el select nunca debe pegar a la API real
+// Mockeamos el servicio de la delicia: el checkout no vuelve a pedir el catálogo
+// (la selección vive en el carrito compartido que se llena desde /delicias)
 vi.mock("../src/service/ProductosService", () => ({
   obtenerProductos: vi.fn(),
   obtenerDeliciaDelDia: vi.fn(),
@@ -21,74 +26,88 @@ vi.mock("sweetalert2", () => ({
   },
 }));
 
-// Pedido usa el carrito compartido: siempre se renderiza con el provider
-const renderPedido = () =>
-  render(
-    <CarritoProvider>
-      <Pedido />
-    </CarritoProvider>
-  );
+// Productos del catálogo real (llegan al carrito desde Delicias/Home)
+const selvaNegra = { id: 1, nombre: "Selva Negra", precio: 15000, imagenUrl: "selva.jpg" };
+const manjarLucuma = { id: 2, nombre: "Manjar Lúcuma", precio: 12000, imagenUrl: "manjar.jpg" };
 
-// Respuesta simulada de GET /api/productos (Map agrupado por categoría)
-const catalogoDePrueba = {
-  Tortas: [
-    { id: 1, nombre: "Selva Negra", precio: 15000 },
-    { id: 2, nombre: "Manjar Lúcuma", precio: 12000 },
-  ],
+// Siembra el carrito compartido en el mismo provider (flujo real de compra:
+// el cliente elige en el catálogo y /pedido es el checkout)
+const Sembrador = ({ items }) => {
+  const { agregarAlCarrito } = useCarrito();
+  useEffect(() => {
+    items.forEach((it) => agregarAlCarrito(it, it.cantidad));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
 };
+
+const renderPedido = (items = []) =>
+  render(
+    <MemoryRouter>
+      <CarritoProvider>
+        <Sembrador items={items} />
+        <Pedido />
+      </CarritoProvider>
+    </MemoryRouter>
+  );
 
 const URL_PEDIDOS = `${import.meta.env.VITE_API_BASE_URL}/api/pedidos`;
 
-const esperarCatalogo = () =>
-  screen.findByRole("button", { name: /Selva Negra/i });
-
-// Nuevo flujo: elegir tarjeta, poner cantidad y agregar al carrito
-const agregarProducto = (nombre, cantidad = "1") => {
-  fireEvent.click(screen.getByRole("button", { name: new RegExp(nombre, "i") }));
-  fireEvent.change(screen.getByLabelText(/^Cantidad:/i), {
-    target: { value: cantidad },
-  });
-  fireEvent.click(screen.getByRole("button", { name: /Agregar al pedido/i }));
-};
-
-const llenarFormularioValido = async () => {
-  fireEvent.change(await screen.findByLabelText(/Nombre del Cliente/i), {
+const llenarFormularioValido = (items = [{ ...selvaNegra, cantidad: 2 }]) => {
+  renderPedido(items);
+  fireEvent.change(screen.getByLabelText(/Nombre del Cliente/i), {
     target: { value: "Catherine Test" },
   });
   fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), {
     target: { value: "cat@test.com" },
   });
-  await esperarCatalogo();
-  agregarProducto("Selva Negra", "2");
 };
 
-describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
+describe("Checkout de Pedido - My Dreams (RF-07)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    obtenerProductos.mockResolvedValue(catalogoDePrueba);
     // Por defecto el backend no informa delicia del día: ningún descuento extra
     obtenerDeliciaDelDia.mockRejectedValue(new Error("sin delicia del día"));
     // Estado limpio: sin flag de primera conexion ni codigo de bienvenida
     localStorage.clear();
   });
 
-  test("1. Debe renderizar la página y poblar las tarjetas con el catálogo", async () => {
+  test("1. Con el carrito vacío muestra el estado vacío y el acceso al catálogo", () => {
     renderPedido();
 
     expect(screen.getByText(/¡Haz tu pedido!/i)).toBeInTheDocument();
-    const tarjetaSelva = await esperarCatalogo();
-    expect(screen.getByRole("button", { name: /Manjar Lúcuma/i })).toBeInTheDocument();
-    // La tarjeta muestra el precio del producto
-    expect(tarjetaSelva).toHaveTextContent("$15.000");
-    // Ninguna tarjeta empieza seleccionada
-    expect(tarjetaSelva).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByTestId("pedido-vacio")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Ver nuestras delicias/i })
+    ).toHaveAttribute("href", "/delicias");
+    // Sin items no se muestra el resumen de precios
+    expect(screen.queryByTestId("total-pedido")).not.toBeInTheDocument();
+  });
+
+  test("1b. La fila del pedido muestra foto, precio unitario (c/u) y subtotal", () => {
+    renderPedido([{ ...selvaNegra, cantidad: 2 }]);
+
+    const fila = screen.getByText("Selva Negra").closest("li");
+    expect(within(fila).getByText(/c\/u \$15\.000/)).toBeInTheDocument();
+    expect(within(fila).getByText("$30.000")).toBeInTheDocument();
+    expect(within(fila).getByAltText("Selva Negra")).toBeInTheDocument();
+  });
+
+  test("1c. El resumen jerarquiza subtotal, descuentos y TOTAL final prominente", () => {
+    renderPedido([{ ...selvaNegra, cantidad: 2 }]);
+
+    expect(screen.getByTestId("total-pedido")).toHaveTextContent("$30.000");
+    expect(screen.getByTestId("total-final")).toHaveTextContent("$30.000");
+    expect(screen.getByRole("link", { name: /Seguir agregando delicias/i })).toHaveAttribute(
+      "href",
+      "/delicias"
+    );
   });
 
   test("2. La validación bloquea el envío y muestra los errores", async () => {
     global.fetch = vi.fn();
 
     renderPedido();
-    await esperarCatalogo();
 
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
 
@@ -118,8 +137,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     // Total en vivo: precioUnitario (15000) × cantidad (2)
     expect(screen.getByTestId("total-pedido")).toHaveTextContent("30.000");
@@ -152,13 +170,11 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       })
     );
 
-    // El formulario se resetea después del éxito: carrito vacío
+    // El formulario se resetea después del éxito: carrito vacío de nuevo
     expect(screen.getByLabelText(/Nombre del Cliente/i)).toHaveValue("");
     expect(screen.getByLabelText(/Correo Electrónico/i)).toHaveValue("");
-    expect(
-      screen.getByRole("button", { name: /Selva Negra/i })
-    ).toHaveAttribute("aria-pressed", "false");
     expect(screen.queryByTestId("carrito-pedido")).not.toBeInTheDocument();
+    expect(screen.getByTestId("pedido-vacio")).toBeInTheDocument();
   });
 
   test("3b. Acepta varios productos en un mismo pedido (carrito)", async () => {
@@ -174,19 +190,10 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    renderPedido();
-    // Llenar datos de contacto primero
-    fireEvent.change(await screen.findByLabelText(/Nombre del Cliente/i), {
-      target: { value: "Catherine Test" },
-    });
-    fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), {
-      target: { value: "cat@test.com" },
-    });
-    await esperarCatalogo();
-
-    // Dos productos distintos: Selva Negra x2 + Manjar Lúcuma x1
-    agregarProducto("Selva Negra", "2");
-    agregarProducto("Manjar Lúcuma", "1");
+    llenarFormularioValido([
+      { ...selvaNegra, cantidad: 2 },
+      { ...manjarLucuma, cantidad: 1 },
+    ]);
 
     // El total suma los dos items (30000 + 12000)
     expect(screen.getByTestId("total-pedido")).toHaveTextContent("42.000");
@@ -213,8 +220,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
         .mockResolvedValue({ mensaje: "La cantidad de cada producto debe ser al menos 1" }),
     });
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
 
@@ -230,8 +236,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   test("5. Un fallo de red muestra el Swal de error de conexión", async () => {
     global.fetch = vi.fn().mockRejectedValue(new Error("sin red"));
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
 
@@ -259,8 +264,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     // El código viene prellenado y el ahorro se ve en vivo (30000 - 10%)
     expect(screen.getByLabelText(/Código de descuento/i)).toHaveValue("BIENVENIDO10");
@@ -290,8 +294,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
   test("7. Un código desconocido bloquea el envío sin llamar al backend", async () => {
     global.fetch = vi.fn();
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
       target: { value: "AHORRO50" },
@@ -307,8 +310,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
     localStorage.setItem("md_primera_conexion", "1");
     global.fetch = vi.fn();
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
       target: { value: "BIENVENIDO10" },
@@ -340,8 +342,7 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     // 30.000 en el carrito: bienvenida -3.000 y delicia -3.000 (estimado)
     expect(await screen.findByTestId("descuento-delicia")).toHaveTextContent("-$3.000");
@@ -367,12 +368,22 @@ describe("Pruebas de Formulario de Pedido - My Dreams (RF-07)", () => {
       }),
     });
 
-    renderPedido();
-    await llenarFormularioValido();
+    llenarFormularioValido();
 
     // El descuento de bienvenida sigue intacto y el total solo lo resta a él
     expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
     expect(screen.queryByTestId("descuento-delicia")).not.toBeInTheDocument();
     expect(screen.getByTestId("total-final")).toHaveTextContent("$27.000");
+  });
+
+  test("11. Cambiar la cantidad en la fila actualiza subtotal y total en vivo", () => {
+    renderPedido([{ ...selvaNegra, cantidad: 2 }]);
+
+    fireEvent.change(screen.getByLabelText(/Cantidad de Selva Negra/i), {
+      target: { value: "3" },
+    });
+
+    expect(screen.getByTestId("total-pedido")).toHaveTextContent("$45.000");
+    expect(screen.getByTestId("total-final")).toHaveTextContent("$45.000");
   });
 });

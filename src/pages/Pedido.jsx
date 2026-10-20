@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from "react";
-import "../App.css";
-import Swal from "sweetalert2";
-import { obtenerProductos, obtenerDeliciaDelDia } from "../service/ProductosService";
-import { URL_BASE } from "../service/apiClient";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
+import { obtenerDeliciaDelDia } from "../service/ProductosService";
+import { URL_BASE } from "../service/apiClient";
 import {
+  esCodigoValido,
   obtenerCodigoBienvenida,
   consumirCodigoBienvenida,
-  esCodigoValido,
 } from "../service/BienvenidaService";
+import Swal from "sweetalert2";
+import "../App.css";
 
-// RF-07: formulario nuevo para registrar un pedido real en el backend.
+// RF-07: checkout para registrar un pedido real en el backend.
+// La selección de productos vive en el carrito compartido (se llena desde
+// /delicias y el mini carrito); esta página es la revisión y confirmación.
 // El formulario de contacto (Contacto.jsx / Formspree, RF-06) queda intacto.
 const Pedido = () => {
-  const [productosCatalogo, setProductosCatalogo] = useState([]);
-  const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
-  const [errorCatalogo, setErrorCatalogo] = useState("");
-
   const [formData, setFormData] = useState({
     cliente: "",
     email: "",
@@ -25,15 +24,11 @@ const Pedido = () => {
   // Carrito compartido con Delicias (contexto)
   const {
     items,
-    agregarAlCarrito: agregarItemAlCarrito,
     quitarItem,
     cambiarCantidad: cambiarCantidadItem,
     limpiarCarrito,
     total,
   } = useCarrito();
-
-  const [productoSel, setProductoSel] = useState("");
-  const [cantidadSel, setCantidadSel] = useState("1");
 
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
@@ -41,25 +36,6 @@ const Pedido = () => {
   const [codigoDescuento, setCodigoDescuento] = useState(
     () => obtenerCodigoBienvenida() || ""
   );
-
-  // El catálogo real vive en GET /api/productos y se pide por el servicio existente
-  useEffect(() => {
-    const cargarProductos = async () => {
-      try {
-        const datos = await obtenerProductos();
-        // El endpoint devuelve un Map agrupado por categoría (como lo consume AdminPanel)
-        const lista = Array.isArray(datos) ? datos : Object.values(datos).flat();
-        setProductosCatalogo(lista.filter((prod) => prod && prod.nombre));
-      } catch (error) {
-        console.error("Error al cargar el catálogo para el pedido:", error);
-        setErrorCatalogo("No se pudieron cargar los productos. Intenta nuevamente.");
-      } finally {
-        setCargandoCatalogo(false);
-      }
-    };
-
-    cargarProductos();
-  }, []);
 
   // Delicia del día: el backend aplica -10% sobre TODO el pedido si el carrito
   // la incluye (match por nombre). Aquí solo estimamos el ahorro en vivo.
@@ -78,34 +54,6 @@ const Pedido = () => {
 
     cargarDelicia();
   }, []);
-
-  const productoSeleccionado = productosCatalogo.find(
-    (prod) => String(prod.id) === String(productoSel)
-  );
-
-  // Agregar el producto seleccionado (o sumar cantidad si ya esta en el carrito)
-  const agregarAlCarrito = () => {
-    if (!productoSeleccionado) {
-      setErrores({ ...errores, producto: "Selecciona un producto para tu pedido." });
-      return;
-    }
-    const cantidad = Number(cantidadSel);
-    if (!Number.isInteger(cantidad) || cantidad < 1) {
-      setErrores({
-        ...errores,
-        cantidad: "La cantidad debe ser un entero mayor o igual a 1.",
-      });
-      return;
-    }
-
-    // Delega al carrito compartido la persistencia del item
-    agregarItemAlCarrito(productoSeleccionado, cantidad);
-
-    // Limpia la seleccion para agregar otro producto distinto
-    setProductoSel("");
-    setCantidadSel("1");
-    setErrores({ ...errores, producto: "", cantidad: "" });
-  };
 
   // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido Y siga disponible
   // (disponible = no canjeado: el codigo se gana una sola vez por navegador)
@@ -240,8 +188,6 @@ const Pedido = () => {
         });
         setFormData({ cliente: "", email: "" });
         limpiarCarrito();
-        setProductoSel("");
-        setCantidadSel("1");
         setCodigoDescuento("");
         setErrores({});
       } else if (response.status === 400) {
@@ -267,7 +213,7 @@ const Pedido = () => {
     <main className="main-content">
       <h1 className="titulo-principal">¡Haz tu pedido!</h1>
       <p className="subtitulo-home">
-        Arma tu pedido con una o varias delicias y la registramos al instante.
+        Elige tus delicias en el catálogo, revisa tu pedido y lo registramos al instante.
       </p>
 
       <div className="formulario-container">
@@ -298,82 +244,34 @@ const Pedido = () => {
             {errores.email && <span className="error-text">{errores.email}</span>}
           </div>
 
-          <div className="form-group">
-            <label id="etiqueta-producto">Agrega tus productos:</label>
-            {cargandoCatalogo && <p className="selector-estado">Cargando productos...</p>}
-            <div
-              className="pedido-selector-grid"
-              role="group"
-              aria-labelledby="etiqueta-producto"
-              data-testid="selector-productos"
-            >
-              {productosCatalogo.map((prod) => {
-                const seleccionado = String(prod.id) === String(productoSel);
-                return (
-                  <button
-                    key={prod.id}
-                    type="button"
-                    className={`pedido-tarjeta${seleccionado ? " pedido-tarjeta-activa" : ""}`}
-                    aria-pressed={seleccionado}
-                    onClick={() => {
-                      setProductoSel(String(prod.id));
-                      if (errores.producto) setErrores({ ...errores, producto: "" });
-                    }}
-                  >
-                    <img
-                      src={`/img/${prod.imagenUrl || "alfajor.jpg"}`}
-                      alt={prod.nombre}
-                      loading="lazy"
-                      onError={(e) => {
-                        e.target.src = "/img/alfajor.jpg";
-                      }}
-                    />
-                    <span className="pedido-tarjeta-nombre">{prod.nombre}</span>
-                    <span className="pedido-tarjeta-precio">
-                      ${Number(prod.precio || 0).toLocaleString("es-CL")}
-                    </span>
-                  </button>
-                );
-              })}
+          {items.length === 0 ? (
+            <div className="form-group pedido-vacio" data-testid="pedido-vacio">
+              <p>Tu pedido está vacío. ¡Agrega delicias desde nuestro catálogo!</p>
+              <Link to="/delicias" className="boton-secundario">
+                Ver nuestras delicias
+              </Link>
             </div>
-            {errores.producto && <span className="error-text">{errores.producto}</span>}
-            {errorCatalogo && <span className="error-text">{errorCatalogo}</span>}
-          </div>
-
-          <div className="form-group pedido-agregar-fila">
-            <div className="pedido-agregar-campo">
-              <label htmlFor="cantidadSel">Cantidad:</label>
-              <input
-                type="number"
-                id="cantidadSel"
-                min="1"
-                value={cantidadSel}
-                onChange={(e) =>
-                  setCantidadSel(e.target.value.replace(/\D/g, ""))
-                }
-                className={errores.cantidad ? "input-error" : ""}
-                placeholder="1"
-              />
-              {errores.cantidad && (
-                <span className="error-text">{errores.cantidad}</span>
-              )}
-            </div>
-            <button
-              type="button"
-              className="boton-secundario"
-              onClick={agregarAlCarrito}
-            >
-              Agregar al pedido
-            </button>
-          </div>
-
-          {items.length > 0 && (
+          ) : (
             <div className="form-group" data-testid="carrito-pedido">
               <label>Tu pedido:</label>
               <ul className="pedido-carrito">
                 {items.map((it) => (
                   <li key={it.id} className="pedido-carrito-item">
-                    <span className="pedido-carrito-nombre">{it.nombre}</span>
+                    <img
+                      className="pedido-carrito-img"
+                      src={`/img/${it.imagenUrl || "alfajor.jpg"}`}
+                      alt={it.nombre}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.src = "/img/alfajor.jpg";
+                      }}
+                    />
+                    <div className="pedido-carrito-info">
+                      <span className="pedido-carrito-nombre">{it.nombre}</span>
+                      <span className="pedido-carrito-cu">
+                        c/u ${Number(it.precio).toLocaleString("es-CL")}
+                      </span>
+                    </div>
                     <input
                       type="number"
                       min="1"
@@ -400,7 +298,20 @@ const Pedido = () => {
                   </li>
                 ))}
               </ul>
+              <Link
+                to="/delicias"
+                className="pedido-seguir"
+                data-testid="seguir-agregando"
+              >
+                + Seguir agregando delicias
+              </Link>
+              {errores.producto && (
+                <span className="error-text">{errores.producto}</span>
+              )}
             </div>
+          )}
+          {!items.length && errores.producto && (
+            <span className="error-text">{errores.producto}</span>
           )}
 
           <div className="form-group">
@@ -418,41 +329,45 @@ const Pedido = () => {
             )}
           </div>
 
-          <div className="form-group">
-            <label>Total estimado:</label>
-            <span className="precio-tag" data-testid="total-pedido">
-              ${total.toLocaleString("es-CL")}
-            </span>
-          </div>
-
-          {(codigoValido && codigoDisponible) || descuentoDelicia > 0 ? (
-            <div className="form-group" data-testid="resumen-descuento">
+          {items.length > 0 && (
+            <div className="pedido-resumen">
+              <div className="pedido-resumen-fila">
+                <span>Subtotal</span>
+                <span className="pedido-resumen-monto" data-testid="total-pedido">
+                  ${total.toLocaleString("es-CL")}
+                </span>
+              </div>
               {codigoValido && codigoDisponible && (
-                <>
-                  <label>Descuento de bienvenida (-10%):</label>
-                  <span className="precio-tag" data-testid="descuento-bienvenida">
+                <div className="pedido-resumen-fila pedido-resumen-descuento">
+                  <span>Descuento de bienvenida (-10%)</span>
+                  <span data-testid="descuento-bienvenida">
                     -${descuento.toLocaleString("es-CL")}
                   </span>
-                </>
+                </div>
               )}
               {descuentoDelicia > 0 && (
-                <>
-                  <label>Descuento Delicia del Día (-10%):</label>
-                  <span className="precio-tag" data-testid="descuento-delicia">
+                <div className="pedido-resumen-fila pedido-resumen-descuento">
+                  <span>Descuento Delicia del Día (-10%)</span>
+                  <span data-testid="descuento-delicia">
                     -${descuentoDelicia.toLocaleString("es-CL")}
                   </span>
-                </>
+                </div>
               )}
-              <p
-                style={{ margin: "8px 0 0", fontWeight: "bold" }}
-                data-testid="total-final"
-              >
-                Total con descuento: ${totalFinal.toLocaleString("es-CL")}
-              </p>
+              <div className="pedido-resumen-total" data-testid="total-final">
+                <span>Total</span>
+                <span className="pedido-resumen-total-monto">
+                  ${totalFinal.toLocaleString("es-CL")}
+                </span>
+              </div>
             </div>
-          ) : null}
+          )}
 
-          <button type="submit" className="boton-principal" disabled={loading}>
+          <button
+            type="submit"
+            className="boton-principal"
+            style={{ width: "100%", marginTop: "10px" }}
+            disabled={loading}
+          >
             {loading ? "Registrando..." : "Registrar pedido"}
           </button>
         </form>
