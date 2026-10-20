@@ -314,7 +314,7 @@ describe("Pruebas de la Página Principal (Home)", () => {
       expect(verificarElegibilidadBienvenida).toHaveBeenCalledWith("repetidora@ejemplo.cl")
     );
     expect(screen.queryByTestId("banner-bienvenida")).not.toBeInTheDocument();
-    // El código trampa se consume: /pedido tampoco lo va a prellenar
+    // El código trampa se consume: el banner no se repite ni el ahorro en vivo se activa
     await waitFor(() =>
       expect(localStorage.getItem("md_codigo_bienvenida")).toBeNull()
     );

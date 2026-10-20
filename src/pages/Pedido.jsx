@@ -38,10 +38,10 @@ const Pedido = () => {
 
   const [errores, setErrores] = useState({});
   const [loading, setLoading] = useState(false);
-  // Codigo de bienvenida: prellenado solo si el cliente gano el descuento de primera conexion
-  const [codigoDescuento, setCodigoDescuento] = useState(
-    () => obtenerCodigoBienvenida() || ""
-  );
+  // Codigo de bienvenida: el campo arranca VACIO y el cliente lo escribe a mano
+  // (feedback de demo: nada de codigo prellenado. Si ya lo canjeo, no ve un error
+  // provocado por un codigo que el no puso; si es suyo, lo tipea y listo)
+  const [codigoDescuento, setCodigoDescuento] = useState("");
 
   // Delicia del día: el backend aplica -10% sobre TODO el pedido si el carrito
   // la incluye (match por nombre). Aquí solo estimamos el ahorro en vivo.

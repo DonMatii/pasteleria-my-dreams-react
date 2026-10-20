@@ -81,8 +81,8 @@ function Home() {
       if (elegible) {
         setCodigoBienvenida(codigoLocal);
       } else {
-        // El backend lo rechazaria: se consume el codigo local para que
-        // /pedido tampoco lo prellene y el cliente no reciba un código trampa
+        // El backend lo rechazaria: se consume la marca local para que el
+        // banner no ofrezca un codigo trampa ni el ahorro en vivo se active
         consumirCodigoBienvenida();
         setCodigoBienvenida(null);
       }

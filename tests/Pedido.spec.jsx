@@ -264,8 +264,9 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     expect(screen.getByRole("button", { name: /Registrar pedido/i })).toBeEnabled();
   });
 
-  test("6. El código de bienvenida prellenado aplica -10% y se consume tras el éxito", async () => {
-    // Ganado en la primera conexión (BienvenidaService)
+  test("6. El campo de código arranca vacío, el cliente lo escribe y se consume tras el éxito", async () => {
+    // Ganado en la primera conexión (BienvenidaService): la marca local solo
+    // habilita el ahorro en vivo, el código nunca se escribe solo en el campo
     localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
 
     global.fetch = vi.fn().mockResolvedValue({
@@ -286,8 +287,15 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
 
     llenarFormularioValido();
 
-    // El código viene prellenado y el ahorro se ve en vivo (30000 - 10%)
-    expect(screen.getByLabelText(/Código de descuento/i)).toHaveValue("BIENVENIDO10");
+    // Feedback de demo: el código no aparece solo; nadie recibe un descuento
+    // que no pidió y un cliente que ya lo usó no arranca con un error puesto
+    expect(screen.getByLabelText(/Código de descuento/i)).toHaveValue("");
+    expect(screen.queryByTestId("descuento-bienvenida")).not.toBeInTheDocument();
+
+    // El cliente lo escribe a mano y recién ahí se ve el ahorro (30000 - 10%)
+    fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
+      target: { value: "BIENVENIDO10" },
+    });
     expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
     expect(screen.getByTestId("total-final")).toHaveTextContent("$27.000");
 
@@ -449,6 +457,11 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
 
     llenarFormularioValido();
 
+    // El cliente escribe su código a mano: así se acumulan los dos descuentos
+    fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
+      target: { value: "BIENVENIDO10" },
+    });
+
     // 30.000 en el carrito: bienvenida -3.000 y delicia -3.000 (estimado)
     expect(await screen.findByTestId("descuento-delicia")).toHaveTextContent("-$3.000");
     expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
@@ -474,6 +487,11 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     });
 
     llenarFormularioValido();
+
+    // El cliente escribe su código a mano (el campo nunca viene prellenado)
+    fireEvent.change(screen.getByLabelText(/Código de descuento/i), {
+      target: { value: "BIENVENIDO10" },
+    });
 
     // El descuento de bienvenida sigue intacto y el total solo lo resta a él
     expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
