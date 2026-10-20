@@ -57,6 +57,7 @@ function Login() {
 
                 sessionStorage.setItem("userToken", credentialResponse.credential);
                 sessionStorage.setItem("userName", decodedToken.given_name || decodedToken.name);
+                sessionStorage.setItem("userEmail", decodedToken.email || "");
                 sessionStorage.setItem("userRole", "cliente");
 
                 // Primera conexion con Google: gana el codigo de bienvenida solo una vez

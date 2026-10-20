@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
 import '../App.css';
-import { obtenerCodigoBienvenida } from "../service/BienvenidaService";
+import {
+  obtenerCodigoBienvenida,
+  consumirCodigoBienvenida,
+  verificarElegibilidadBienvenida,
+} from "../service/BienvenidaService";
 import { obtenerProductos, aplanarCatalogo, obtenerDeliciaDelDia } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
@@ -44,9 +48,13 @@ const mezclar = (lista) => {
 };
 
 function Home() {
-  // Beneficio de primera conexion: visible mientras el codigo siga sin canjear
-  const [codigoBienvenida] = useState(() => obtenerCodigoBienvenida());
+  // Beneficio de primera conexion: el backend es la autoridad del uso unico
+  // por email, así que antes de prometer el código se consulta elegibilidad.
+  // codigoBienvenida queda null si el navegador no lo tiene O si el backend
+  // dice que ese email ya lo canjeó (ahí también se limpia el localStorage).
+  const [codigoBienvenida, setCodigoBienvenida] = useState(null);
   const usuarioConectado = sessionStorage.getItem("userName");
+  const usuarioEmail = sessionStorage.getItem("userEmail");
   const { agregarAlCarrito } = useCarrito();
 
   const [delicia, setDelicia] = useState(null);   // producto destacado del día
@@ -54,6 +62,36 @@ function Home() {
   // false = fallback aleatorio local, sin badge de descuento
   const [deliciaDelDiaReal, setDeliciaDelDiaReal] = useState(false);
   const [favoritos, setFavoritos] = useState([]); // 3 productos distintos de la delicia
+
+  // Confirma con el backend que el codigo de bienvenida siga vigente para este
+  // email antes de mostrarlo (feedback de demo: no prometer un código trampa)
+  useEffect(() => {
+    let vivo = true;
+    const confirmarBienvenida = async () => {
+      const codigoLocal = obtenerCodigoBienvenida();
+      if (!codigoLocal || !usuarioConectado || !usuarioEmail) return;
+      let elegible = false;
+      try {
+        elegible = await verificarElegibilidadBienvenida(usuarioEmail);
+      } catch {
+        // Sin confirmación del backend no se promete el descuento
+        elegible = false;
+      }
+      if (!vivo) return;
+      if (elegible) {
+        setCodigoBienvenida(codigoLocal);
+      } else {
+        // El backend lo rechazaria: se consume el codigo local para que
+        // /pedido tampoco lo prellene y el cliente no reciba un código trampa
+        consumirCodigoBienvenida();
+        setCodigoBienvenida(null);
+      }
+    };
+    confirmarBienvenida();
+    return () => {
+      vivo = false;
+    };
+  }, [usuarioConectado, usuarioEmail]);
 
   useEffect(() => {
     const cargarProductos = async () => {
@@ -119,7 +157,7 @@ function Home() {
         </Link>
       </section>
 
-      {/* Premio por conectar: solo con codigo pendiente y sesion activa */}
+      {/* Premio por conectar: solo con codigo pendiente, sesion activa y elegibilidad confirmada por el backend */}
       {codigoBienvenida && usuarioConectado && (
         <section
           className="banner-bienvenida"

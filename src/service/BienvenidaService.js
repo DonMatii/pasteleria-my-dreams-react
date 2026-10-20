@@ -1,3 +1,5 @@
+import apiClient from "./apiClient";
+
 // Beneficio de primera conexión (feedback del profe): -10% en el primer pedido
 // de quien inicia sesión por primera vez. Todo vive en localStorage del navegador:
 // el backend solo valida y persiste el código cuando la página de pedido lo envía.
@@ -30,3 +32,20 @@ export const esCodigoValido = (codigo) =>
 // true mientras este navegador nunca haya iniciado sesión (teaser de /pedido:
 // solo a ese invitado se le promete el -10% de primera conexión)
 export const esPrimeraConexion = () => !localStorage.getItem(CLAVE_PRIMERA_CONEXION);
+
+// El backend es la autoridad del uso único por email (feedback de demo: no
+// prometer un código trampa). Pregunta si ese email todavía puede canjear
+// BIENVENIDO10. Si el backend no responde, devuelve false: sin confirmación
+// no se promete el descuento (coherente con "nunca prometer lo no confirmado").
+export const verificarElegibilidadBienvenida = async (email) => {
+  if (!email) return false;
+  try {
+    const respuesta = await apiClient.get("/api/pedidos/bienvenida/estado", {
+      params: { email },
+    });
+    return respuesta.data?.elegible === true;
+  } catch (error) {
+    console.error("Error al consultar elegibilidad de bienvenida:", error);
+    return false;
+  }
+};

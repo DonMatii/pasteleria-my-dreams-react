@@ -5,6 +5,7 @@ import React from "react";
 import Home from "../src/pages/Home";
 import { CarritoProvider, useCarrito } from "../src/context/CarritoContext";
 import { obtenerProductos, obtenerDeliciaDelDia } from "../src/service/ProductosService";
+import { verificarElegibilidadBienvenida } from "../src/service/BienvenidaService";
 import { pedirCantidad } from "../src/utils/pedirCantidad";
 import Swal from "sweetalert2";
 import '@testing-library/jest-dom';
@@ -15,6 +16,16 @@ vi.mock("../src/service/ProductosService", () => ({
   obtenerDeliciaDelDia: vi.fn(),
   aplanarCatalogo: vi.fn((datos) => Object.values(datos).flat()),
 }));
+
+// Solo se mockea la consulta de elegibilidad (red al backend); las funciones
+// puras de localStorage (obtener/consumirCodigoBienvenida) siguen reales
+vi.mock("../src/service/BienvenidaService", async (importOriginal) => {
+  const original = await importOriginal();
+  return {
+    ...original,
+    verificarElegibilidadBienvenida: vi.fn(),
+  };
+});
 
 // El modal de cantidad se mockea: el test decide cuantas unidades confirma
 vi.mock("../src/utils/pedirCantidad", () => ({
@@ -86,6 +97,9 @@ describe("Pruebas de la Página Principal (Home)", () => {
     // sorteo aleatorio local sin badge de descuento
     obtenerDeliciaDelDia.mockReset();
     obtenerDeliciaDelDia.mockRejectedValue(new Error("sin delicia del día"));
+    // Por defecto el backend confirma la elegibilidad del código de bienvenida
+    verificarElegibilidadBienvenida.mockReset();
+    verificarElegibilidadBienvenida.mockResolvedValue(true);
   });
 
   it("debe renderizar el título principal y el eslogan", () => {
@@ -267,18 +281,57 @@ describe("Pruebas de la Página Principal (Home)", () => {
     expect(enlacesCatalogo[0]).toHaveTextContent(/Ver nuestras delicias/i);
   });
 
-  it("muestra el banner de bienvenida solo con código pendiente y sesión activa", () => {
+  it("muestra el banner de bienvenida solo con código pendiente, sesión activa y elegibilidad confirmada", async () => {
     localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
     sessionStorage.setItem("userName", "Catherine");
+    sessionStorage.setItem("userEmail", "catherine@ejemplo.cl");
+    verificarElegibilidadBienvenida.mockResolvedValue(true);
 
     renderHome();
 
-    expect(screen.getByTestId("banner-bienvenida")).toBeInTheDocument();
+    const banner = await screen.findByTestId("banner-bienvenida");
+    expect(banner).toBeInTheDocument();
     expect(screen.getByTestId("codigo-bienvenida-home")).toHaveTextContent("BIENVENIDO10");
     expect(screen.getByRole("link", { name: /Usar mi descuento/i })).toHaveAttribute(
       "href",
       "/pedido"
     );
+    // El backend confirma elegibilidad con el email de la sesión
+    expect(verificarElegibilidadBienvenida).toHaveBeenCalledWith("catherine@ejemplo.cl");
+  });
+
+  it("no muestra el banner si el backend dice que el email ya canjeó el código", async () => {
+    // El navegador tiene el código (primera conexión local), pero el backend es
+    // la autoridad: ese email ya canjeó, así que no se vuelve a prometer
+    localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
+    sessionStorage.setItem("userName", "Repetidora");
+    sessionStorage.setItem("userEmail", "repetidora@ejemplo.cl");
+    verificarElegibilidadBienvenida.mockResolvedValue(false);
+
+    renderHome();
+
+    await waitFor(() =>
+      expect(verificarElegibilidadBienvenida).toHaveBeenCalledWith("repetidora@ejemplo.cl")
+    );
+    expect(screen.queryByTestId("banner-bienvenida")).not.toBeInTheDocument();
+    // El código trampa se consume: /pedido tampoco lo va a prellenar
+    await waitFor(() =>
+      expect(localStorage.getItem("md_codigo_bienvenida")).toBeNull()
+    );
+  });
+
+  it("no muestra el banner si el backend no responde (sin confirmación no se promete)", async () => {
+    localStorage.setItem("md_codigo_bienvenida", "BIENVENIDO10");
+    sessionStorage.setItem("userName", "Sin Backend");
+    sessionStorage.setItem("userEmail", "sinbackend@ejemplo.cl");
+    verificarElegibilidadBienvenida.mockRejectedValue(new Error("503"));
+
+    renderHome();
+
+    await waitFor(() =>
+      expect(verificarElegibilidadBienvenida).toHaveBeenCalled()
+    );
+    expect(screen.queryByTestId("banner-bienvenida")).not.toBeInTheDocument();
   });
 
   it("no muestra el banner sin sesión de cliente", () => {
