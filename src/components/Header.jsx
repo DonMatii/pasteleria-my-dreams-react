@@ -10,6 +10,7 @@ function Header() {
   const [carritoAbierto, setCarritoAbierto] = useState(false);
   // ✅ Leemos de sessionStorage para coherencia con el Login
   const username = sessionStorage.getItem("userName");
+  const userRole = sessionStorage.getItem("userRole");
 
   const handleLogout = () => {
     // ✅ Limpiamos la sesión actual
@@ -62,8 +63,8 @@ function Header() {
             </button>
           </li>
           
-          {/* Mostramos Admin solo si el usuario es 'admin' en la sesión activa */}
-          {username?.toLowerCase() === 'admin' && (
+          {/* Mostramos Admin solo con sesión de administrador (userRole del login) */}
+          {userRole === 'admin' && (
             <li>
               <Link to="/admin" className="admin-nav-link">
                 ⚙️ Admin

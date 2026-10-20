@@ -23,7 +23,7 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 
 * **Arquitectura de Microservicios en la Nube:** Conexión en tiempo real con microservicios independientes en Java Spring Boot desplegados en AWS EC2, orquestados mediante **AWS API Gateway** con enrutamiento de proxy y gestión completa de CORS.
 * **Admin Panel Pro:** Panel de administración protegido para gestionar el inventario del catálogo (CRUD completo: Crear, Leer, Actualizar, Borrar) y visualizar en vivo los pedidos recibidos y el total de ventas, calculados a partir de los pedidos reales que llegan por Kafka.
-* **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de clientes y acceso seguro, combinada con credenciales de administrador para la gestión del panel.
+* **Autenticación Segura (IDaaS):** Implementación de Google OAuth 2.0 para la autenticación de clientes y acceso administrativo con credenciales propias, en páginas separadas (`/login` para clientes y `/admin/login` para la gestión del panel).
 * **Persistencia de Datos en AWS RDS:** Gestión de productos vinculada a una base de datos relacional alojada en la nube mediante Spring Data JPA e Hibernate, permitiendo sincronización inmediata.
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
 * **Calidad de Software:** Implementación de pruebas unitarias con **Vitest** y reporte de cobertura de código.
@@ -121,7 +121,7 @@ Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitH
 - **Flujo de pedido:** el formulario usa **tarjetas visuales** (foto, nombre y precio) y permite agregar **múltiples productos al mismo pedido** (carrito con cantidades editables). Al registrar, el modal muestra el **código de seguimiento** (UUID de 32 caracteres). Los ids secuenciales no se exponen (protección IDOR).
 - **Fecha y hora local:** la página `/estado-pedido` muestra la fecha del pedido convertida a la zona horaria de Chile (`America/Santiago`), no la hora del servidor UTC.
 - **Correo con detalle:** el email de confirmación incluye cada producto con su cantidad (ej: `Selva Negra x2, Manjar Nuez x8`), total de artículos y monto.
-- **Código de bienvenida:** el primer inicio de sesión de un cliente (Google o el usuario demo `cliente`/`cliente123`) registra la primera conexión y entrega el código `BIENVENIDO10` (una sola vez por navegador, en `localStorage`). Un banner en el Home lo muestra; en `/pedido` se prellena, muestra el descuento en vivo y se consume al confirmar. El backend persiste `subtotal`, `descuento` y `total` con **-10%** (ver README de `pedidos-service`).
+- **Código de bienvenida:** el primer inicio de sesión de un cliente con Google registra la primera conexión y entrega el código `BIENVENIDO10` (una sola vez por navegador, en `localStorage`). Un banner en el Home lo muestra; en `/pedido` se prellena, muestra el descuento en vivo y se consume al confirmar. El backend persiste `subtotal`, `descuento` y `total` con **-10%** (ver README de `pedidos-service`).
 
 ## Desarrollo local (v3)
 
@@ -129,6 +129,7 @@ Desarrollado con ❤️ por **Catherine Godoy** | 🔗 [Visita mi Perfil de GitH
 - **Botón volver arriba:** aparece flotante abajo a la derecha al bajar más de 300 px y vuelve al inicio con scroll suave; está presente en todas las páginas.
 - **Favicon:** la pestaña del navegador muestra el logo de la pastelería (`/img/logoPasteleria.png`).
 - **Catálogo público:** `/delicias` se puede consultar sin iniciar sesión. El login solo se pide al finalizar el pedido.
+- **Login separado admin/cliente:** los accesos ya no comparten página. `/login` es solo de clientes con Google OAuth (conserva el retorno `?redirect=` del teaser); `/admin/login` es el formulario de administrador (bypass local `admin/admin123`, e intento a `POST /api/auth/login`). `/admin` exige una sesión con `userRole=admin`: un cliente con Google (o una sesión antigua sin rol) no entra aunque tenga token. El link "⚙️ Admin" del header solo aparece con sesión de administrador. Se eliminó el usuario demo `cliente`/`cliente123` (el acceso de cliente es Google, configurado en `.env`).
 - **Carrito compartido:** `CarritoContext` es la única fuente de verdad del carrito. Delicias, el mini carrito y el formulario de pedido leen del mismo contexto, así el pedido nace ya poblado con lo que el cliente eligió.
 - **Mini carrito:** panel lateral que se abre desde el ícono del header, con miniatura del producto, contador de cantidad, subtotal, total, vaciar carrito e ir al pedido.
 - **Selector de cantidad:** al agregar un producto desde el catálogo se abre un modal con botones `−` y `+` para elegir cuántas unidades llevar.

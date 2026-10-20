@@ -2,18 +2,31 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import App from "../src/App";
 import Login from "../src/pages/Login";
-import * as AuthService from "../src/service/AuthService";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import React from "react";
 import "@testing-library/jest-dom";
 
-// Login monta <GoogleLogin />, que exige GoogleOAuthProvider: lo stubbeamos (igual que Login.spec)
+// Login monta <GoogleLogin />, que exige GoogleOAuthProvider: lo stubbeamos
+// con un click real que entrega una credencial decodificable (login de cliente = Google).
 vi.mock("@react-oauth/google", () => ({
-  GoogleLogin: () => <div data-testid="google-login-stub" />,
+  GoogleLogin: ({ onSuccess }) => (
+    <button
+      data-testid="google-login-stub"
+      onClick={() =>
+        onSuccess({
+          credential: [
+            "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0",
+            btoa(JSON.stringify({ given_name: "Cliente Test" })),
+            "x",
+          ].join("."),
+        })
+      }
+    />
+  ),
 }));
 
 vi.mock("../src/service/AuthService", () => ({
-  loginUsuario: vi.fn(),
+  loginAdmin: vi.fn(),
 }));
 
 // Flujo completo "conectarse": el invitado en /pedido ve el teaser con el beneficio,
@@ -67,9 +80,7 @@ describe("Gate de /pedido para invitados", () => {
     expect(screen.queryByTestId("teaser-pedido")).not.toBeInTheDocument();
   });
 
-  test("5. Tras login de cliente con ?redirect=/pedido vuelve a /pedido", async () => {
-    AuthService.loginUsuario.mockResolvedValueOnce({ token: "fake-token-123" });
-
+  test("5. Tras login de cliente (Google) con ?redirect=/pedido vuelve a /pedido", async () => {
     render(
       <MemoryRouter initialEntries={["/login?redirect=/pedido"]}>
         <Routes>
@@ -80,21 +91,13 @@ describe("Gate de /pedido para invitados", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Ej: admin"), {
-      target: { value: "cliente" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Contraseña"), {
-      target: { value: "123456" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Ingresar/i }));
+    fireEvent.click(screen.getByTestId("google-login-stub"));
 
     expect(await screen.findByTestId("llego-pedido")).toBeInTheDocument();
-    expect(sessionStorage.getItem("userToken")).toBe("fake-token-123");
+    expect(sessionStorage.getItem("userRole")).toBe("cliente");
   });
 
-  test("6. Sin redirect, el login de cliente aterriza en el Home (como siempre)", async () => {
-    AuthService.loginUsuario.mockResolvedValueOnce({ token: "fake-token-123" });
-
+  test("6. Sin redirect, el login de cliente (Google) aterriza en el Home (como siempre)", async () => {
     render(
       <MemoryRouter initialEntries={["/login"]}>
         <Routes>
@@ -104,14 +107,9 @@ describe("Gate de /pedido para invitados", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Ej: admin"), {
-      target: { value: "cliente" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Contraseña"), {
-      target: { value: "123456" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Ingresar/i }));
+    fireEvent.click(screen.getByTestId("google-login-stub"));
 
     expect(await screen.findByTestId("llego-home")).toBeInTheDocument();
+    expect(sessionStorage.getItem("userToken")).not.toBeNull();
   });
 });

@@ -1,72 +1,31 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { loginUsuario } from "../service/AuthService";
 import { registrarPrimeraConexion } from "../service/BienvenidaService";
 import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from "jwt-decode"; // <-- 1. Importamos la nueva herramienta
+import { jwtDecode } from "jwt-decode";
 import "../App.css";
 
+// Login SOLO de clientes con Google (separacion admin/cliente).
+// El acceso del administrador (usuario/contraseña) vive en /admin/login.
 function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [campoError, setCampoError] = useState({ user: false, pass: false });
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Retorno post-login: solo rutas internas (ni vacío, ni //, ni http externo)
+  // Retorno post-login: solo rutas internas (ni vacío, ni //, ni http externo,
+  // ni backslash: WHATWG normaliza "/\evil.com" a un salto externo)
   const destinoSeguro = () => {
     const destino = searchParams.get("redirect");
-    if (destino && destino.startsWith("/") && !destino.startsWith("//")) {
+    if (
+      destino &&
+      destino.startsWith("/") &&
+      !destino.startsWith("//") &&
+      !destino.includes("\\")
+    ) {
       return destino;
     }
     return "/";
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setCampoError({ user: false, pass: false });
-
-    if (!username.trim() || !password.trim()) {
-      setError("Por favor, completa todos los campos.");
-      setCampoError({
-        user: !username.trim(),
-        pass: !password.trim(),
-      });
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const data = await loginUsuario(username, password);
-
-      if (data.token) {
-        sessionStorage.setItem("userToken", data.token);
-        sessionStorage.setItem("userName", username);
-
-        if (username.toLowerCase() === "admin") {
-          navigate("/admin");
-        } else {
-          // Primera conexion del cliente: gana el codigo de bienvenida solo una vez
-          registrarPrimeraConexion();
-          // Vuelve a la ruta que puso el teaser (/pedido) o al Home por defecto
-          navigate(destinoSeguro(), { replace: true });
-        }
-      }
-    } catch (err) {
-      setCampoError({ user: true, pass: true });
-      if (err.response && err.response.status === 401) {
-        setError("Usuario o contraseña incorrectos.");
-      } else {
-        setError("Hubo un problema al conectar. Inténtalo de nuevo.");
-      }
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -84,53 +43,8 @@ function Login() {
           </div>
         )}
 
-        {/* --- SECCIÓN ADMINISTRADOR --- */}
-        <div style={{ marginBottom: "20px", textAlign: "center" }}>
-          <h3 style={{ color: "#d63384", fontSize: "1.2rem", marginBottom: "5px" }}>Acceso de Administrador</h3>
-          <p style={{ fontSize: "13px", color: "#666" }}>Solo para gestión interna de la pastelería</p>
-        </div>
-
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label>Usuario</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                if (campoError.user)
-                  setCampoError({ ...campoError, user: false });
-              }}
-              placeholder="Ej: admin"
-              className={campoError.user ? "input-error" : ""}
-            />
-          </div>
-          <div className="form-group">
-            <label>Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (campoError.pass)
-                  setCampoError({ ...campoError, pass: false });
-              }}
-              placeholder="Contraseña"
-              className={campoError.pass ? "input-error" : ""}
-            />
-          </div>
-          <button
-            type="submit"
-            className="boton-principal"
-            style={{ width: "100%" }}
-            disabled={loading}
-          >
-            {loading ? "Verificando..." : "Ingresar como Administrador"}
-          </button>
-        </form>
-
         {/* --- SECCIÓN CLIENTES / GOOGLE --- */}
-        <div style={{ marginTop: "25px", paddingTop: "20px", borderTop: "1px solid #ddd", textAlign: "center" }}>
+        <div style={{ textAlign: "center" }}>
           <h3 style={{ color: "#d63384", fontSize: "1.2rem", marginBottom: "5px" }}>Acceso para Clientes</h3>
           <p style={{ marginBottom: "15px", color: "#666", fontSize: "13px" }}>
             Ingresa de forma rápida y segura con tu cuenta de Google
@@ -138,20 +52,17 @@ function Login() {
           <div style={{ display: "flex", justifyContent: "center" }}>
             <GoogleLogin
               onSuccess={(credentialResponse) => {
-                console.log("¡Éxito! Token de Google:", credentialResponse);
-                
-                // 2. Decodificamos el token para extraer los datos reales
+                // Decodificamos el token para extraer los datos reales
                 const decodedToken = jwtDecode(credentialResponse.credential);
-                console.log("Datos del usuario decodificados:", decodedToken);
-                
-                // 3. Guardamos el token y usamos el nombre de pila (given_name)
+
                 sessionStorage.setItem("userToken", credentialResponse.credential);
                 sessionStorage.setItem("userName", decodedToken.given_name || decodedToken.name);
+                sessionStorage.setItem("userRole", "cliente");
 
                 // Primera conexion con Google: gana el codigo de bienvenida solo una vez
                 registrarPrimeraConexion();
 
-                // Mismo retorno seguro que el form: /pedido desde el teaser o el Home
+                // Mismo retorno seguro que el teaser: /pedido o el Home por defecto
                 navigate(destinoSeguro(), { replace: true });
               }}
               onError={() => {
@@ -160,7 +71,7 @@ function Login() {
             />
           </div>
         </div>
-        
+
       </div>
     </main>
   );

@@ -8,6 +8,7 @@ import Contacto from "./pages/Contacto";
 import Pedido from "./pages/Pedido";
 import EstadoPedido from "./pages/EstadoPedido";
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel"; 
 import ProtectedRoute from "./components/ProtectedRoute"; 
 import TeaserPedido from "./components/TeaserPedido"; 
@@ -42,11 +43,14 @@ function App() {
             <Route path="/estado" element={<EstadoPedido />} />
             <Route path="/login" element={<Login />} />
 
-            {/* RUTA PROTEGIDA */}
+            {/* Acceso de administrador (separado del login de clientes con Google) */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+
+            {/* RUTA PROTEGIDA: exige sesión con rol admin */}
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute rol="admin" to="/admin/login">
                   <AdminPanel />
                 </ProtectedRoute>
               } 

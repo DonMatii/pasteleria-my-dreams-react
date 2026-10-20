@@ -17,14 +17,24 @@ describe("Pruebas de Navegación del Header", () => {
     expect(screen.getByText(/Delicias/i)).toBeInTheDocument();
   });
 
-  it("2. Debe mostrar el botón de Admin si el usuario tiene nombre 'admin'", () => {
-    // CLAVE: Tu Header.jsx evalúa que el NOMBRE sea 'admin'
-    sessionStorage.setItem('userName', 'admin'); 
+  it("2. Debe mostrar el botón de Admin solo con sesión de administrador (userRole)", () => {
+    // CLAVE: el Header ahora evalúa el ROL del login (separación admin/cliente), no el nombre
+    sessionStorage.setItem('userName', 'admin');
+    sessionStorage.setItem('userRole', 'admin');
 
     render(<MemoryRouter><CarritoProvider><Header /></CarritoProvider></MemoryRouter>);
 
     // Buscamos el enlace que contiene la palabra Admin, ignorando el emoji
     const adminLink = screen.getByRole('link', { name: /Admin/i });
     expect(adminLink).toBeInTheDocument();
+  });
+
+  it("3. Un cliente con Google no ve el botón de Admin", () => {
+    sessionStorage.setItem('userName', 'Cliente Test');
+    sessionStorage.setItem('userRole', 'cliente');
+
+    render(<MemoryRouter><CarritoProvider><Header /></CarritoProvider></MemoryRouter>);
+
+    expect(screen.queryByRole('link', { name: /Admin/i })).not.toBeInTheDocument();
   });
 });
