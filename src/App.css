@@ -908,12 +908,55 @@ header nav ul li a:hover {
   transform: scale(0.98);
 }
 
-.agregado-feedback {
-  display: block;
-  margin-top: 4px;
+/* Toast "agregado al carrito": SweetAlert2 en modo toast, con la marca */
+.toast-carrito {
+  padding: 10px 16px !important;
+  border-radius: 14px !important;
+  border: 1px solid #f3d7e3 !important;
+}
+
+.toast-carrito .swal2-title {
+  font-size: 0.95rem !important;
+  font-family: 'Montserrat', sans-serif;
+  color: #5d405d !important;
+}
+
+/* El nombre del producto se remarca en rosa dentro del título del toast */
+.toast-carrito-nombre {
   color: #d95386;
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Cuadrito del producto dentro del toast */
+.toast-carrito-img {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin: 6px auto 2px auto;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #f3d7e3;
+}
+
+/* La foto se centra respecto al toast completo, no solo a la columna de texto
+   (la grilla del toast la dejaba corrida hacia la derecha) */
+.toast-carrito .swal2-html-container {
+  grid-column: 1 / -1;
+}
+
+/* Visto bueno en el color institucional de la pastelería (rosa): pisa los
+   verdes fijos del CSS de SweetAlert2 — circulo, barras del check y anillo */
+.toast-carrito .swal2-icon.swal2-success {
+  border-color: #d95386 !important;
+  color: #d95386 !important;
+}
+
+.toast-carrito .swal2-icon.swal2-success [class^="swal2-success-line"] {
+  background-color: #d95386 !important;
+}
+
+.toast-carrito .swal2-icon.swal2-success .swal2-success-ring {
+  border-color: rgba(217, 83, 134, 0.3) !important;
 }
 
 /* =========================================

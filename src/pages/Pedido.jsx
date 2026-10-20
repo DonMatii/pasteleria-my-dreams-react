@@ -13,6 +13,7 @@ import {
   consumirCodigoBienvenida,
 } from "../service/BienvenidaService";
 import Swal from "sweetalert2";
+import { toastAgregado } from "../utils/toastAgregado";
 import "../App.css";
 
 // RF-07: checkout para registrar un pedido real en el backend.
@@ -463,6 +464,7 @@ const Pedido = () => {
                       className="boton-agregar"
                       onClick={() => {
                         agregarAlCarrito(prod, Number(cantidadesModal[prod.id]) || 1);
+                        toastAgregado(prod.nombre, prod.imagenUrl);
                         setCantidadesModal((prev) => ({ ...prev, [prod.id]: "1" }));
                       }}
                     >

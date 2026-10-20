@@ -471,6 +471,19 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     );
     fireEvent.click(within(tarjeta).getByRole("button", { name: "Agregar" }));
 
+    // El mismo toast de carrito que en Home/Delicias confirma la alta
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toast: true,
+        position: "top",
+        timer: 3000,
+        title: expect.stringMatching(
+          /<span class="toast-carrito-nombre">Muffins Plátano Arándano<\/span> agregado al carrito/i
+        ),
+        html: expect.stringContaining("/img/"),
+      })
+    );
+
     // 30.000 de la Selva Negra + 2 × 2.500 de muffins
     expect(screen.getByTestId("total-pedido")).toHaveTextContent("$35.000");
     // La ventanita queda abierta para seguir agregando

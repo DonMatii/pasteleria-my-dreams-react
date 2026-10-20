@@ -6,6 +6,7 @@ import { obtenerCodigoBienvenida } from "../service/BienvenidaService";
 import { obtenerProductos, aplanarCatalogo, obtenerDeliciaDelDia } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
+import { toastAgregado } from "../utils/toastAgregado";
 
 // Respaldo: si la API no responde, la home muestra estos productos en vez de quedar vacía.
 const productosRespaldo = [
@@ -53,7 +54,6 @@ function Home() {
   // false = fallback aleatorio local, sin badge de descuento
   const [deliciaDelDiaReal, setDeliciaDelDiaReal] = useState(false);
   const [favoritos, setFavoritos] = useState([]); // 3 productos distintos de la delicia
-  const [agregado, setAgregado] = useState(null); // feedback "Agregado"
 
   useEffect(() => {
     const cargarProductos = async () => {
@@ -102,8 +102,7 @@ function Home() {
 
     if (cantidad) {
       agregarAlCarrito(prod, cantidad);
-      setAgregado(prod.nombre);
-      setTimeout(() => setAgregado(null), 2000);
+      toastAgregado(prod.nombre, prod.imagenUrl);
     }
   };
 
@@ -189,9 +188,6 @@ function Home() {
               >
                 Agregar al carrito
               </button>
-              {agregado === delicia.nombre && (
-                <span className="agregado-feedback">✓ Agregado</span>
-              )}
             </div>
           </div>
         </section>
@@ -229,9 +225,6 @@ function Home() {
                 >
                   Agregar al carrito
                 </button>
-                {agregado === prod.nombre && (
-                  <span className="agregado-feedback">✓ Agregado</span>
-                )}
               </div>
             </div>
           ))}

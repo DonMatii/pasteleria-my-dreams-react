@@ -6,6 +6,7 @@ import Home from "../src/pages/Home";
 import { CarritoProvider, useCarrito } from "../src/context/CarritoContext";
 import { obtenerProductos, obtenerDeliciaDelDia } from "../src/service/ProductosService";
 import { pedirCantidad } from "../src/utils/pedirCantidad";
+import Swal from "sweetalert2";
 import '@testing-library/jest-dom';
 
 // El Home ahora lee el catálogo real: nunca pega a la API en los tests
@@ -18,6 +19,13 @@ vi.mock("../src/service/ProductosService", () => ({
 // El modal de cantidad se mockea: el test decide cuantas unidades confirma
 vi.mock("../src/utils/pedirCantidad", () => ({
   pedirCantidad: vi.fn(),
+}));
+
+// SweetAlert2 se mockea (mismo patrón que Pedido/Contacto/AdminPanel):
+// jsdom no lo puede renderizar, así que el test verifica el contrato que
+// la página le pasa al toast
+vi.mock("sweetalert2", () => ({
+  default: { fire: vi.fn() },
 }));
 
 // Respuesta simulada de GET /api/productos (Map agrupado por categoría)
@@ -73,6 +81,7 @@ describe("Pruebas de la Página Principal (Home)", () => {
     sessionStorage.clear();
     obtenerProductos.mockResolvedValue(catalogoDePrueba);
     pedirCantidad.mockReset();
+    Swal.fire.mockClear();
     // Por defecto el endpoint de la delicia falla: la home debe caer al
     // sorteo aleatorio local sin badge de descuento
     obtenerDeliciaDelDia.mockReset();
@@ -197,7 +206,38 @@ describe("Pruebas de la Página Principal (Home)", () => {
         `${nombreFavorito} x2`
       )
     );
-    expect(await screen.findByText(/✓ Agregado/)).toBeInTheDocument();
+    // El aviso ahora es el toast compacto (mismo SweetAlert2 de la compra)
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(1));
+    expect(Swal.fire.mock.calls[0][0]).toMatchObject({
+      toast: true,
+      title: expect.stringContaining(nombreFavorito),
+      html: expect.stringContaining("/img/"),
+    });
+  });
+
+  it("el toast de carrito sale arriba con la foto del producto y 3 segundos de vida", async () => {
+    pedirCantidad.mockResolvedValue(1);
+
+    renderHomeConCarrito();
+
+    const seccion = await screen.findByTestId("favoritos-casa");
+    fireEvent.click(
+      within(seccion).getAllByRole("button", { name: /Agregar al carrito/i })[0]
+    );
+
+    // Contrato del toast: arriba, con foto del producto vía html, X de
+    // cierre manual, sin botón de confirmación y cierre a los 3 segundos
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(1));
+    expect(Swal.fire.mock.calls[0][0]).toMatchObject({
+      toast: true,
+      position: "top",
+      timer: 3000,
+      showCloseButton: true,
+      showConfirmButton: false,
+      title: expect.stringMatching(/<span class="toast-carrito-nombre">.*<\/span> agregado al carrito/i),
+      html: expect.stringContaining("/img/"),
+      customClass: { popup: "toast-carrito" },
+    });
   });
 
   it("debe mostrar los nombres y precios con formato chileno", async () => {

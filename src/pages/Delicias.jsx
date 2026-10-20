@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { obtenerProductos, obtenerDeliciaDelDia, aplanarCatalogo } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
+import { toastAgregado } from "../utils/toastAgregado";
 import "../App.css";
 
 function Delicias() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [agregado, setAgregado] = useState(null); // nombre del producto agregado recién
   const [deliciaDelDia, setDeliciaDelDia] = useState(null); // producto con -10% de hoy
   const { agregarAlCarrito } = useCarrito();
 
@@ -49,8 +49,7 @@ function Delicias() {
 
     if (cantidad) {
       agregarAlCarrito(prod, cantidad);
-      setAgregado(prod.nombre);
-      setTimeout(() => setAgregado(null), 2000);
+      toastAgregado(prod.nombre, prod.imagenUrl);
     }
   };
 
@@ -100,9 +99,6 @@ function Delicias() {
                     >
                       Agregar al carrito
                     </button>
-                    {agregado === prod.nombre && (
-                      <span className="agregado-feedback">✓ Agregado</span>
-                    )}
                   </div>
                 </div>
               ))}
