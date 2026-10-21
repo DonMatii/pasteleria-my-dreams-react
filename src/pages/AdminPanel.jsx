@@ -43,6 +43,7 @@ function AdminPanel() {
   const [ordenDiario, setOrdenDiario] = useState({ campo: "fecha", dir: "desc" });
   const [vendidosAbiertos, setVendidosAbiertos] = useState(true);
   const [diarioAbierto, setDiarioAbierto] = useState(true);
+  const [topAbierto, setTopAbierto] = useState(true);
 
   const username = sessionStorage.getItem("userName") || "Administradora";
 
@@ -407,29 +408,42 @@ const cargarDatos = () => {
             {/* Los 3 productos mas vendidos del periodo, como ranking destacado (Cathi) */}
             {vendidosTop.length > 0 && (
               <div className="admin-top">
-                <h3 className="admin-top-titulo">🏆 Más vendidos ({periodoActual.frase.toLowerCase()})</h3>
-                <ol className="admin-top-lista" data-testid="lista-top">
-                  {vendidosTop.map((venta, i) => (
-                    <li key={venta.nombre} className="admin-top-item">
-                      <span className="admin-top-medalla" aria-hidden="true">
-                        {["🥇", "🥈", "🥉"][i]}
-                      </span>
-                      <img
-                        src={`/img/${imagenDe(venta.nombre)}`}
-                        alt={venta.nombre}
-                        className="admin-top-img"
-                        onError={(e) => {
-                          e.target.src = "/img/alfajor.jpg";
-                        }}
-                      />
-                      <div className="admin-top-datos">
-                        <span className="admin-top-nombre">{venta.nombre}</span>
-                        <span className="admin-top-unidades">{venta.unidades} unidades</span>
-                      </div>
-                      <span className="admin-top-monto">${formatearMoneda(venta.monto)}</span>
-                    </li>
-                  ))}
-                </ol>
+                <div className="admin-seccion-cabecera">
+                  <h3 className="admin-top-titulo">🏆 Más vendidos ({periodoActual.frase.toLowerCase()})</h3>
+                  <button
+                    type="button"
+                    className="admin-pliegue-btn"
+                    aria-label="Más vendidos"
+                    aria-expanded={topAbierto}
+                    onClick={() => setTopAbierto((v) => !v)}
+                  >
+                    {topAbierto ? "Cerrar" : "Abrir"}
+                  </button>
+                </div>
+                {topAbierto && (
+                  <ol className="admin-top-lista" data-testid="lista-top">
+                    {vendidosTop.map((venta, i) => (
+                      <li key={venta.nombre} className="admin-top-item">
+                        <span className="admin-top-medalla" aria-hidden="true">
+                          {["🥇", "🥈", "🥉"][i]}
+                        </span>
+                        <img
+                          src={`/img/${imagenDe(venta.nombre)}`}
+                          alt={venta.nombre}
+                          className="admin-top-img"
+                          onError={(e) => {
+                            e.target.src = "/img/alfajor.jpg";
+                          }}
+                        />
+                        <div className="admin-top-datos">
+                          <span className="admin-top-nombre">{venta.nombre}</span>
+                          <span className="admin-top-unidades">{venta.unidades} unidades</span>
+                        </div>
+                        <span className="admin-top-monto">${formatearMoneda(venta.monto)}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
               </div>
             )}
 

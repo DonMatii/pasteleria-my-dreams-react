@@ -504,6 +504,15 @@
   font-weight: 600;
 }
 
+/* El boton activo conserva el texto blanco al pasar el mouse: sin esta regla,
+   .admin-orden-btn:hover (mas especifico) lo volveria rosa sobre rosa y el
+   texto del boton desapareceria */
+.admin-orden-btn.admin-orden-activo:hover {
+  background: #c24474;
+  border-color: #c24474;
+  color: #fff;
+}
+
 /* Encabezados de la tabla de 7 dias, clickeables para ordenar */
 .admin-th-btn {
   border: none;

@@ -365,4 +365,27 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     fireEvent.click(screen.getByRole("button", { name: "Qué se vendió" }));
     expect(await screen.findByTestId("lista-vendidos")).toBeInTheDocument();
   });
+
+  it("16. PLIEGUE: cierra y abre la seccion de 'Más vendidos'", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([
+      { nombre: "Torta Chocolate", unidades: 6, monto: 90000 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByTestId("lista-top")).toBeInTheDocument();
+
+    const btn = screen.getByRole("button", { name: "Más vendidos" });
+    expect(btn).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(btn);
+
+    expect(screen.queryByTestId("lista-top")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Más vendidos" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Más vendidos" }));
+    expect(await screen.findByTestId("lista-top")).toBeInTheDocument();
+  });
 });
