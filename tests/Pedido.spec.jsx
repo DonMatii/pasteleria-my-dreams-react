@@ -499,15 +499,21 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     expect(screen.getByTestId("total-final")).toHaveTextContent("$27.000");
   });
 
-  test("11. Cambiar la cantidad en la fila actualiza subtotal y total en vivo", () => {
+  test("11. Los botones − y + de la fila actualizan subtotal y total en vivo", () => {
     renderPedido([{ ...selvaNegra, cantidad: 2 }]);
 
-    fireEvent.change(screen.getByLabelText(/Cantidad de Selva Negra/i), {
-      target: { value: "3" },
-    });
+    // De 2 a 3 con el botón +: sin input numérico con flechitas de 10px
+    fireEvent.click(screen.getByRole("button", { name: /Sumar Selva Negra/i }));
 
     expect(screen.getByTestId("total-pedido")).toHaveTextContent("$45.000");
     expect(screen.getByTestId("total-final")).toHaveTextContent("$45.000");
+
+    // En 1 el − no llega a 0: la fila no desaparece ni el total se rompe
+    fireEvent.click(screen.getByRole("button", { name: /Restar Selva Negra/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Restar Selva Negra/i }));
+
+    expect(screen.getByText("Selva Negra")).toBeInTheDocument();
+    expect(screen.getByTestId("total-pedido")).toHaveTextContent("$15.000");
   });
 
   test("12. La ventanita 'Seguir agregando' abre el catálogo y agrega sin salir del checkout", async () => {
@@ -524,9 +530,10 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     const tarjeta = screen
       .getByText("Muffins Plátano Arándano")
       .closest(".modal-tarjeta");
-    fireEvent.change(
-      within(tarjeta).getByLabelText(/Cantidad modal de Muffins Plátano Arándano/i),
-      { target: { value: "2" } }
+    fireEvent.click(
+      within(tarjeta).getByRole("button", {
+        name: /Sumar Muffins Plátano Arándano/i,
+      })
     );
     fireEvent.click(within(tarjeta).getByRole("button", { name: "Agregar" }));
 

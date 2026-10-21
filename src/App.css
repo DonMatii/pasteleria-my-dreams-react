@@ -821,19 +821,16 @@ header nav ul li a:hover {
   color: #d95386;
 }
 
+/* Fila [− cantidad +] [Agregar] de cada tarjeta del catalogo. `width: 100%`
+   + `flex-wrap` evita que el stepper desborde la tarjeta en la columna mas
+   angosta de la grilla: si no entra, el boton baja a su propia linea. */
 .modal-tarjeta-fila {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
   gap: 8px;
-}
-
-.modal-tarjeta-fila input {
-  width: 56px;
-  padding: 6px 4px;
-  border: 1px solid #f3d7e3;
-  border-radius: 8px;
-  text-align: center;
-  font-family: inherit;
 }
 
 .modal-tarjeta-fila .boton-agregar {
@@ -894,14 +891,10 @@ header nav ul li a:hover {
 }
 
 /* La fila vive dentro de .form-group: este selector gana al ancho completo que ese contenedor aplica a todos sus input */
-.pedido-carrito-item input.pedido-carrito-cantidad {
-  width: 64px;
+/* El stepper de la fila no se comprime: si la ventana aprieta, el que cede
+   espacio es la columna del nombre, nunca los botones de + y −. */
+.pedido-carrito-item .mini-carrito-controles {
   flex: 0 0 auto;
-  padding: 6px 4px;
-  border: 1px solid #f3d7e3;
-  border-radius: 8px;
-  text-align: center;
-  background: #fff;
 }
 
 .pedido-carrito-subtotal {

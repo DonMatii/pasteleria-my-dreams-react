@@ -345,16 +345,36 @@ const Pedido = () => {
                         c/u ${Number(it.precio).toLocaleString("es-CL")}
                       </span>
                     </div>
-                    <input
-                      type="number"
-                      min="1"
+                    {/* Mismo stepper que el mini carrito: dos botones grandes
+                        en vez del input numérico nativo, cuyas flechitas de
+                        10px no puede apuntar alguien con mala visión. */}
+                    <div
+                      className="mini-carrito-controles"
+                      role="group"
                       aria-label={`Cantidad de ${it.nombre}`}
-                      value={it.cantidad}
-                      onChange={(e) =>
-                        cambiarCantidadItem(it.id, e.target.value)
-                      }
-                      className="pedido-carrito-cantidad"
-                    />
+                    >
+                      <button
+                        type="button"
+                        aria-label={`Restar ${it.nombre}`}
+                        onClick={() =>
+                          cambiarCantidadItem(it.id, it.cantidad - 1)
+                        }
+                      >
+                        −
+                      </button>
+                      <span className="mini-carrito-cantidad" aria-live="polite">
+                        {it.cantidad}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`Sumar ${it.nombre}`}
+                        onClick={() =>
+                          cambiarCantidadItem(it.id, it.cantidad + 1)
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
                     <span className="pedido-carrito-subtotal">
                       ${(Number(it.precio) * Number(it.cantidad)).toLocaleString(
                         "es-CL"
@@ -498,18 +518,43 @@ const Pedido = () => {
                     ${Number(prod.precio).toLocaleString("es-CL")}
                   </span>
                   <div className="modal-tarjeta-fila">
-                    <input
-                      type="number"
-                      min="1"
+                    {/* Mismo stepper que el mini carrito, en vez del input
+                        numérico nativo con sus flechitas diminutas. */}
+                    <div
+                      className="mini-carrito-controles"
+                      role="group"
                       aria-label={`Cantidad modal de ${prod.nombre}`}
-                      value={cantidadesModal[prod.id] ?? 1}
-                      onChange={(e) =>
-                        setCantidadesModal((prev) => ({
-                          ...prev,
-                          [prod.id]: e.target.value,
-                        }))
-                      }
-                    />
+                    >
+                      <button
+                        type="button"
+                        aria-label={`Restar ${prod.nombre}`}
+                        onClick={() =>
+                          setCantidadesModal((prev) => {
+                            const actual = Number(prev[prod.id] ?? 1);
+                            return actual > 1
+                              ? { ...prev, [prod.id]: actual - 1 }
+                              : prev;
+                          })
+                        }
+                      >
+                        −
+                      </button>
+                      <span className="mini-carrito-cantidad" aria-live="polite">
+                        {cantidadesModal[prod.id] ?? 1}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`Sumar ${prod.nombre}`}
+                        onClick={() =>
+                          setCantidadesModal((prev) => ({
+                            ...prev,
+                            [prod.id]: Number(prev[prod.id] ?? 1) + 1,
+                          }))
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       type="button"
                       className="boton-agregar"
