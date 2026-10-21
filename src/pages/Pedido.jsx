@@ -254,9 +254,9 @@ const Pedido = () => {
         Swal.fire({
           icon: "success",
           title: "¡Pedido registrado!",
-          text: `Pedido por $${totalCreado.toLocaleString(
+          html: `Pedido por $${totalCreado.toLocaleString(
             "es-CL"
-          )}. Tu código de seguimiento: ${codigoSeguimiento} (guárdalo para consultar el estado).${textoDescuento} Te enviaremos la confirmación a tu correo. 🧁`,
+          )}. Tu código de seguimiento: <strong style="color: #d95386">${codigoSeguimiento}</strong> (guárdalo para consultar el estado).${textoDescuento} Te enviaremos la confirmación a tu correo. 🧁`,
           confirmButtonColor: "#d95386",
         });
         setFormData({ cliente: "", email: "" });

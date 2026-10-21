@@ -27,6 +27,7 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 * **Persistencia de Datos en AWS RDS:** Gestión de productos vinculada a una base de datos relacional alojada en la nube mediante Spring Data JPA e Hibernate, permitiendo sincronización inmediata.
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
 * **Accesibilidad:** Selector de cantidad con botones `−` y `+` de gran superficie —en el mini carrito, en las filas del checkout y en las tarjetas de la ventana del catálogo— en reemplazo de los inputs numéricos nativos, cuyas flechitas de 10px no pueden apuntar personas con baja visión. Todos los controles llevan etiquetas ARIA (`role="group"`, `aria-label`, `aria-live`).
+* **Codigo de seguimiento destacado:** El codigo de seguimiento del pedido registrado se resalta en el color institucional dentro del modal de confirmacion, para que el cliente lo note y pueda anotarlo facilmente.
 * **Calidad de Software:** Implementación de pruebas unitarias con **Vitest** y reporte de cobertura de código.
 
 ---
