@@ -245,7 +245,8 @@ const Pedido = () => {
           textoDescuento += ` Se aplicó tu descuento de bienvenida (BIENVENIDO10): -$${descBienvenida.toLocaleString("es-CL")}.`;
         }
         if (descDelicia > 0) {
-          textoDescuento += ` Descuento Delicia del Día (-10%): -$${descDelicia.toLocaleString("es-CL")}.`;
+          const nombreDelicia = deliciaDelDia?.nombre?.trim() || "Delicia del Día";
+          textoDescuento += ` Descuento Delicia del Día (-10%) (${nombreDelicia}): -$${descDelicia.toLocaleString("es-CL")}.`;
         }
         if (textoDescuento === "" && descTotal > 0) {
           textoDescuento = ` Se aplicaron descuentos: -$${descTotal.toLocaleString("es-CL")}.`;
@@ -254,6 +255,9 @@ const Pedido = () => {
         Swal.fire({
           icon: "success",
           title: "¡Pedido registrado!",
+          text: `Pedido por $${totalCreado.toLocaleString(
+            "es-CL"
+          )}. Tu código de seguimiento: ${codigoSeguimiento} (guárdalo para consultar el estado).${textoDescuento} Te enviaremos la confirmación a tu correo. 🧁`,
           html: `Pedido por $${totalCreado.toLocaleString(
             "es-CL"
           )}. Tu código de seguimiento: <strong style="color: #d95386">${codigoSeguimiento}</strong> (guárdalo para consultar el estado).${textoDescuento} Te enviaremos la confirmación a tu correo. 🧁`,

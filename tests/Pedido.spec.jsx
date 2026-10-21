@@ -326,6 +326,7 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
   test("9. Sin código de bienvenida el mensaje nombra la Delicia del Día y oculta el número interno", async () => {
     // Este correo ya canjeó BIENVENIDO10 en una compra anterior: el backend
     // solo aplica el descuento de la delicia y el mensaje debe decir eso
+    obtenerDeliciaDelDia.mockResolvedValue({ id: 1, nombre: "  SELVA NEGRA  " });
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
@@ -343,12 +344,15 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     });
 
     llenarFormularioValido();
+    // La delicia llega por effect async: espero a que pinte el descuento
+    // para que el handler del submit lea el nombre ya seteado
+    await screen.findByTestId("descuento-delicia");
 
     fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
 
     await waitFor(() => expect(Swal.fire).toHaveBeenCalled());
     const texto = Swal.fire.mock.calls.at(-1)[0].text;
-    expect(texto).toContain("Descuento Delicia del Día (-10%): -$19.250");
+    expect(texto).toContain("Descuento Delicia del Día (-10%) (SELVA NEGRA): -$19.250");
     expect(texto).not.toContain("bienvenida");
     expect(texto).not.toContain("N°");
     expect(texto).toContain("abcdef0123456789abcdef0123456789");
