@@ -9,3 +9,15 @@ export const obtenerEstadisticas = async () => {
     throw error;
   }
 };
+
+// Guarda las metas de ventas por periodo (dia, semana, mes) que alimentan la barra
+// de avance del dashboard de administracion
+export const guardarMetas = async (metas) => {
+  try {
+    const response = await apiClient.put("/api/estadisticas/metas", metas);
+    return response.data;
+  } catch (error) {
+    console.error("Error al guardar las metas:", error);
+    throw error;
+  }
+};

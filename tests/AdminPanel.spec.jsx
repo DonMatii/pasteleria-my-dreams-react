@@ -6,6 +6,7 @@ import React from "react";
 import AdminPanel from "../src/pages/AdminPanel.jsx";
 import * as ProductosService from "../src/service/ProductosService";
 import * as EstadisticasService from "../src/service/EstadisticasService";
+import * as PedidosService from "../src/service/PedidosService";
 import Swal from 'sweetalert2';
 import '@testing-library/jest-dom';
 
@@ -21,6 +22,12 @@ vi.mock("../src/service/ProductosService", () => ({
 // El panel también consulta el microservicio de estadísticas al montar.
 vi.mock("../src/service/EstadisticasService", () => ({
   obtenerEstadisticas: vi.fn(),
+  guardarMetas: vi.fn(),
+}));
+
+// El dashboard pide las ventas por producto a pedidos-service para el periodo elegido.
+vi.mock("../src/service/PedidosService", () => ({
+  obtenerVentasPorProducto: vi.fn(),
 }));
 
 vi.mock('sweetalert2', () => ({
@@ -48,6 +55,8 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
       categoriasActivas: 4,
       estadoServicio: "UP",
     });
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([]);
+    EstadisticasService.guardarMetas.mockResolvedValue({});
   });
 
   it("1. READ: Debe listar productos correctamente", async () => {
@@ -195,5 +204,99 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     await waitFor(() => expect(EstadisticasService.obtenerEstadisticas).toHaveBeenCalled());
     expect(screen.queryByText(/Estado MS/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/OPERATIVO/i)).not.toBeInTheDocument();
+  });
+
+  // --- Dashboard de la Mejora 3: periodo, barra de avance y productos vendidos ---
+
+  const statsDashboard = {
+    totalProductosCatalogo: 1,
+    categoriasActivas: 4,
+    pedidosTotales: 18,
+    montoTotalPedidos: 822070,
+    pedidosHoy: 2,
+    montoVentasHoy: 48990,
+    ventasDiarias: [],
+    ventasPeriodo: {
+      dia: { desde: "2026-10-21", hasta: "2026-10-21", pedidos: 2, monto: 48990 },
+      semana: { desde: "2026-10-19", hasta: "2026-10-21", pedidos: 5, monto: 120000 },
+      mes: { desde: "2026-10-01", hasta: "2026-10-21", pedidos: 18, monto: 822070 },
+    },
+    metas: { dia: 80000, semana: 400000, mes: 1500000 },
+  };
+
+  it("8. PERIODO: cambia las cifras al elegir semana y mes", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // Por defecto muestra el dia (Hoy)
+    expect(await screen.findByText(/Ventas Hoy/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: /Semana/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Ventas esta semana/i).parentElement).toHaveTextContent("$120.000");
+    });
+    expect(screen.getByText(/Pedidos esta semana/i).parentElement).toHaveTextContent("5");
+
+    fireEvent.click(screen.getByRole("tab", { name: /Mes/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Ventas este mes/i).parentElement).toHaveTextContent("$822.070");
+    });
+    expect(screen.getByText(/Pedidos este mes/i).parentElement).toHaveTextContent("18");
+  });
+
+  it("9. BARRA: muestra el avance de ventas hacia la meta del periodo", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // 48.990 de una meta de 80.000 = 61%
+    const barra = await screen.findByRole("progressbar", { name: /Avance de ventas Hoy/i });
+    expect(barra).toHaveAttribute("aria-valuenow", "61");
+    expect(screen.getByTestId("meta-texto")).toHaveTextContent("$48.990");
+    expect(screen.getByTestId("meta-texto")).toHaveTextContent("$80.000");
+  });
+
+  it("10. BARRA: sin meta definida avisa que todavia no hay avance", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      ...statsDashboard,
+      metas: { dia: 0, semana: 0, mes: 0 },
+    });
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByText(/Todavía no defines una meta/i)).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("11. VENDIDOS: muestra cada producto con su imagen y unidades del periodo", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([
+      { nombre: "Torta Chocolate", unidades: 6, monto: 90000 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // Se acota a la lista del dashboard: el catalogo tambien lista ese mismo producto
+    const lista = await screen.findByTestId("lista-vendidos");
+    const fila = within(lista).getByText("Torta Chocolate").closest("li");
+    expect(within(fila).getByText("6 unidades")).toBeInTheDocument();
+    expect(within(fila).getByText("$90.000")).toBeInTheDocument();
+    // La foto resuelve contra el catalogo cargado (imagenUrl del producto)
+    expect(within(fila).getByRole("img")).toHaveAttribute("src", "/img/torta3Leches.jpg");
+  });
+
+  it("12. META: la administradora guarda una nueva meta para el periodo", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      ...statsDashboard,
+      metas: { dia: 0, semana: 0, mes: 0 },
+    });
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Editar meta/i }));
+    fireEvent.change(screen.getByLabelText(/Meta de ventas Hoy/i), { target: { value: "100000" } });
+    fireEvent.click(screen.getByRole("button", { name: /Guardar meta/i }));
+
+    await waitFor(() => {
+      expect(EstadisticasService.guardarMetas).toHaveBeenCalledWith(
+        expect.objectContaining({ dia: 100000 })
+      );
+    });
   });
 });

@@ -1,12 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto } from "../service/ProductosService";
-import { obtenerEstadisticas } from "../service/EstadisticasService";
+import { obtenerEstadisticas, guardarMetas } from "../service/EstadisticasService";
+import { obtenerVentasPorProducto } from "../service/PedidosService";
 import "./AdminPanel.css";
 import Swal from "sweetalert2";
 
 // La fecha ISO del backend se muestra en el formato corto chileno (21-10-2026);
 // la hora fija evita que el huso horario corra el día hacia atrás
 const formatearFecha = (fechaIso) => new Date(`${fechaIso}T00:00:00`).toLocaleDateString("es-CL");
+
+// Moneda chilena sin decimales, con separador de miles (48.990)
+const formatearMoneda = (valor) => Number(valor ?? 0).toLocaleString("es-CL");
+
+// Los tres periodos del dashboard (en curso), con su etiqueta corta y su frase
+const PERIODOS = [
+  { id: "dia", etiqueta: "Día", frase: "Hoy" },
+  { id: "semana", etiqueta: "Semana", frase: "esta semana" },
+  { id: "mes", etiqueta: "Mes", frase: "este mes" },
+];
 
 function AdminPanel() {
   const [productos, setProductos] = useState([]);
@@ -20,6 +31,12 @@ function AdminPanel() {
     categoria: "",
     activo: true,
   });
+
+  // Dashboard: periodo elegido, ventas por producto del periodo y edicion de la meta
+  const [periodo, setPeriodo] = useState("dia");
+  const [ventasPorProducto, setVentasPorProducto] = useState([]);
+  const [editandoMeta, setEditandoMeta] = useState(false);
+  const [metaEnEdicion, setMetaEnEdicion] = useState("");
 
   const username = sessionStorage.getItem("userName") || "Administradora";
 
@@ -49,6 +66,72 @@ const cargarDatos = () => {
     cargarDatos();
     cargarEstadisticas();
   }, []);
+
+  // Cifras del periodo elegido; el dia usa las de hoy, que siempre estan presentes
+  const ventasPeriodoSel = useMemo(() => {
+    if (periodo === "dia") {
+      return { monto: stats?.montoVentasHoy ?? 0, pedidos: stats?.pedidosHoy ?? 0 };
+    }
+    return stats?.ventasPeriodo?.[periodo] ?? { monto: 0, pedidos: 0 };
+  }, [stats, periodo]);
+
+  // El periodo elegido, para las etiquetas del dashboard
+  const periodoActual = PERIODOS.find((p) => p.id === periodo) ?? PERIODOS[0];
+
+  // Meta del periodo elegido (0 = todavia sin meta definida)
+  const metaActual = Number(stats?.metas?.[periodo] ?? 0);
+
+  // Avance de ventas hacia la meta, redondeado al entero mas cercano (sin pasar del 100%)
+  const porcentaje =
+    metaActual > 0
+      ? Math.min(100, Math.round((Number(ventasPeriodoSel.monto ?? 0) / metaActual) * 100))
+      : 0;
+
+  // Pide a pedidos-service que se vendio en el rango del periodo elegido
+  useEffect(() => {
+    const rango = stats?.ventasPeriodo?.[periodo];
+    if (!rango?.desde || !rango?.hasta) return;
+    let vigente = true;
+    obtenerVentasPorProducto(rango.desde, rango.hasta).then((lista) => {
+      if (vigente) setVentasPorProducto(lista);
+    });
+    return () => {
+      vigente = false;
+    };
+  }, [stats, periodo]);
+
+  // Foto del producto vendido: la resuelve contra el catalogo ya cargado
+  const imagenDe = (nombre) =>
+    productos.find((p) => p.nombre === nombre)?.imagenUrl || "alfajor.jpg";
+
+  // Abre o cierra la edicion de la meta del periodo, precargando la actual
+  const alternarEdicionMeta = () => {
+    if (editandoMeta) {
+      setEditandoMeta(false);
+      return;
+    }
+    setMetaEnEdicion(String(metaActual));
+    setEditandoMeta(true);
+  };
+
+  // Guarda las metas de los tres periodos (la del periodo elegido con el valor nuevo)
+  const guardarMeta = async (e) => {
+    e.preventDefault();
+    const nuevas = {
+      dia: Number(stats?.metas?.dia ?? 0),
+      semana: Number(stats?.metas?.semana ?? 0),
+      mes: Number(stats?.metas?.mes ?? 0),
+      [periodo]: Number(metaEnEdicion) || 0,
+    };
+    try {
+      await guardarMetas(nuevas);
+      await cargarEstadisticas();
+      setEditandoMeta(false);
+    } catch (error) {
+      console.error("Error al guardar la meta:", error);
+      Swal.fire("Error", "No se pudo guardar la meta.", "error");
+    }
+  };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -147,38 +230,132 @@ const cargarDatos = () => {
           Bienvenida, <span className="admin-user-name">{username}</span> 
         </p>
 
-        {/* Tarjeta del Segundo Microservicio: Estadísticas */}
+        {/* Dashboard de ventas: periodo, KPIs, avance a meta y productos vendidos */}
         {stats && (
-          <div style={{ background: "#fff5f8", border: "1px solid #d95386", padding: "12px", borderRadius: "8px", marginBottom: "20px", display: "flex", flexWrap: "wrap", gap: "8px 16px", justifyContent: "space-around", textAlign: "center" }}>
-            <div>
-              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>📦 Total Catálogo</span>
-              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.totalProductosCatalogo}</strong>
+          <section className="admin-dashboard" aria-label="Dashboard de ventas">
+            <div className="admin-dashboard-cabecera">
+              <h2 className="admin-dashboard-titulo">Resumen de ventas</h2>
+              <div className="admin-periodos" role="tablist" aria-label="Periodo de ventas">
+                {PERIODOS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={periodo === p.id}
+                    className={`admin-periodo-btn${periodo === p.id ? " admin-periodo-activo" : ""}`}
+                    onClick={() => setPeriodo(p.id)}
+                  >
+                    {p.etiqueta}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div>
-              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>🏷️ Categorías</span>
-              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.categoriasActivas}</strong>
+
+            {/* Primero las cifras del periodo elegido, luego los totales del catalogo */}
+            <div className="admin-kpis">
+              <div className="admin-kpi admin-kpi-destacado">
+                <span className="admin-kpi-etiqueta">Ventas {periodoActual.frase}</span>
+                <strong className="admin-kpi-valor">${formatearMoneda(ventasPeriodoSel.monto)}</strong>
+              </div>
+              <div className="admin-kpi admin-kpi-destacado">
+                <span className="admin-kpi-etiqueta">Pedidos {periodoActual.frase}</span>
+                <strong className="admin-kpi-valor">{ventasPeriodoSel.pedidos ?? 0}</strong>
+              </div>
+              <div className="admin-kpi">
+                <span className="admin-kpi-etiqueta">💰 Ventas totales</span>
+                <strong className="admin-kpi-valor">${formatearMoneda(stats.montoTotalPedidos)}</strong>
+              </div>
+              <div className="admin-kpi">
+                <span className="admin-kpi-etiqueta">🧾 Pedidos recibidos</span>
+                <strong className="admin-kpi-valor">{stats.pedidosTotales ?? 0}</strong>
+              </div>
+              <div className="admin-kpi">
+                <span className="admin-kpi-etiqueta">📦 Total catálogo</span>
+                <strong className="admin-kpi-valor">{stats.totalProductosCatalogo ?? 0}</strong>
+              </div>
+              <div className="admin-kpi">
+                <span className="admin-kpi-etiqueta">🏷️ Categorías</span>
+                <strong className="admin-kpi-valor">{stats.categoriasActivas ?? 0}</strong>
+              </div>
             </div>
-            <div>
-              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>🧾 Pedidos recibidos</span>
-              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.pedidosTotales ?? 0}</strong>
+
+            {/* Barra de avance hacia la meta del periodo, editable desde el panel */}
+            <div className="admin-meta">
+              <div className="admin-meta-cabecera">
+                <span className="admin-meta-titulo">Avance hacia la meta</span>
+                <button type="button" className="admin-meta-btn" onClick={alternarEdicionMeta}>
+                  {editandoMeta ? "Cancelar" : "✏️ Editar meta"}
+                </button>
+              </div>
+
+              {editandoMeta ? (
+                <form className="admin-meta-form" onSubmit={guardarMeta}>
+                  <label htmlFor="meta-periodo">Meta de ventas {periodoActual.frase}</label>
+                  <input
+                    id="meta-periodo"
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={metaEnEdicion}
+                    onChange={(e) => setMetaEnEdicion(e.target.value)}
+                  />
+                  <button type="submit" className="admin-meta-guardar">Guardar meta</button>
+                </form>
+              ) : metaActual > 0 ? (
+                <>
+                  <p className="admin-meta-texto" data-testid="meta-texto">
+                    Ventas de {periodoActual.frase.toLowerCase()}:{" "}
+                    <strong>${formatearMoneda(ventasPeriodoSel.monto)}</strong> de meta{" "}
+                    <strong>${formatearMoneda(metaActual)}</strong>
+                  </p>
+                  <div
+                    className="admin-barra"
+                    role="progressbar"
+                    aria-valuenow={porcentaje}
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label={`Avance de ventas ${periodoActual.frase}`}
+                  >
+                    <div className="admin-barra-relleno" style={{ width: `${porcentaje}%` }} />
+                  </div>
+                  <span className="admin-meta-porcentaje">{porcentaje}%</span>
+                </>
+              ) : (
+                <p className="admin-meta-vacia">
+                  Todavía no defines una meta para {periodoActual.frase.toLowerCase()}. Edítala
+                  para ver el avance.
+                </p>
+              )}
             </div>
-            <div>
-              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>💰 Ventas totales</span>
-              <strong style={{ fontSize: "16px", color: "#d95386" }}>
-                ${Number(stats.montoTotalPedidos ?? 0).toLocaleString("es-CL")}
-              </strong>
+
+            {/* Que se vendio en el periodo, con la foto de cada producto y sus unidades */}
+            <div className="admin-vendidos">
+              <h3 className="admin-vendidos-titulo">Qué se vendió ({periodoActual.frase.toLowerCase()})</h3>
+              {ventasPorProducto.length === 0 ? (
+                <p className="admin-vendidos-vacio">
+                  Sin ventas registradas en {periodoActual.frase.toLowerCase()}.
+                </p>
+              ) : (
+                <ul className="admin-vendidos-lista" data-testid="lista-vendidos">
+                  {ventasPorProducto.map((venta) => (
+                    <li key={venta.nombre} className="admin-vendido">
+                      <img
+                        src={`/img/${imagenDe(venta.nombre)}`}
+                        alt={venta.nombre}
+                        className="admin-vendido-img"
+                        onError={(e) => {
+                          e.target.src = "/img/alfajor.jpg";
+                        }}
+                      />
+                      <span className="admin-vendido-nombre">{venta.nombre}</span>
+                      <span className="admin-vendido-unidades">{venta.unidades} unidades</span>
+                      <span className="admin-vendido-monto">${formatearMoneda(venta.monto)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <div>
-              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>💵 Ventas hoy</span>
-              <strong style={{ fontSize: "16px", color: "#d95386" }}>
-                ${Number(stats.montoVentasHoy ?? 0).toLocaleString("es-CL")}
-              </strong>
-            </div>
-            <div>
-              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>🧾 Pedidos hoy</span>
-              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.pedidosHoy ?? 0}</strong>
-            </div>
-          </div>
+          </section>
         )}
 
         {/* Ventas de los últimos 7 días, siempre con los 7 días presentes */}
