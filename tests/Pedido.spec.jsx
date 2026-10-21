@@ -553,6 +553,53 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     expect(screen.queryByTestId("modal-catalogo")).not.toBeInTheDocument();
   });
 
+  test("12c. La ventanita marca la delicia del día con el badge '-10% hoy'", async () => {
+    // Solo el backend confirma cuál es la delicia: solo esa tarjeta lleva badge
+    obtenerDeliciaDelDia.mockResolvedValue({
+      id: 13,
+      nombre: "Muffins Plátano Arándano",
+    });
+
+    renderPedido([{ ...selvaNegra, cantidad: 1 }]);
+
+    fireEvent.click(screen.getByRole("button", { name: /Seguir agregando delicias/i }));
+    expect(await screen.findByTestId("modal-catalogo")).toBeInTheDocument();
+
+    // Exactamente UNA tarjeta la marca, y es la de la delicia del día
+    const badges = screen.getAllByTestId("badge-delicia-modal");
+    expect(badges).toHaveLength(1);
+    expect(badges[0].closest(".modal-tarjeta")).toHaveTextContent(
+      "Muffins Plátano Arándano"
+    );
+  });
+
+  test("12d. Sin delicia confirmada por el backend, ningún badge aparece", async () => {
+    // beforeEach: obtenerDeliciaDelDia rechaza → no se promete ningún descuento
+    renderPedido([{ ...selvaNegra, cantidad: 1 }]);
+
+    fireEvent.click(screen.getByRole("button", { name: /Seguir agregando delicias/i }));
+    expect(await screen.findByTestId("modal-catalogo")).toBeInTheDocument();
+
+    expect(screen.queryByTestId("badge-delicia-modal")).not.toBeInTheDocument();
+  });
+
+  test("12e. La ventanita trae su propio boton de volver arriba al catálogo", async () => {
+    renderPedido([{ ...selvaNegra, cantidad: 1 }]);
+
+    fireEvent.click(screen.getByRole("button", { name: /Seguir agregando delicias/i }));
+    expect(await screen.findByTestId("modal-catalogo")).toBeInTheDocument();
+
+    // El boton flotante de la pagina hace window.scrollTo: al panel del modal no
+    // le mueve nada. El que scrollea el catálogo es el panel, y el boton propio
+    // vive DENTRO del overlay, no afuera en la pagina.
+    const boton = screen.getByTestId("modal-volver-arriba");
+    expect(boton.closest(".modal-overlay")).toBeInTheDocument();
+    expect(boton).toHaveAttribute(
+      "aria-label",
+      "Volver arriba en el catálogo"
+    );
+  });
+
   test("12b. Si el catálogo no carga, la ventanita muestra el error en vez de quedarse muda", async () => {
     obtenerProductos.mockRejectedValue(new Error("sin red"));
 

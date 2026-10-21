@@ -571,6 +571,24 @@ header nav ul li a:hover {
   color: #d95386;
 }
 
+/* Fila "foto + nombre": se agrupan para que space-between siga empujando el
+   subtotal al extremo derecho en vez de repartir tres hijos por igual */
+.estado-producto-datos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.estado-producto-img {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #f3d7e3;
+}
+
 /* Resumen: mismo lenguaje que el checkout, con el total final destacado */
 .estado-resumen {
   background: #fff5f8;
@@ -750,6 +768,7 @@ header nav ul li a:hover {
 }
 
 .modal-tarjeta {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -758,6 +777,29 @@ header nav ul li a:hover {
   border: 1px solid #f3d7e3;
   border-radius: 14px;
   background: #fffafd;
+}
+
+/* Badge "-10% hoy" de la delicia del día dentro de la ventanita del checkout.
+   Se ancla a la tarjeta, que es la esquina superior izquierda de su imagen. */
+.modal-tarjeta .delicia-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 1;
+  background-color: #d95386;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(217, 83, 134, 0.35);
+}
+
+/* "Volver arriba" de la ventanita: mismo look que el de la pagina, pero por
+   encima del overlay (z-index 1000) para que se vea con el modal abierto. */
+.volver-arriba--modal {
+  z-index: 1001;
 }
 
 .modal-tarjeta img {

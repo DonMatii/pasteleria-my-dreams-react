@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../App.css";
 import { URL_BASE } from "../service/apiClient";
+import { obtenerProductos, aplanarCatalogo } from "../service/ProductosService";
 
 // RF-11: consulta pública del estado de un pedido ya registrado.
 // El cliente ingresa el CÓDIGO OPACO de seguimiento (32 caracteres) que devolvió
@@ -59,6 +60,40 @@ const EstadoPedido = () => {
   const [pedido, setPedido] = useState(null);
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
+  // Mapa "nombre en minusculas -> imagenUrl" del catálogo. El pedido solo guarda
+  // nombre, cantidad y precio: la foto se resuelve aqui, del lado del cliente.
+  const [imagenes, setImagenes] = useState({});
+
+  // El catálogo entra por axios (no por fetch), asi que no choca con el mock de
+  // global.fetch que usan los tests de esta página. Sin respuesta se queda vacío
+  // y los productos se listan sin foto, nunca con una imagen rota.
+  useEffect(() => {
+    let activo = true;
+    const cargarImagenes = async () => {
+      try {
+        const datos = await obtenerProductos();
+        if (!activo || !datos) return;
+        const mapa = {};
+        aplanarCatalogo(datos).forEach((prod) => {
+          if (prod && prod.nombre && prod.imagenUrl) {
+            mapa[prod.nombre.trim().toLowerCase()] = prod.imagenUrl;
+          }
+        });
+        setImagenes(mapa);
+      } catch (error) {
+        console.error("Error al cargar las fotos del catálogo en /estado:", error);
+      }
+    };
+    cargarImagenes();
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  // El pedido no guarda la foto, solo el nombre: se busca en el catálogo. Si el
+  // producto ya no existe (renombrado o eliminado) se muestra sin imagen.
+  const imagenDe = (nombre) =>
+    imagenes[String(nombre || "").trim().toLowerCase()] || null;
 
   const handleChange = (e) => {
     // El codigo de seguimiento es alfanumerico (UUID de 32 caracteres sin guiones)
@@ -197,10 +232,24 @@ const EstadoPedido = () => {
           <ul className="estado-productos">
             {(pedido.productos || []).map((producto, indice) => (
               <li key={`${pedido.id}-${indice}`} className="estado-producto">
-                <span className="estado-producto-nombre">
-                  {producto.nombre}
-                  <span className="estado-producto-cant">
-                    × {producto.cantidad}
+                <span className="estado-producto-datos">
+                  {/* Foto resuelta contra el catálogo; si no aparece, va sin foto */}
+                  {imagenDe(producto.nombre) && (
+                    <img
+                      className="estado-producto-img"
+                      src={`/img/${imagenDe(producto.nombre)}`}
+                      alt=""
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  )}
+                  <span className="estado-producto-nombre">
+                    {producto.nombre}
+                    <span className="estado-producto-cant">
+                      × {producto.cantidad}
+                    </span>
                   </span>
                 </span>
                 <span className="estado-producto-subtotal">

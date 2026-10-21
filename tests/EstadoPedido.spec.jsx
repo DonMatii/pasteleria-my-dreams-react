@@ -4,6 +4,15 @@ import { render, screen, fireEvent, waitFor, within } from "@testing-library/rea
 import "@testing-library/jest-dom";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import EstadoPedido from "../src/pages/EstadoPedido";
+import { obtenerProductos } from "../src/service/ProductosService";
+
+// La página resuelve la foto de cada producto contra el catálogo, porque el
+// pedido solo guarda nombre, cantidad y precio. Se mockea para controlar qué
+// fotos encuentra. AplanarCatalogo queda real, igual que en Pedido.spec.
+vi.mock("../src/service/ProductosService", async (importOriginal) => ({
+  ...await importOriginal(),
+  obtenerProductos: vi.fn(),
+}));
 
 const URL_SEGUIMIENTO = `${import.meta.env.VITE_API_BASE_URL}/api/pedidos/seguimiento`;
 
@@ -33,6 +42,8 @@ const consultar = (codigo) => {
 describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Por defecto el catálogo no devuelve nada: los productos van sin foto
+    obtenerProductos.mockResolvedValue({});
   });
 
   test("1. Debe renderizar el input de código y el botón de consulta", () => {
@@ -223,5 +234,42 @@ describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
 
     const filaFecha = (await screen.findByText("Fecha")).closest("li");
     expect(filaFecha).toHaveTextContent("1 de octubre de 2026 a las 12:30 p. m.");
+  });
+
+  test("9. Los productos muestran la foto del catálogo, resuelta por nombre", async () => {
+    // El pedido no guarda la foto: se busca en el catálogo por el nombre pedido
+    obtenerProductos.mockResolvedValue({
+      tortas: [
+        {
+          id: 1,
+          nombre: "Selva Negra",
+          precio: 15000,
+          imagenUrl: "selva.jpg",
+          categoria: "tortas",
+        },
+      ],
+    });
+
+    const { container } = render(<EstadoPedido />);
+    consultar("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
+
+    await waitFor(() =>
+      expect(container.querySelectorAll(".estado-producto-img")).toHaveLength(1)
+    );
+    expect(container.querySelector(".estado-producto-img")).toHaveAttribute(
+      "src",
+      "/img/selva.jpg"
+    );
+  });
+
+  test("9b. Un producto ausente del catálogo se lista sin foto, no con una rota", async () => {
+    // Pedido viejo, o producto renombrado/eliminado desde el panel: sin foto
+    obtenerProductos.mockResolvedValue({ tortas: [] });
+
+    const { container } = render(<EstadoPedido />);
+    consultar("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
+
+    await screen.findByText("Selva Negra");
+    expect(container.querySelectorAll(".estado-producto-img")).toHaveLength(0);
   });
 });

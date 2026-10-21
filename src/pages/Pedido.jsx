@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import {
@@ -67,6 +67,11 @@ const Pedido = () => {
   const [cargandoModal, setCargandoModal] = useState(false);
   const [errorModal, setErrorModal] = useState("");
   const [cantidadesModal, setCantidadesModal] = useState({});
+  // El panel del modal es su propio contenedor de scroll: el boton flotante de
+  // la pagina hace window.scrollTo y a este panel no le mueve nada, asi que hace
+  // falta una referencia al panel y su propio umbral de visibilidad.
+  const panelCatalogoRef = useRef(null);
+  const [panelDesplazado, setPanelDesplazado] = useState(false);
 
   useEffect(() => {
     if (!modalAbierto) return undefined;
@@ -92,6 +97,18 @@ const Pedido = () => {
     };
   }, [modalAbierto]);
 
+  // Se escucha el scroll del PANEL, no el de la pagina: ese es el que se mueve
+  // cuando hay muchos productos y el cliente pierde el titulo de arriba.
+  useEffect(() => {
+    if (!modalAbierto) return undefined;
+    const panel = panelCatalogoRef.current;
+    if (!panel) return undefined;
+    const alDesplazar = () => setPanelDesplazado(panel.scrollTop > 300);
+    alDesplazar();
+    panel.addEventListener("scroll", alDesplazar, { passive: true });
+    return () => panel.removeEventListener("scroll", alDesplazar);
+  }, [modalAbierto]);
+
   // Descuento de bienvenida en vivo: -10% mientras el codigo sea valido Y siga disponible
   // (disponible = no canjeado: el codigo se gana una sola vez por navegador)
   const codigoValido = esCodigoValido(codigoDescuento);
@@ -110,6 +127,20 @@ const Pedido = () => {
     );
   const descuentoDelicia = carritoIncluyeDelicia ? Math.floor(total / 10) : 0;
   const totalFinal = total - descuento - descuentoDelicia;
+
+  // ¿Este producto de la ventanita es la delicia del día? Coincide por id (ambos
+  // vienen del catálogo) y también por nombre, que es como ya decide el carrito
+  // si aplica el descuento: si el backend cambia de fuente, aun asi se marca.
+  const esDeliciaDelDia = (prod) => {
+    if (!deliciaDelDia || !prod) return false;
+    const mismoId = deliciaDelDia.id != null && prod.id === deliciaDelDia.id;
+    const mismoNombre =
+      prod.nombre &&
+      deliciaDelDia.nombre &&
+      prod.nombre.trim().toLowerCase() ===
+        deliciaDelDia.nombre.trim().toLowerCase();
+    return mismoId || mismoNombre;
+  };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -428,6 +459,7 @@ const Pedido = () => {
             aria-modal="true"
             aria-label="Agregar más delicias"
             onClick={(e) => e.stopPropagation()}
+            ref={panelCatalogoRef}
           >
             <div className="modal-cabecera">
               <h3>Agrega más delicias</h3>
@@ -444,6 +476,15 @@ const Pedido = () => {
             <div className="modal-grid">
               {catalogoModal.map((prod) => (
                 <div className="modal-tarjeta" key={prod.id}>
+                  {/* Badge de la delicia del día: mismo aviso que en /delicias */}
+                  {esDeliciaDelDia(prod) && (
+                    <span
+                      className="delicia-badge"
+                      data-testid="badge-delicia-modal"
+                    >
+                      -10% hoy
+                    </span>
+                  )}
                   <img
                     src={`/img/${prod.imagenUrl || "alfajor.jpg"}`}
                     alt={prod.nombre}
@@ -485,6 +526,37 @@ const Pedido = () => {
               ))}
             </div>
           </div>
+          {/* Volver arriba de la ventanita: el boton flotante de la pagina no
+              sirve aqui porque mueve window, y el que scrollea es el panel. */}
+          <button
+            type="button"
+            className={`volver-arriba volver-arriba--modal${
+              panelDesplazado ? " volver-arriba--visible" : ""
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              panelCatalogoRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            aria-label="Volver arriba en el catálogo"
+            data-testid="modal-volver-arriba"
+            tabIndex={panelDesplazado ? 0 : -1}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="12" y1="19" x2="12" y2="5" />
+              <polyline points="5 12 12 5 19 12" />
+            </svg>
+          </button>
         </div>
       )}
     </main>
