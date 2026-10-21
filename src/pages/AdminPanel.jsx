@@ -290,21 +290,35 @@ const cargarDatos = () => {
 
               {editandoMeta ? (
                 <form className="admin-meta-form" onSubmit={guardarMeta}>
-                  <label htmlFor="meta-periodo">Meta de ventas {periodoActual.frase}</label>
-                  <input
-                    id="meta-periodo"
-                    type="number"
-                    min="0"
-                    value={metaEnEdicion}
-                    onChange={(e) => setMetaEnEdicion(e.target.value)}
-                  />
+                  <div className="admin-meta-campo">
+                    <label htmlFor="meta-periodo">
+                      Meta de ventas {periodoActual.frase} (en pesos)
+                    </label>
+                    <div className="admin-meta-input">
+                      <span className="admin-meta-simbolo" aria-hidden="true">$</span>
+                      <input
+                        id="meta-periodo"
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputMode="numeric"
+                        placeholder="150000"
+                        value={metaEnEdicion}
+                        onChange={(e) => setMetaEnEdicion(e.target.value)}
+                      />
+                    </div>
+                    <p className="admin-meta-ayuda">
+                      Escribe el monto en pesos que quieres vender en el período. Ejemplo:
+                      150000 equivale a $150.000.
+                    </p>
+                  </div>
                   <button type="submit" className="admin-meta-guardar">Guardar meta</button>
                 </form>
               ) : metaActual > 0 ? (
                 <>
                   <p className="admin-meta-texto" data-testid="meta-texto">
                     Ventas de {periodoActual.frase.toLowerCase()}:{" "}
-                    <strong>${formatearMoneda(ventasPeriodoSel.monto)}</strong> de meta{" "}
+                    <strong>${formatearMoneda(ventasPeriodoSel.monto)}</strong> de una meta de{" "}
                     <strong>${formatearMoneda(metaActual)}</strong>
                   </p>
                   <div
@@ -317,7 +331,9 @@ const cargarDatos = () => {
                   >
                     <div className="admin-barra-relleno" style={{ width: `${porcentaje}%` }} />
                   </div>
-                  <span className="admin-meta-porcentaje">{porcentaje}%</span>
+                  <span className="admin-meta-porcentaje">
+                    {porcentaje >= 100 ? "¡Meta alcanzada! 🎉" : `Avance: ${porcentaje}%`}
+                  </span>
                 </>
               ) : (
                 <p className="admin-meta-vacia">
@@ -354,36 +370,32 @@ const cargarDatos = () => {
                 </ul>
               )}
             </div>
-          </section>
-        )}
 
-        {/* Ventas de los últimos 7 días, siempre con los 7 días presentes */}
-        {Array.isArray(stats?.ventasDiarias) && stats.ventasDiarias.length > 0 && (
-          <div className="admin-tabla-container" style={{ marginTop: "12px" }}>
-            <h3
-              style={{ margin: "14px 15px 0", fontSize: "14px", color: "#5d405d", fontFamily: "'Montserrat', sans-serif" }}
-            >
-              Ventas de los últimos 7 días
-            </h3>
-            <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Pedidos</th>
-                  <th>Ventas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.ventasDiarias.map((venta) => (
-                  <tr key={venta.fecha}>
-                    <td>{formatearFecha(venta.fecha)}</td>
-                    <td>{venta.pedidos}</td>
-                    <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            {/* Ventas de los últimos 7 días, siempre con los 7 días presentes */}
+            {Array.isArray(stats?.ventasDiarias) && stats.ventasDiarias.length > 0 && (
+              <div className="admin-diario">
+                <h3 className="admin-diario-titulo">Ventas de los últimos 7 días</h3>
+                <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Pedidos</th>
+                      <th>Ventas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.ventasDiarias.map((venta) => (
+                      <tr key={venta.fecha}>
+                        <td>{formatearFecha(venta.fecha)}</td>
+                        <td>{venta.pedidos}</td>
+                        <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         )}
 
         <div className="admin-seccion-gestion">

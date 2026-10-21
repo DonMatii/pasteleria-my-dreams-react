@@ -146,6 +146,19 @@
   color: #5d405d;
 }
 
+/* Tabla de los últimos 7 días, integrada dentro de la tarjeta del dashboard */
+.admin-diario {
+  margin-top: 4px;
+}
+
+.admin-diario-titulo {
+  margin: 4px 0 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #5d405d;
+}
+
 .admin-btn-pill {
   border: none;
   padding: 8px 15px;
@@ -315,8 +328,16 @@
 .admin-meta-form {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.admin-meta-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 220px;
 }
 
 .admin-meta-form label {
@@ -325,18 +346,44 @@
   font-weight: 500;
 }
 
-.admin-meta-form input {
+.admin-meta-input {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid #e6c8d8;
   border-radius: 8px;
-  padding: 8px 12px;
+  background: #fff;
+  padding-left: 10px;
+  width: fit-content;
+  min-width: 170px;
+}
+
+.admin-meta-input:focus-within {
+  outline: 2px solid #d95386;
+  border-color: transparent;
+}
+
+.admin-meta-simbolo {
+  color: #d95386;
+  font-weight: 700;
   font-size: 0.95rem;
-  width: 160px;
+  margin-right: 2px;
+}
+
+.admin-meta-form input {
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 8px 10px 8px 2px;
+  font-size: 0.95rem;
+  width: 130px;
   font-family: 'Montserrat', sans-serif;
 }
 
-.admin-meta-form input:focus {
-  outline: 2px solid #d95386;
-  border-color: transparent;
+.admin-meta-ayuda {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #7a6478;
+  line-height: 1.4;
 }
 
 .admin-meta-guardar {
