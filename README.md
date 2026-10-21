@@ -28,7 +28,7 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
 * **Accesibilidad:** Selector de cantidad con botones `−` y `+` de gran superficie —en el mini carrito, en las filas del checkout y en las tarjetas de la ventana del catálogo— en reemplazo de los inputs numéricos nativos, cuyas flechitas de 10px no pueden apuntar personas con baja visión. Todos los controles llevan etiquetas ARIA (`role="group"`, `aria-label`, `aria-live`).
 * **Codigo de seguimiento destacado:** El codigo de seguimiento del pedido registrado se resalta en el color institucional dentro del modal de confirmacion, para que el cliente lo note y pueda anotarlo facilmente.
-* **Descuento de la Delicia del Dia con nombre propio:** Cuando el backend aplica el descuento de la Delicia del Dia, el mensaje de confirmacion nombra el producto concreto —por ejemplo, `Descuento Delicia del Dia (-10%) (Selva Negra)`— en vez de un generico, para que el cliente sepa exactamente que delicia le desconto.
+* **Descuento de la Delicia del Dia con nombre propio:** Cuando el backend aplica el descuento de la Delicia del Dia, el resumen del checkout y el mensaje de confirmacion nombran el producto concreto —por ejemplo, `Descuento Delicia del Dia (-10%) (Selva Negra)`— en vez de un generico, para que el cliente sepa exactamente que delicia le desconto.
 * **Calidad de Software:** Implementación de pruebas unitarias con **Vitest** y reporte de cobertura de código.
 
 ---

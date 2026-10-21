@@ -471,6 +471,10 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     expect(screen.getByTestId("descuento-bienvenida")).toHaveTextContent("-$3.000");
     // total final = total − bienvenida − delicia
     expect(screen.getByTestId("total-final")).toHaveTextContent("$24.000");
+    // El resumen también nombra la delicia con su producto concreto
+    expect(
+      screen.getByText(/Descuento Delicia del Día \(-10%\) \(SELVA NEGRA\)/)
+    ).toBeInTheDocument();
   });
 
   test("10. Sin la delicia en el carrito no aparece su línea de descuento", async () => {

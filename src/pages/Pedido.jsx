@@ -445,7 +445,10 @@ const Pedido = () => {
               )}
               {descuentoDelicia > 0 && (
                 <div className="pedido-resumen-fila pedido-resumen-descuento">
-                  <span>Descuento Delicia del Día (-10%)</span>
+                  <span>
+                    Descuento Delicia del Día (-10%) (
+                    {deliciaDelDia?.nombre?.trim()})
+                  </span>
                   <span data-testid="descuento-delicia">
                     -${descuentoDelicia.toLocaleString("es-CL")}
                   </span>
