@@ -12,7 +12,8 @@ const pedidoDePrueba = {
   id: 7,
   cliente: "Catherine Test",
   email: "cat@test.com",
-  fecha: "2026-10-01T15:30:00",
+  // UTC con sufijo Z: el formato real que devuelve PedidoResponse
+  fecha: "2026-10-01T15:30:00Z",
   total: 30000,
   codigoConsulta: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
   productos: [
@@ -205,5 +206,22 @@ describe("Pruebas de Consulta de Estado de Pedido - My Dreams (RF-11)", () => {
 
     const filaCliente = (await screen.findByText("Cliente")).closest("li");
     expect(filaCliente).toHaveTextContent("Catherine Test");
+  });
+
+  test("8. La fecha se muestra en hora de Chile, no en la hora del servidor", async () => {
+    // El backend manda el instante en UTC con sufijo Z. Aquí 15:30 UTC son
+    // 12:30 en Chile: ver 12:30 es el contrato; ver 15:30 (hora del servidor)
+    // o 9:30 (offset aplicado dos veces) es el bug.
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue(pedidoDePrueba),
+    });
+
+    render(<EstadoPedido />);
+    consultar("a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
+
+    const filaFecha = (await screen.findByText("Fecha")).closest("li");
+    expect(filaFecha).toHaveTextContent("1 de octubre de 2026 a las 12:30 p. m.");
   });
 });

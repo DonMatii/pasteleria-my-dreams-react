@@ -35,8 +35,10 @@ const normalizarEstado = (estado) => {
 // Fecha ISO del backend → texto legible (mismo locale es-CL que usan los precios)
 const formatearFecha = (fecha) => {
   if (!fecha) return "—";
-  // El backend devuelve UTC sin sufijo Z (ej: 2026-10-09T20:46:19.47154).
-  // JS lo trataria como hora local si no forzamos Z; luego convertimos a Chile.
+  // El backend devuelve el instante en UTC con sufijo Z (ej: 2026-10-20T23:14:48.1991Z);
+  // esa marca es la que permite convertirlo a Chile sin adivinar la zona horaria.
+  // Si alguna respuesta viniera sin ella, JS la trataria como hora local:
+  // entonces forzamos Z para que se lea como UTC antes de convertir.
   const esUtcSinSufijo =
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(fecha);
   const texto = esUtcSinSufijo ? `${fecha}Z` : fecha;
