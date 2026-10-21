@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import React from "react";
@@ -144,5 +144,56 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
         "error"
       );
     });
+  });
+
+  it("6. ESTADISTICAS: Muestra las ventas de hoy y la ventana de 7 días", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      totalProductosCatalogo: 1,
+      categoriasActivas: 4,
+      pedidosTotales: 2,
+      montoTotalPedidos: 48990,
+      pedidosHoy: 2,
+      montoVentasHoy: 48990,
+      ventasDiarias: [
+        { fecha: "2026-10-21", pedidos: 2, monto: 48990 },
+        { fecha: "2026-10-20", pedidos: 0, monto: 0 },
+        { fecha: "2026-10-19", pedidos: 0, monto: 0 },
+        { fecha: "2026-10-18", pedidos: 0, monto: 0 },
+        { fecha: "2026-10-17", pedidos: 0, monto: 0 },
+        { fecha: "2026-10-16", pedidos: 0, monto: 0 },
+        { fecha: "2026-10-15", pedidos: 0, monto: 0 },
+      ],
+    });
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // Los dos indicadores del día viven juntos en su propio bloque
+    const bloqueVentas = (await screen.findByText(/Ventas hoy/i)).parentElement;
+    expect(bloqueVentas).toHaveTextContent("$48.990");
+
+    const bloquePedidos = screen.getByText(/Pedidos hoy/i).parentElement;
+    expect(bloquePedidos).toHaveTextContent("2");
+
+    // La ventana es una tabla propia con cabecera más los 7 días
+    await screen.findByRole("heading", { name: /últimos 7 días/i });
+    const tabla = screen.getByRole("table", { name: /últimos 7 días/i });
+    expect(within(tabla).getAllByRole("row")).toHaveLength(8);
+    expect(within(tabla).getByText("21-10-2026")).toBeInTheDocument();
+  });
+
+  it("7. No muestra el estado de los microservicios en el panel", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      totalProductosCatalogo: 1,
+      categoriasActivas: 4,
+      estadoServicio: "OPERATIVO",
+      pedidosTotales: 2,
+      montoTotalPedidos: 48990,
+    });
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    await waitFor(() => expect(EstadisticasService.obtenerEstadisticas).toHaveBeenCalled());
+    expect(screen.queryByText(/Estado MS/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/OPERATIVO/i)).not.toBeInTheDocument();
   });
 });

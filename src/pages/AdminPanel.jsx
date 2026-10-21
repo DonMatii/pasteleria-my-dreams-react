@@ -4,6 +4,10 @@ import { obtenerEstadisticas } from "../service/EstadisticasService";
 import "./AdminPanel.css";
 import Swal from "sweetalert2";
 
+// La fecha ISO del backend se muestra en el formato corto chileno (21-10-2026);
+// la hora fija evita que el huso horario corra el día hacia atrás
+const formatearFecha = (fechaIso) => new Date(`${fechaIso}T00:00:00`).toLocaleDateString("es-CL");
+
 function AdminPanel() {
   const [productos, setProductos] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
@@ -165,9 +169,44 @@ const cargarDatos = () => {
               </strong>
             </div>
             <div>
-              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>⚙️ Estado MS</span>
-              <strong style={{ fontSize: "14px", color: "green" }}>{stats.estadoServicio}</strong>
+              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>💵 Ventas hoy</span>
+              <strong style={{ fontSize: "16px", color: "#d95386" }}>
+                ${Number(stats.montoVentasHoy ?? 0).toLocaleString("es-CL")}
+              </strong>
             </div>
+            <div>
+              <span style={{ display: "block", fontSize: "13px", color: "#666" }}>🧾 Pedidos hoy</span>
+              <strong style={{ fontSize: "16px", color: "#d95386" }}>{stats.pedidosHoy ?? 0}</strong>
+            </div>
+          </div>
+        )}
+
+        {/* Ventas de los últimos 7 días, siempre con los 7 días presentes */}
+        {Array.isArray(stats?.ventasDiarias) && stats.ventasDiarias.length > 0 && (
+          <div className="admin-tabla-container" style={{ marginTop: "12px" }}>
+            <h3
+              style={{ margin: "14px 15px 0", fontSize: "14px", color: "#5d405d", fontFamily: "'Montserrat', sans-serif" }}
+            >
+              Ventas de los últimos 7 días
+            </h3>
+            <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Pedidos</th>
+                  <th>Ventas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.ventasDiarias.map((venta) => (
+                  <tr key={venta.fecha}>
+                    <td>{formatearFecha(venta.fecha)}</td>
+                    <td>{venta.pedidos}</td>
+                    <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
