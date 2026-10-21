@@ -299,4 +299,70 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
       );
     });
   });
+
+  it("13. TOP: destaca los 3 mas vendidos del periodo con su ranking", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([
+      { nombre: "Torta Chocolate", unidades: 6, monto: 90000 },
+      { nombre: "Muffins Plátano", unidades: 28, monto: 70000 },
+      { nombre: "Merengue Frambuesa", unidades: 18, monto: 270000 },
+      { nombre: "Queque Marmoleado", unidades: 8, monto: 48000 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    const top = await screen.findByTestId("lista-top");
+    const items = within(top).getAllByRole("listitem");
+    // Siempre por unidades, aunque la lista completa use otro orden
+    expect(items).toHaveLength(3);
+    expect(items[0]).toHaveTextContent("Muffins Plátano");
+    expect(items[0]).toHaveTextContent("28 unidades");
+    expect(items[1]).toHaveTextContent("Merengue Frambuesa");
+    expect(items[2]).toHaveTextContent("Queque Marmoleado");
+  });
+
+  it("14. ORDEN: reordena 'Qué se vendió' al elegir Valor y al invertir", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([
+      { nombre: "Torta Chocolate", unidades: 6, monto: 90000 },
+      { nombre: "Merengue Frambuesa", unidades: 18, monto: 270000 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    const lista = await screen.findByTestId("lista-vendidos");
+    // Por defecto: unidades descendente -> Merengue (18) antes que Torta (6)
+    expect(within(lista).getAllByRole("listitem")[0]).toHaveTextContent("Merengue Frambuesa");
+
+    // Valor (monto) descendente: Merengue ($270.000) primero
+    fireEvent.click(screen.getByRole("button", { name: /^Valor/i }));
+    expect(within(lista).getAllByRole("listitem")[0]).toHaveTextContent("Merengue Frambuesa");
+
+    // Otra vez Valor invierte a ascendente: Torta ($90.000) primero
+    fireEvent.click(screen.getByRole("button", { name: /^Valor/i }));
+    expect(within(lista).getAllByRole("listitem")[0]).toHaveTextContent("Torta Chocolate");
+  });
+
+  it("15. PLIEGUE: cierra y abre la seccion de 'Qué se vendió'", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([
+      { nombre: "Torta Chocolate", unidades: 6, monto: 90000 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByTestId("lista-vendidos")).toBeInTheDocument();
+
+    const btn = screen.getByRole("button", { name: "Qué se vendió" });
+    expect(btn).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(btn);
+
+    // La lista se pliega y el boton queda en estado colapsado
+    expect(screen.queryByTestId("lista-vendidos")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Qué se vendió" })).toHaveAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+    // Vuelve a abrirse
+    fireEvent.click(screen.getByRole("button", { name: "Qué se vendió" }));
+    expect(await screen.findByTestId("lista-vendidos")).toBeInTheDocument();
+  });
 });

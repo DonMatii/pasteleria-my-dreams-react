@@ -440,6 +440,163 @@
   color: #7a6478;
 }
 
+/* Cabecera de seccion plegable: titulo + boton Abrir/Cerrar */
+.admin-seccion-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-pliegue-btn {
+  border: 1px solid #d95386;
+  background: #fff;
+  color: #d95386;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.admin-pliegue-btn:hover {
+  background: #d95386;
+  color: #fff;
+}
+
+/* Controles de orden de la lista de que se vendio */
+.admin-orden {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.admin-orden-etiqueta {
+  font-size: 0.78rem;
+  color: #7a6478;
+  margin-right: 2px;
+}
+
+.admin-orden-btn {
+  border: 1px solid #e6c8d8;
+  background: #fff;
+  color: #5d405d;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.admin-orden-btn:hover {
+  border-color: #d95386;
+  color: #d95386;
+}
+
+.admin-orden-activo {
+  background: #d95386;
+  border-color: #d95386;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Encabezados de la tabla de 7 dias, clickeables para ordenar */
+.admin-th-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.admin-th-btn:hover {
+  text-decoration: underline;
+}
+
+/* Los 3 mas vendidos del periodo: ranking destacado */
+.admin-top {
+  background: #fdf2f7;
+  border: 1px solid #f6e0ec;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.admin-top-titulo {
+  margin: 0 0 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #5d405d;
+}
+
+.admin-top-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-top-item {
+  display: grid;
+  grid-template-columns: auto 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #f6e0ec;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.admin-top-medalla {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.admin-top-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.admin-top-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-top-nombre {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #5d405d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-top-unidades {
+  font-size: 0.75rem;
+  color: #7a6478;
+}
+
+.admin-top-monto {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #d95386;
+}
+
 /* Qué se vendió: producto con foto, unidades y monto */
 .admin-vendidos-titulo {
   margin: 0 0 10px;

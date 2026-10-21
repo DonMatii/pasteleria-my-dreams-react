@@ -38,6 +38,12 @@ function AdminPanel() {
   const [editandoMeta, setEditandoMeta] = useState(false);
   const [metaEnEdicion, setMetaEnEdicion] = useState("");
 
+  // Orden de "Que se vendio" y de la tabla de 7 dias, y estado plegado de cada seccion
+  const [ordenVendidos, setOrdenVendidos] = useState({ campo: "unidades", dir: "desc" });
+  const [ordenDiario, setOrdenDiario] = useState({ campo: "fecha", dir: "desc" });
+  const [vendidosAbiertos, setVendidosAbiertos] = useState(true);
+  const [diarioAbierto, setDiarioAbierto] = useState(true);
+
   const username = sessionStorage.getItem("userName") || "Administradora";
 
 const cargarDatos = () => {
@@ -103,6 +109,61 @@ const cargarDatos = () => {
   // Foto del producto vendido: la resuelve contra el catalogo ya cargado
   const imagenDe = (nombre) =>
     productos.find((p) => p.nombre === nombre)?.imagenUrl || "alfajor.jpg";
+
+  // Los 3 mas vendidos del periodo, siempre por unidades: el ranking de referencia (Cathi)
+  const vendidosTop = useMemo(
+    () =>
+      [...ventasPorProducto]
+        .sort((a, b) => (Number(b.unidades) || 0) - (Number(a.unidades) || 0))
+        .slice(0, 3),
+    [ventasPorProducto]
+  );
+
+  // La lista completa de que se vendio, con el orden que eligio la administradora
+  const vendidosOrdenados = useMemo(() => {
+    const arr = [...ventasPorProducto];
+    const { campo, dir } = ordenVendidos;
+    arr.sort((a, b) => {
+      const cmp =
+        campo === "nombre"
+          ? String(a.nombre).localeCompare(String(b.nombre), "es")
+          : (Number(a[campo]) || 0) - (Number(b[campo]) || 0);
+      return dir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [ventasPorProducto, ordenVendidos]);
+
+  // La tabla de 7 dias con el orden elegido (por defecto, de mas reciente a mas antiguo)
+  const diarioOrdenado = useMemo(() => {
+    if (!Array.isArray(stats?.ventasDiarias)) return [];
+    const arr = [...stats.ventasDiarias];
+    const { campo, dir } = ordenDiario;
+    arr.sort((a, b) => {
+      const cmp =
+        campo === "fecha"
+          ? String(a.fecha).localeCompare(String(b.fecha))
+          : (Number(a[campo]) || 0) - (Number(b[campo]) || 0);
+      return dir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [stats?.ventasDiarias, ordenDiario]);
+
+  // Cambia el campo de orden; si ya era ese campo, invierte la direccion
+  const cambiarOrdenVendidos = (campo) => {
+    setOrdenVendidos((prev) =>
+      prev.campo === campo
+        ? { campo, dir: prev.dir === "desc" ? "asc" : "desc" }
+        : { campo, dir: campo === "nombre" ? "asc" : "desc" }
+    );
+  };
+
+  const cambiarOrdenDiario = (campo) => {
+    setOrdenDiario((prev) =>
+      prev.campo === campo
+        ? { campo, dir: prev.dir === "desc" ? "asc" : "desc" }
+        : { campo, dir: "desc" }
+    );
+  };
 
   // Abre o cierra la edicion de la meta del periodo, precargando la actual
   const alternarEdicionMeta = () => {
@@ -343,56 +404,157 @@ const cargarDatos = () => {
               )}
             </div>
 
-            {/* Que se vendio en el periodo, con la foto de cada producto y sus unidades */}
-            <div className="admin-vendidos">
-              <h3 className="admin-vendidos-titulo">Qué se vendió ({periodoActual.frase.toLowerCase()})</h3>
-              {ventasPorProducto.length === 0 ? (
-                <p className="admin-vendidos-vacio">
-                  Sin ventas registradas en {periodoActual.frase.toLowerCase()}.
-                </p>
-              ) : (
-                <ul className="admin-vendidos-lista" data-testid="lista-vendidos">
-                  {ventasPorProducto.map((venta) => (
-                    <li key={venta.nombre} className="admin-vendido">
+            {/* Los 3 productos mas vendidos del periodo, como ranking destacado (Cathi) */}
+            {vendidosTop.length > 0 && (
+              <div className="admin-top">
+                <h3 className="admin-top-titulo">🏆 Más vendidos ({periodoActual.frase.toLowerCase()})</h3>
+                <ol className="admin-top-lista" data-testid="lista-top">
+                  {vendidosTop.map((venta, i) => (
+                    <li key={venta.nombre} className="admin-top-item">
+                      <span className="admin-top-medalla" aria-hidden="true">
+                        {["🥇", "🥈", "🥉"][i]}
+                      </span>
                       <img
                         src={`/img/${imagenDe(venta.nombre)}`}
                         alt={venta.nombre}
-                        className="admin-vendido-img"
+                        className="admin-top-img"
                         onError={(e) => {
                           e.target.src = "/img/alfajor.jpg";
                         }}
                       />
-                      <span className="admin-vendido-nombre">{venta.nombre}</span>
-                      <span className="admin-vendido-unidades">{venta.unidades} unidades</span>
-                      <span className="admin-vendido-monto">${formatearMoneda(venta.monto)}</span>
+                      <div className="admin-top-datos">
+                        <span className="admin-top-nombre">{venta.nombre}</span>
+                        <span className="admin-top-unidades">{venta.unidades} unidades</span>
+                      </div>
+                      <span className="admin-top-monto">${formatearMoneda(venta.monto)}</span>
                     </li>
                   ))}
-                </ul>
-              )}
+                </ol>
+              </div>
+            )}
+
+            {/* Que se vendio en el periodo: ordenable por producto/valor/unidades y plegable */}
+            <div className="admin-vendidos">
+              <div className="admin-seccion-cabecera">
+                <h3 className="admin-vendidos-titulo">Qué se vendió ({periodoActual.frase.toLowerCase()})</h3>
+                <button
+                  type="button"
+                  className="admin-pliegue-btn"
+                  aria-label="Qué se vendió"
+                  aria-expanded={vendidosAbiertos}
+                  onClick={() => setVendidosAbiertos((v) => !v)}
+                >
+                  {vendidosAbiertos ? "Cerrar" : "Abrir"}
+                </button>
+              </div>
+              {vendidosAbiertos &&
+                (ventasPorProducto.length === 0 ? (
+                  <p className="admin-vendidos-vacio">
+                    Sin ventas registradas en {periodoActual.frase.toLowerCase()}.
+                  </p>
+                ) : (
+                  <>
+                    <div className="admin-orden" role="group" aria-label="Ordenar qué se vendió">
+                      <span className="admin-orden-etiqueta">Ordenar por:</span>
+                      {[
+                        { campo: "nombre", etiqueta: "Producto" },
+                        { campo: "monto", etiqueta: "Valor" },
+                        { campo: "unidades", etiqueta: "Unidades" },
+                      ].map((c) => (
+                        <button
+                          key={c.campo}
+                          type="button"
+                          className={`admin-orden-btn${
+                            ordenVendidos.campo === c.campo ? " admin-orden-activo" : ""
+                          }`}
+                          aria-pressed={ordenVendidos.campo === c.campo}
+                          onClick={() => cambiarOrdenVendidos(c.campo)}
+                        >
+                          {c.etiqueta}
+                          {ordenVendidos.campo === c.campo &&
+                            (ordenVendidos.dir === "asc" ? " ↑" : " ↓")}
+                        </button>
+                      ))}
+                    </div>
+                    <ul className="admin-vendidos-lista" data-testid="lista-vendidos">
+                      {vendidosOrdenados.map((venta) => (
+                        <li key={venta.nombre} className="admin-vendido">
+                          <img
+                            src={`/img/${imagenDe(venta.nombre)}`}
+                            alt={venta.nombre}
+                            className="admin-vendido-img"
+                            onError={(e) => {
+                              e.target.src = "/img/alfajor.jpg";
+                            }}
+                          />
+                          <span className="admin-vendido-nombre">{venta.nombre}</span>
+                          <span className="admin-vendido-unidades">{venta.unidades} unidades</span>
+                          <span className="admin-vendido-monto">${formatearMoneda(venta.monto)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ))}
             </div>
 
-            {/* Ventas de los últimos 7 días, siempre con los 7 días presentes */}
+            {/* Ventas de los últimos 7 días: ordenables por columna y plegables */}
             {Array.isArray(stats?.ventasDiarias) && stats.ventasDiarias.length > 0 && (
               <div className="admin-diario">
-                <h3 className="admin-diario-titulo">Ventas de los últimos 7 días</h3>
-                <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>Pedidos</th>
-                      <th>Ventas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.ventasDiarias.map((venta) => (
-                      <tr key={venta.fecha}>
-                        <td>{formatearFecha(venta.fecha)}</td>
-                        <td>{venta.pedidos}</td>
-                        <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
+                <div className="admin-seccion-cabecera">
+                  <h3 className="admin-diario-titulo">Ventas de los últimos 7 días</h3>
+                  <button
+                    type="button"
+                    className="admin-pliegue-btn"
+                    aria-label="Ventas de los últimos 7 días"
+                    aria-expanded={diarioAbierto}
+                    onClick={() => setDiarioAbierto((v) => !v)}
+                  >
+                    {diarioAbierto ? "Cerrar" : "Abrir"}
+                  </button>
+                </div>
+                {diarioAbierto && (
+                  <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
+                    <thead>
+                      <tr>
+                        {[
+                          { campo: "fecha", etiqueta: "Fecha" },
+                          { campo: "pedidos", etiqueta: "Pedidos" },
+                          { campo: "monto", etiqueta: "Ventas" },
+                        ].map((c) => (
+                          <th
+                            key={c.campo}
+                            aria-sort={
+                              ordenDiario.campo === c.campo
+                                ? ordenDiario.dir === "asc"
+                                  ? "ascending"
+                                  : "descending"
+                                : "none"
+                            }
+                          >
+                            <button
+                              type="button"
+                              className="admin-th-btn"
+                              onClick={() => cambiarOrdenDiario(c.campo)}
+                            >
+                              {c.etiqueta}
+                              {ordenDiario.campo === c.campo &&
+                                (ordenDiario.dir === "asc" ? " ↑" : " ↓")}
+                            </button>
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {diarioOrdenado.map((venta) => (
+                        <tr key={venta.fecha}>
+                          <td>{formatearFecha(venta.fecha)}</td>
+                          <td>{venta.pedidos}</td>
+                          <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             )}
           </section>
