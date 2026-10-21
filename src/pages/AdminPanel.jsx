@@ -295,7 +295,6 @@ const cargarDatos = () => {
                     id="meta-periodo"
                     type="number"
                     min="0"
-                    step="1000"
                     value={metaEnEdicion}
                     onChange={(e) => setMetaEnEdicion(e.target.value)}
                   />
