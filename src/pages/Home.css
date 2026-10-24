@@ -31,17 +31,17 @@
   padding: 60px 40px 40px 40px; 
 }
 
-/* Sprinkles decorativos flotando sobre el fondo del hero (capa trasera) */
+/* Sprinkles cayendo como confeti sobre el fondo del hero (capa trasera).
+   Mosaico SVG de 200x200: al avanzar exactamente uno o dos tulos por eje,
+   el loop de background-position cierra sin cortes */
 .hero::before {
   content: "";
   position: absolute;
-  inset: -40px;
-  background-image:
-    radial-gradient(circle, rgba(217, 83, 134, 0.16) 2.5px, transparent 3px),
-    radial-gradient(circle, rgba(255, 164, 196, 0.26) 2px, transparent 3px);
-  background-size: 90px 90px, 70px 70px;
-  background-position: 0 0, 35px 30px;
-  animation: heroSprinkles 14s linear infinite;
+  inset: -60px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cg stroke-width='4' stroke-linecap='round' stroke-opacity='0.45'%3E%3Cline x1='20' y1='15' x2='30' y2='22' stroke='%23d95386'/%3E%3Cline x1='60' y1='10' x2='68' y2='20' stroke='%23f48fb1'/%3E%3Cline x1='110' y1='25' x2='122' y2='20' stroke='%23ff8fab'/%3E%3Cline x1='160' y1='12' x2='170' y2='20' stroke='%23d95386'/%3E%3Cline x1='40' y1='55' x2='48' y2='65' stroke='%23ff8fab'/%3E%3Cline x1='95' y1='60' x2='107' y2='58' stroke='%23d95386'/%3E%3Cline x1='140' y1='70' x2='150' y2='78' stroke='%23f48fb1'/%3E%3Cline x1='185' y1='55' x2='193' y2='65' stroke='%23ff8fab'/%3E%3Cline x1='15' y1='95' x2='25' y2='102' stroke='%23f48fb1'/%3E%3Cline x1='70' y1='105' x2='80' y2='97' stroke='%23d95386'/%3E%3Cline x1='125' y1='100' x2='135' y2='108' stroke='%23ff8fab'/%3E%3Cline x1='175' y1='110' x2='185' y2='103' stroke='%23f48fb1'/%3E%3Cline x1='30' y1='145' x2='40' y2='153' stroke='%23d95386'/%3E%3Cline x1='85' y1='150' x2='95' y2='142' stroke='%23ff8fab'/%3E%3Cline x1='145' y1='155' x2='155' y2='163' stroke='%23d95386'/%3E%3Cline x1='55' y1='185' x2='65' y2='178' stroke='%23f48fb1'/%3E%3Cline x1='115' y1='190' x2='125' y2='184' stroke='%23ff8fab'/%3E%3Cline x1='165' y1='185' x2='175' y2='193' stroke='%23d95386'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  background-position: 0 0;
+  animation: heroCae 16s linear infinite;
   pointer-events: none;
 }
 
@@ -56,11 +56,11 @@
   50% { background-position: 100% 50%; }
 }
 
-/* Desplazamiento multiple del patron: cada capa avanza un multiplo de su
-   background-size, asi el loop cierra sin saltos visibles */
-@keyframes heroSprinkles {
-  from { background-position: 0 0, 35px 30px; }
-  to { background-position: 90px 90px, 105px 100px; }
+/* Caída diagonal de los sprinkles: 200px en X (1 tulo) y 400px en Y
+   (2 tulos) mantienen el mosaico cosido durante todo el loop */
+@keyframes heroCae {
+  from { background-position: 0 0; }
+  to { background-position: 200px 400px; }
 }
 
 @keyframes heroSube {
