@@ -13,7 +13,7 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 | :--- | :--- | :--- | :--- |
 | `version-1` (tag `entrega-1`) | **Entrega 1** | Catálogo con CRUD, panel de administración, login con Google y contacto por Formspree. | http://pasteleria-my-dreams-frontend.s3-website-us-east-1.amazonaws.com/ |
 | `version-2` (tag `entrega-2`) | **Entrega 2** | Comunicación asíncrona con colas usando Apache Kafka. | http://pasteleria-my-dreams-web-8digital.s3-website-us-east-1.amazonaws.com/ |
-| `version-3` | **Unidad 3** | Catálogo público sin iniciar sesión, carrito compartido entre páginas y mini carrito lateral con selector de cantidad. | — |
+| `version-3` | **Unidad 3** | Catálogo público sin iniciar sesión, carrito compartido y mini carrito lateral con selector de cantidad, dashboard de administración con períodos y ranking, animaciones de entrada al scroll y la sección *Nuestra historia*. | — |
 
 `main` siempre lleva el último avance del desarrollo.
 
@@ -28,6 +28,7 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 * **Contacto Funcional:** Integración con el servicio **Formspree** para la recepción de mensajes reales, garantizando una comunicación efectiva con el cliente.
 * **Accesibilidad:** Selector de cantidad con botones `−` y `+` de gran superficie —en el mini carrito, en las filas del checkout y en las tarjetas de la ventana del catálogo— en reemplazo de los inputs numéricos nativos, cuyas flechitas de 10px no pueden apuntar personas con baja visión. Todos los controles llevan etiquetas ARIA (`role="group"`, `aria-label`, `aria-live`).
 * **Codigo de seguimiento destacado:** El codigo de seguimiento del pedido registrado se resalta en el color institucional dentro del modal de confirmacion, para que el cliente lo note y pueda anotarlo facilmente.
+* **Experiencia de usuario viva:** el Home y el catálogo tienen entradas animadas al hacer scroll, y el hero se anima con gradiente que respira, entrada escalonada y mini pastelitos que caen —todo respetando `prefers-reduced-motion`—; el Home cierra con la sección *Nuestra historia*, que presenta el origen familiar del proyecto.
 * **Descuento de la Delicia del Dia con nombre propio:** Cuando el backend aplica el descuento de la Delicia del Dia, el resumen del checkout y el mensaje de confirmacion nombran el producto concreto —por ejemplo, `Descuento Delicia del Dia (-10%) (Selva Negra)`— en vez de un generico, para que el cliente sepa exactamente que delicia le desconto.
 * **Calidad de Software:** Implementación de pruebas unitarias con **Vitest** y reporte de cobertura de código.
 
@@ -87,6 +88,7 @@ Para garantizar la robustez de la aplicación y una experiencia de usuario sin e
 * **Validación de Formularios:** Verificación de reglas de negocio en el formulario de contacto (campos obligatorios, formato de email y contador de caracteres).
 * **Gestión de Inventario (CRUD):** Pruebas detalladas en el **Admin Panel** para asegurar el flujo de creación, lectura, eliminación y la **lógica de edición flexible** (donde la actualización de imagen es opcional).
 * **Seguridad y Acceso:** Verificación del comportamiento de los componentes ante la presencia o ausencia de tokens de autenticación.
+* **Animaciones y contenido nuevo:** prueba del componente `Revelar` (fallback sin `IntersectionObserver`, respeto de `prefers-reduced-motion` y desconexión del observer) y de la sección *Nuestra historia* (estructura de sus tres bloques, nombres públicos y ausencia de `Duoc`/`Inacap` en el copy).
 * **Reporte de Cobertura (Coverage):** Seguimiento del porcentaje de código probado, asegurando que las funciones críticas tengan una cobertura superior al 90%.
 
 ### **Comandos de Ejecución:**
