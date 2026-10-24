@@ -122,8 +122,14 @@ describe("Pruebas de la Página Principal (Home)", () => {
   it("debe mostrar 3 favoritos distintos de la delicia del día", async () => {
     renderHome();
 
-    // 1 delicia + 3 favoritos = 4 tarjetas con producto
-    const titulos = await screen.findAllByRole("heading", { level: 3 });
+    // 1 delicia + 3 favoritos = 4 tarjetas con producto (acotado a las
+    // secciones de producto: la historia de la home también usa h3)
+    const delicia = await screen.findByTestId("delicia-dia");
+    const favoritos = await screen.findByTestId("favoritos-casa");
+    const titulos = [
+      ...within(delicia).getAllByRole("heading", { level: 3 }),
+      ...within(favoritos).getAllByRole("heading", { level: 3 }),
+    ];
     expect(titulos).toHaveLength(4);
 
     // Ningún producto se repite entre delicia y favoritos
@@ -184,8 +190,13 @@ describe("Pruebas de la Página Principal (Home)", () => {
     expect(await screen.findByTestId("delicia-dia")).toBeInTheDocument();
     // Nunca se promete un descuento que el backend no confirmó
     expect(screen.queryByTestId("badge-delicia")).not.toBeInTheDocument();
-    // Fallback visible: 1 delicia + 3 favoritos
-    const titulos = await screen.findAllByRole("heading", { level: 3 });
+    // Fallback visible: 1 delicia + 3 favoritos (acotado a las secciones de producto)
+    const deliciaFb = await screen.findByTestId("delicia-dia");
+    const favoritosFb = await screen.findByTestId("favoritos-casa");
+    const titulos = [
+      ...within(deliciaFb).getAllByRole("heading", { level: 3 }),
+      ...within(favoritosFb).getAllByRole("heading", { level: 3 }),
+    ];
     expect(titulos).toHaveLength(4);
     // El copy sigue siendo honesto: sorteo aleatorio del catálogo local
     expect(
@@ -340,5 +351,35 @@ describe("Pruebas de la Página Principal (Home)", () => {
     renderHome();
 
     expect(screen.queryByTestId("banner-bienvenida")).not.toBeInTheDocument();
+  });
+
+  it("cuenta la Nuestra historia con nombres reales y sin escuelas del curso", async () => {
+    renderHome();
+
+    const historia = await screen.findByTestId("nuestra-historia");
+
+    // Estructura: título de sección y sus tres bloques aprobados
+    expect(
+      within(historia).getByRole("heading", { level: 2, name: /Nuestra historia/i })
+    ).toBeInTheDocument();
+    expect(
+      within(historia).getByRole("heading", { level: 3, name: /^El nombre$/i })
+    ).toBeInTheDocument();
+    expect(
+      within(historia).getByRole("heading", { level: 3, name: /^La cocina$/i })
+    ).toBeInTheDocument();
+    expect(
+      within(historia).getByRole("heading", { level: 3, name: /Detrás de la web/i })
+    ).toBeInTheDocument();
+
+    // Copy público aprobado: con los nombres reales de la familia
+    expect(historia).toHaveTextContent(/My Dreams/);
+    expect(historia).toHaveTextContent(/Cathi/);
+    expect(historia).toHaveTextContent(/Andrés/);
+    expect(historia).toHaveTextContent(/Matías/);
+
+    // Decisión de copy: las escuelas quedan fuera del sitio (se lee negocio real)
+    expect(historia).not.toHaveTextContent(/duoc/i);
+    expect(historia).not.toHaveTextContent(/inacap/i);
   });
 });
