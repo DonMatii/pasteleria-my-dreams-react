@@ -3,6 +3,7 @@ import { obtenerProductos, obtenerDeliciaDelDia, aplanarCatalogo } from "../serv
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 import { toastAgregado } from "../utils/toastAgregado";
+import Revelar from "../components/Revelar";
 import "../App.css";
 
 function Delicias() {
@@ -70,7 +71,7 @@ function Delicias() {
         if (itemsFiltrados.length === 0) return null;
 
         return (
-          <section key={sec.titulo} className="seccion-catalogo">
+          <Revelar key={sec.titulo} as="section" className="seccion-catalogo">
             <h2 className="titulo-seccion">{sec.titulo}</h2>
             <div className="vitrina">
               {itemsFiltrados.map((prod) => (
@@ -103,7 +104,7 @@ function Delicias() {
                 </div>
               ))}
             </div>
-          </section>
+          </Revelar>
         );
       })}
     </main>

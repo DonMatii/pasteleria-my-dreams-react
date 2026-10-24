@@ -1,0 +1,29 @@
+/* =========================================
+   REVELAR: entrada de secciones al hacer scroll
+   ========================================= */
+
+/* Estado inicial (solo se aplica si el navegador soporta la animacion) */
+.revelar {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+/* Cuando entra en pantalla */
+.revelar-activo {
+  opacity: 1;
+  transform: translateY(0);
+  will-change: auto;
+}
+
+/* Doble red: aunque el JS falle, el usuario que pide menos movimiento
+   nunca ve contenido oculto */
+@media (prefers-reduced-motion: reduce) {
+  .revelar,
+  .revelar-activo {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}

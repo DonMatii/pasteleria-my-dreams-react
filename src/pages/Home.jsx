@@ -11,6 +11,7 @@ import { obtenerProductos, aplanarCatalogo, obtenerDeliciaDelDia } from "../serv
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 import { toastAgregado } from "../utils/toastAgregado";
+import Revelar from "../components/Revelar";
 
 // Respaldo: si la API no responde, la home muestra estos productos en vez de quedar vacía.
 const productosRespaldo = [
@@ -187,7 +188,7 @@ function Home() {
 
       {/* Delicia del día: producto elegido al azar, con alta directa al carrito */}
       {delicia && (
-        <section className="delicia-dia" data-testid="delicia-dia">
+        <Revelar as="section" className="delicia-dia" data-testid="delicia-dia">
           <h2 className="titulo-seccion">Delicia del Día</h2>
           <p className="seccion-subtitulo">
             {deliciaDelDiaReal
@@ -228,10 +229,10 @@ function Home() {
               </button>
             </div>
           </div>
-        </section>
+        </Revelar>
       )}
 
-      <section className="productos-favoritos" data-testid="favoritos-casa">
+      <Revelar as="section" className="productos-favoritos" data-testid="favoritos-casa">
         <h2 className="titulo-seccion">Favoritos de la Casa</h2>
         <p className="seccion-subtitulo">
           Descubre nuestras recetas más populares y sabrosas
@@ -267,7 +268,7 @@ function Home() {
             </div>
           ))}
         </div>
-      </section>
+      </Revelar>
     </main>
   );
 }
