@@ -31,15 +31,16 @@
   padding: 60px 40px 40px 40px; 
 }
 
-/* Sprinkles cayendo como confeti sobre el fondo del hero (capa trasera).
-   Puntitos redondos tipo nonpareils, dispersos al azar en un mosaico de
-   240x240: al avanzar exactamente uno o dos tulos por eje, el loop cierra
+/* Mini pastelitos (cupcakes) cayendo como confeti sobre el hero.
+   Cada uno es un grupo SVG con su propio opacity (no fill-opacity del
+   grupo exterior) para que los solapes internos no se oscurezcan.
+   Mosaico de 240x240: al avanzar uno o dos tulos por eje, el loop cierra
    sin cortes */
 .hero::before {
   content: "";
   position: absolute;
   inset: -60px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill-opacity='0.35'%3E%3Ccircle cx='40' cy='30' r='3' fill='%23d95386'/%3E%3Ccircle cx='130' cy='55' r='2.5' fill='%23f48fb1'/%3E%3Ccircle cx='200' cy='25' r='3' fill='%23ff8fab'/%3E%3Ccircle cx='80' cy='110' r='3.5' fill='%23d95386'/%3E%3Ccircle cx='175' cy='130' r='2.5' fill='%23f48fb1'/%3E%3Ccircle cx='30' cy='165' r='3' fill='%23ff8fab'/%3E%3Ccircle cx='120' cy='205' r='3' fill='%23d95386'/%3E%3Ccircle cx='210' cy='215' r='2.5' fill='%23f48fb1'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg transform='translate(50 40) rotate(-12)' opacity='0.5'%3E%3Cpath d='M-7 1 L-5 8 L5 8 L7 1 Z' fill='%23d95386'/%3E%3Ccircle cx='-4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-2' r='5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-8.5' r='1.8' fill='%23d95386'/%3E%3C/g%3E%3Cg transform='translate(150 75) rotate(8)' opacity='0.5'%3E%3Cpath d='M-7 1 L-5 8 L5 8 L7 1 Z' fill='%23d95386'/%3E%3Ccircle cx='-4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-2' r='5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-8.5' r='1.8' fill='%23d95386'/%3E%3C/g%3E%3Cg transform='translate(95 140) rotate(-5)' opacity='0.5'%3E%3Cpath d='M-7 1 L-5 8 L5 8 L7 1 Z' fill='%23d95386'/%3E%3Ccircle cx='-4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-2' r='5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-8.5' r='1.8' fill='%23d95386'/%3E%3C/g%3E%3Cg transform='translate(200 160) rotate(14)' opacity='0.5'%3E%3Cpath d='M-7 1 L-5 8 L5 8 L7 1 Z' fill='%23d95386'/%3E%3Ccircle cx='-4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-2' r='5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-8.5' r='1.8' fill='%23d95386'/%3E%3C/g%3E%3Cg transform='translate(45 200) rotate(-18)' opacity='0.5'%3E%3Cpath d='M-7 1 L-5 8 L5 8 L7 1 Z' fill='%23d95386'/%3E%3Ccircle cx='-4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='4' cy='0' r='3.5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-2' r='5' fill='%23f48fb1'/%3E%3Ccircle cx='0' cy='-8.5' r='1.8' fill='%23d95386'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 240px 240px;
   background-position: 0 0;
   animation: heroCae 16s linear infinite;
