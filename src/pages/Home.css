@@ -11,10 +11,17 @@
   margin: 50px auto 60px auto; 
   
   /* 3. Bordes: mismo redondeado y marco rosado que la tarjeta de la delicia */
-  border-radius: 30px; 
-  background-color: #ffffff;
+  border-radius: 30px;
+  /* Fondo con gradiente que "respira" (animacion heroRespirar) */
+  background: linear-gradient(130deg, #ffffff 0%, #fff5f9 30%, #fce4ec 60%, #ffffff 100%);
+  background-size: 220% 220%;
+  animation: heroRespirar 10s ease-in-out infinite;
   border: 2px solid #fce4ec;
-  
+
+  /* Capas: los sprinkles viven en ::before, el texto siempre encima */
+  position: relative;
+  overflow: hidden;
+
   text-align: center;
   
   /* 4. Sombra: Sutil pero con un toque rosado para que flote sobre el fondo */
@@ -24,9 +31,48 @@
   padding: 60px 40px 40px 40px; 
 }
 
+/* Sprinkles decorativos flotando sobre el fondo del hero (capa trasera) */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  background-image:
+    radial-gradient(circle, rgba(217, 83, 134, 0.16) 2.5px, transparent 3px),
+    radial-gradient(circle, rgba(255, 164, 196, 0.26) 2px, transparent 3px);
+  background-size: 90px 90px, 70px 70px;
+  background-position: 0 0, 35px 30px;
+  animation: heroSprinkles 14s linear infinite;
+  pointer-events: none;
+}
+
+/* El contenido del hero siempre sobre los sprinkles */
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes heroRespirar {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Desplazamiento multiple del patron: cada capa avanza un multiplo de su
+   background-size, asi el loop cierra sin saltos visibles */
+@keyframes heroSprinkles {
+  from { background-position: 0 0, 35px 30px; }
+  to { background-position: 90px 90px, 105px 100px; }
+}
+
+@keyframes heroSube {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Botón del hero: un poco más holgado que el genérico */
 .hero-boton {
   margin-top: 25px;
+  /* Entrada escalonada: titulo -> subtitulo -> boton */
+  animation: heroSube 0.7s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Ajustes para el título principal */
@@ -37,6 +83,7 @@
   margin-bottom: 10px;
   color: #d95386; /* El rosa de tu marca */
   text-shadow: 1px 1px 2px rgba(217, 83, 134, 0.05);
+  animation: heroSube 0.7s 0s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* El texto que acompaña al título */
@@ -47,6 +94,22 @@
   font-weight: 500;
   max-width: 600px;
   margin: 0 auto;
+  animation: heroSube 0.7s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Quien pide menos movimiento ve el hero quieto y completo (sin opacity 0) */
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    animation: none !important;
+    background-size: 100% 100%;
+  }
+
+  .hero::before,
+  .hero .titulo-principal,
+  .subtitulo-home,
+  .hero-boton {
+    animation: none !important;
+  }
 }
 
 /* --- SECCIÓN DE PRODUCTOS --- */
