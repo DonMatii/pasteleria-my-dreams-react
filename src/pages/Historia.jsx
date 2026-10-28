@@ -17,9 +17,9 @@ function Historia() {
             <span className="historia-icono" aria-hidden="true">🌙</span>
             <h3>El nombre</h3>
             <p>
-              Todo arrancó con un nombre. <strong>My Dreams</strong> —“mis sueños”— lo
-              pensó Cathi cuando imaginaba su propia pastelería. Hoy ese nombre está
-              escrito en cada pastel que sale de nuestra cocina.
+              My Dreams nació del sueño de Cathi: tener su propia pastelería. Por algo
+              el nombre significa “mis sueños”: hoy ese sueño se hizo realidad, y sale
+              de nuestra casa.
             </p>
           </article>
 
@@ -27,9 +27,9 @@ function Historia() {
             <span className="historia-icono" aria-hidden="true">👩‍🍳</span>
             <h3>La cocina</h3>
             <p>
-              <strong>Andrés</strong>, nuestro pastelero, se formó en gastronomía y
-              convirtió la cocina de la casa en un obrador. Cabajo pedido se hornea aquí,
-              con recetas propias y hechas a mano: nada sale de una fábrica.
+              <strong>Andrés</strong> es quien hornea. Con lo que aprendió estudiando
+              gastronomía y con recetas propias, cada pedido se prepara a mano en la
+              cocina de la casa — recién hecho para vos, como si fueras de la familia.
             </p>
           </article>
 
@@ -37,8 +37,8 @@ function Historia() {
             <span className="historia-icono" aria-hidden="true">💻</span>
             <h3>Detrás de la web</h3>
             <p>
-              Cathi y Matías pusieron la tecnología: la web, los pedidos y todo lo que
-              hace que esto funcione. Hornear y programar, con el mismo cariño.
+              Cathi y Matías pusieron esta página y se encargan de los pedidos: la
+              tecnología al servicio del sueño de la casa.
             </p>
           </article>
         </div>
