@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto } from "../service/ProductosService";
 import { obtenerEstadisticas, guardarMetas } from "../service/EstadisticasService";
 import { obtenerVentasPorProducto } from "../service/PedidosService";
@@ -46,6 +46,9 @@ function AdminPanel() {
   const [topAbierto, setTopAbierto] = useState(true);
 
   const username = sessionStorage.getItem("userName") || "Administradora";
+
+  // Contenedor del formulario de gestion (Nuevo Ingreso / Modificar Dulce)
+  const formEdicionRef = useRef(null);
 
 const cargarDatos = () => {
     obtenerProductos().then((data) => {
@@ -269,7 +272,8 @@ const cargarDatos = () => {
   const prepararEdicion = (prod) => {
     setEditandoId(prod.id);
     setNuevoProducto({ ...prod });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // el scroll lo lleva el useEffect al formulario Modificar Dulce,
+    // no al tope de la pagina
   };
 
   const resetearFormulario = () => {
@@ -283,6 +287,18 @@ const cargarDatos = () => {
       activo: true,
     });
   };
+
+  // Al entrar en modo edicion (o cambiar de producto editado), el scroll
+  // salta al formulario Modificar Dulce respetando prefers-reduced-motion.
+  // (opt-in con ?. porque jsdom no implementa scrollIntoView)
+  useEffect(() => {
+    if (!editandoId || !formEdicionRef.current) return;
+    const reducir = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    formEdicionRef.current.scrollIntoView?.({
+      behavior: reducir ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [editandoId]);
 
   return (
     <div className="admin-layout-container fondo-pagina">
@@ -574,7 +590,7 @@ const cargarDatos = () => {
           </section>
         )}
 
-        <div className="admin-seccion-gestion">
+        <div className="admin-seccion-gestion" ref={formEdicionRef}>
           <h2 className="admin-titulo-formulario">
             {editandoId ? "Modificar Dulce" : "Nuevo Ingreso"}
           </h2>

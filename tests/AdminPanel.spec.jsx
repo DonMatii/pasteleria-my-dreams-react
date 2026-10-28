@@ -401,4 +401,22 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
       screen.getByRole("button", { name: "Eliminar Torta Chocolate" })
     ).toBeInTheDocument();
   });
+
+  it("18. Al editar, el scroll salta al formulario 'Modificar Dulce' (no al tope)", async () => {
+    // jsdom no implementa scrollIntoView: el test lo espias
+    const scrollSpy = vi.fn();
+    Element.prototype.scrollIntoView = scrollSpy;
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+    expect(await screen.findByText(/Torta Chocolate/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("Editar Torta Chocolate"));
+
+    expect(await screen.findByText(/Modificar Dulce/i)).toBeInTheDocument();
+    // el scroll lo recibe el contenedor que envuelve el formulario, una sola vez
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+    expect(scrollSpy.mock.instances[0]).toContainElement(
+      screen.getByText(/Modificar Dulce/i)
+    );
+  });
 });
