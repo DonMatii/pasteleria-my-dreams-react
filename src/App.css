@@ -1361,13 +1361,23 @@ header nav ul li a:hover {
 }
 
 .mini-carrito-vaciar {
-  background: none;
-  border: none;
-  color: #b04e6f;
-  font-size: 0.9rem;
+  background-color: white;
+  border: 2px solid #d95386;
+  color: #d95386;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  text-decoration: underline;
-  padding: 4px;
+  padding: 10px 16px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.2s;
+  width: 100%;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.mini-carrito-vaciar:hover {
+  background-color: #d95386;
+  color: white;
 }
 
 /* =========================================
