@@ -13,23 +13,23 @@ describe("Página Nuestra historia", () => {
 
     const historia = screen.getByTestId("nuestra-historia");
 
-    // Estructura: título de página y sus tres bloques aprobados
+    // Estructura: título de página y sus tres bloques (títulos de Cathi)
     expect(
       within(historia).getByRole("heading", { level: 1, name: /Nuestra historia/i })
     ).toBeInTheDocument();
     expect(
-      within(historia).getByRole("heading", { level: 3, name: /^El nombre$/i })
+      within(historia).getByRole("heading", { level: 3, name: /^El origen de un sueño$/i })
     ).toBeInTheDocument();
     expect(
-      within(historia).getByRole("heading", { level: 3, name: /^La cocina$/i })
+      within(historia).getByRole("heading", { level: 3, name: /^El sabor de lo hecho en casa$/i })
     ).toBeInTheDocument();
     expect(
-      within(historia).getByRole("heading", { level: 3, name: /Detrás de la web/i })
+      within(historia).getByRole("heading", { level: 3, name: /^Detrás de nuestra web$/i })
     ).toBeInTheDocument();
 
-    // Copy público aprobado: con los nombres reales de la familia
+    // Copy público aprobado por Cathi: con los nombres reales de la familia
     expect(historia).toHaveTextContent(/My Dreams/);
-    expect(historia).toHaveTextContent(/Cathi/);
+    expect(historia).toHaveTextContent(/Catherine/);
     expect(historia).toHaveTextContent(/Andrés/);
     expect(historia).toHaveTextContent(/Matías/);
 

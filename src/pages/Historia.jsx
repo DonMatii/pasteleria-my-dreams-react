@@ -15,30 +15,37 @@ function Historia() {
         <div className="historia-grilla">
           <article className="historia-card">
             <span className="historia-icono" aria-hidden="true">🌙</span>
-            <h3>El nombre</h3>
+            <h3>El origen de un sueño</h3>
             <p>
-              My Dreams nació del sueño de Cathi: tener su propia pastelería. Por algo
-              el nombre significa “mis sueños”: hoy ese sueño se hizo realidad, y sale
-              de nuestra casa.
+              Todo comenzó con un nombre: My Dreams, que significa «Mis Sueños». Nació
+              de la ilusión de Catherine por tener una pastelería familiar, un lugar
+              donde los pequeños detalles y el cariño hicieran la diferencia. Lo que
+              empezó como un sueño hoy tiene nombre, identidad y una historia que
+              queremos compartir contigo.
             </p>
           </article>
 
           <article className="historia-card">
-            <span className="historia-icono" aria-hidden="true">👩‍🍳</span>
-            <h3>La cocina</h3>
+            <span className="historia-icono" aria-hidden="true">🧁</span>
+            <h3>El sabor de lo hecho en casa</h3>
             <p>
-              <strong>Andrés</strong> es quien hornea. Con lo que aprendió estudiando
-              gastronomía y con recetas propias, cada pedido se prepara a mano en la
-              cocina de la casa — recién hecho para vos, como si fueras de la familia.
+              Andrés es el corazón de nuestra cocina. Con su pasión por la gastronomía,
+              da vida a nuestras preparaciones, combinando creatividad, dedicación y
+              ese toque especial de lo hecho en casa. Porque para nosotros, la pastelería
+              no se trata solo de sabores, sino también de crear momentos para disfrutar
+              y compartir.
             </p>
           </article>
 
           <article className="historia-card">
             <span className="historia-icono" aria-hidden="true">💻</span>
-            <h3>Detrás de la web</h3>
+            <h3>Detrás de nuestra web</h3>
             <p>
-              Cathi y Matías pusieron esta página y se encargan de los pedidos: la
-              tecnología al servicio del sueño de la casa.
+              Catherine y Matías estamos detrás de la experiencia digital de My Dreams.
+              Unimos nuestra creatividad y conocimientos en tecnología para diseñar este
+              espacio, donde puedes descubrir nuestras delicias y realizar tus pedidos
+              de manera fácil y cercana. Una forma de llevar nuestro sueño desde nuestra
+              familia hasta tu hogar.
             </p>
           </article>
         </div>
