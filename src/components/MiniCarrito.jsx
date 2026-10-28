@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 import { useCarrito } from "../context/CarritoContext";
 
 // Mini carrito: panel lateral que se abre desde el header.
@@ -119,7 +120,23 @@ function MiniCarrito({ abierto, onCerrar }) {
               <button
                 type="button"
                 className="mini-carrito-vaciar"
-                onClick={limpiarCarrito}
+                onClick={() => {
+                  Swal.fire({
+                    title: "Vaciar carrito",
+                    text: "¿Seguro que quieres eliminar todos los productos?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d95386",
+                    cancelButtonColor: "#b04e6f",
+                    confirmButtonText: "Sí, vaciar",
+                    cancelButtonText: "Cancelar",
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      limpiarCarrito();
+                      Swal.fire("Carrito vacío", "Se eliminaron todos los productos.", "info");
+                    }
+                  });
+                }}
               >
                 Vaciar carrito
               </button>
