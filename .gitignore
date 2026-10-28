@@ -48,3 +48,6 @@ crash.log
 !*.tfvars.example
 infra/pasteleria-key.pem
 # .terraform.lock.hcl se mantiene trackeado a propósito (fija versiones de providers)
+# Logs locales de arranque (nunca se commitean)
+run.log
+run-err.log
