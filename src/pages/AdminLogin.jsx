@@ -54,7 +54,7 @@ function AdminLogin() {
   };
 
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       <h1 className="titulo-principal">Pastelería My Dreams</h1>
       <p className="subtitulo-home">Gestión Interna</p>
 

@@ -285,7 +285,7 @@ const cargarDatos = () => {
   };
 
   return (
-    <div className="admin-layout-container">
+    <div className="admin-layout-container fondo-pagina">
       <div className="admin-panel-card">
         <h1 className="admin-titulo-principal">Gestión My Dreams</h1>
         <p className="admin-subtitulo-bienvenida">

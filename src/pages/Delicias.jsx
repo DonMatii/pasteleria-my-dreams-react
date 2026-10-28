@@ -63,7 +63,7 @@ function Delicias() {
     );
 
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       <h1 className="titulo-principal">Nuestro Catálogo</h1>
 
       {secciones.map((sec) => {

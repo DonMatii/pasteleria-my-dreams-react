@@ -9,6 +9,12 @@
   font-family: 'Montserrat', sans-serif;
 }
 
+/* Con la foto de fondo de página (fondo-pagina), el color liso del
+   contenedor se apaga: si quedara, taparía la foto por debajo. */
+.admin-layout-container.fondo-pagina {
+  background-color: transparent;
+}
+
 .admin-panel-card {
   width: 100%;
   max-width: 850px;

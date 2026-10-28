@@ -7,7 +7,7 @@ import "./Historia.css";
 // (está fijado por test en tests/Historia.spec.jsx).
 function Historia() {
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       <Revelar as="section" className="nuestra-historia" data-testid="nuestra-historia">
         <h1 className="titulo-seccion">Nuestra historia</h1>
         <p className="seccion-subtitulo">Sueños que se hornean en casa</p>
@@ -48,6 +48,13 @@ function Historia() {
               familia hasta tu hogar.
             </p>
           </article>
+        </div>
+      </Revelar>
+
+      <Revelar as="section" className="historia-cita" data-testid="historia-cita">
+        <div className="historia-cita-texto">
+          <h2>Un sueño que compartimos en familia</h2>
+          <p>My Dreams nació de un sueño, crece en familia y está hecho con cariño.</p>
         </div>
       </Revelar>
     </main>

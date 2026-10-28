@@ -37,4 +37,20 @@ describe("Página Nuestra historia", () => {
     expect(historia).not.toHaveTextContent(/duoc/i);
     expect(historia).not.toHaveTextContent(/inacap/i);
   });
+
+  it("cierra con la cita de familia (verbatim del mockup del cliente)", () => {
+    render(<Historia />);
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: /Un sueño que compartimos en familia/i,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /My Dreams nació de un sueño, crece en familia y está hecho con cariño\./i
+      )
+    ).toBeInTheDocument();
+  });
 });

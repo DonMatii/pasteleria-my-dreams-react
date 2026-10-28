@@ -1352,3 +1352,18 @@ header nav ul li a:hover {
 .volver-arriba:active {
   transform: translateY(2px);
 }
+
+/* Fotos de Cathi cubriendo TODA el area de la pagina (mockup ejemploPagina):
+   cover a pantalla completa via un pseudo fixed al viewport: llena de arriba
+   a abajo sin cortes y tambien funciona en iOS, donde background-attachment:
+   fixed falla. Un velo creciente suaviza la foto bajo el contenido. */
+.fondo-pagina::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.25) 40%, rgba(255, 240, 245, 0.6) 75%, rgba(255, 240, 245, 0.85) 100%),
+    url("./assets/img/fondoPagina.jpeg") center / cover no-repeat;
+}

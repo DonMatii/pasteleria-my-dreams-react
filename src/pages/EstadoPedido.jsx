@@ -145,7 +145,7 @@ const EstadoPedido = () => {
   const indiceActual = ORDEN_ESTADOS.indexOf(estadoActual);
 
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       <h1 className="titulo-principal">Consulta tu pedido</h1>
       <p className="subtitulo-home">
         Revisa en qué etapa está tu pedido al instante.

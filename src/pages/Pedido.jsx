@@ -287,7 +287,7 @@ const Pedido = () => {
   };
 
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       <h1 className="titulo-principal">¡Haz tu pedido!</h1>
       <p className="subtitulo-home">
         Elige tus delicias en el catálogo, revisa tu pedido y lo registramos al instante.

@@ -103,7 +103,7 @@ const Contacto = () => {
   };
 
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       <h1 className="titulo-principal">¡Contáctanos!</h1>
       <p className="subtitulo-home">Tu opinión es nuestro ingrediente secreto.</p>
 

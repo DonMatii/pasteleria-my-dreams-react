@@ -10,7 +10,7 @@ const TeaserPedido = () => {
   const primera = esPrimeraConexion();
 
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       <div
         className="formulario-container"
         data-testid="teaser-pedido"

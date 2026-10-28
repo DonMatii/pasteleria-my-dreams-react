@@ -146,7 +146,7 @@ function Home() {
   };
 
   return (
-    <main className="main-content">
+    <main className="main-content fondo-pagina">
       {/* Hero: banner de bienvenida con imagen de fondo del catalogo */}
       <section className="hero">
         <h1 className="titulo-principal">Bienvenido a Pastelería My Dreams</h1>
