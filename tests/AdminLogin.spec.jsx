@@ -90,4 +90,11 @@ describe("AdminLogin (separacion admin/cliente)", () => {
     expect(await screen.findByTestId("llego-panel")).toBeInTheDocument();
     expect(screen.queryByTestId("llego-pedido")).not.toBeInTheDocument();
   });
+
+  test("6. Los inputs anuncian su etiqueta de formulario (asociacion label-input, accesibilidad)", () => {
+    montar();
+
+    expect(screen.getByLabelText("Usuario")).toHaveAttribute("placeholder", "Ej: admin");
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
+  });
 });

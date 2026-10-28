@@ -1410,3 +1410,15 @@ header nav ul li a:hover {
     transition: none;
   }
 }
+
+/* Foco visible de teclado en todos los controles (WCAG 2.4.7): anillo
+   rosa que reemplaza el outline: none que los formularios traian. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #d95386;
+  outline-offset: 2px;
+}

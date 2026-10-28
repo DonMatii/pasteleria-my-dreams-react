@@ -707,7 +707,7 @@ const cargarDatos = () => {
                     <button
                       className="admin-btn-pill"
                       onClick={() => prepararEdicion(prod)}
-                      aria-label="✏️"
+                      aria-label={`Editar ${prod.nombre}`}
                     >
                       ✏️
                     </button>
@@ -715,7 +715,7 @@ const cargarDatos = () => {
                       className="admin-btn-pill"
                       style={{ backgroundColor: "#5d405d" }}
                       onClick={() => manejarEliminar(prod.id)}
-                      aria-label="🗑️"
+                      aria-label={`Eliminar ${prod.nombre}`}
                     >
                       🗑️
                     </button>

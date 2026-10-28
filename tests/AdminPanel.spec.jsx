@@ -95,7 +95,7 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
     // Buscamos el botón de editar (el emoji con su aria-label)
-    const botonEditar = await screen.findByLabelText("✏️");
+    const botonEditar = await screen.findByLabelText("Editar Torta Chocolate");
     fireEvent.click(botonEditar);
 
     // El formulario pasa a modo edición con los datos del producto
@@ -119,7 +119,7 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
   it("4. DELETE: Debe pedir confirmación y llamar a eliminarProducto", async () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
-    const botonEliminar = await screen.findByLabelText("🗑️");
+    const botonEliminar = await screen.findByLabelText("Eliminar Torta Chocolate");
     fireEvent.click(botonEliminar);
 
     // SweetAlert pide confirmación (mockeada como confirmada)
@@ -387,5 +387,18 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Más vendidos" }));
     expect(await screen.findByTestId("lista-top")).toBeInTheDocument();
+  });
+
+  it("17. ACCESIBILIDAD: los botones de la tabla anuncian de qué producto son", async () => {
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByText(/Torta Chocolate/i)).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", { name: "Editar Torta Chocolate" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Eliminar Torta Chocolate" })
+    ).toBeInTheDocument();
   });
 });

@@ -69,15 +69,16 @@ function AdminLogin() {
         )}
 
         <div style={{ marginBottom: "20px", textAlign: "center" }}>
-          <h3 style={{ color: "#d63384", fontSize: "1.2rem", marginBottom: "5px" }}>Acceso de Administrador</h3>
+          <h2 style={{ color: "#d63384", fontSize: "1.2rem", marginBottom: "5px" }}>Acceso de Administrador</h2>
           <p style={{ fontSize: "13px", color: "#666" }}>Solo para gestión interna de la pastelería</p>
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label>Usuario</label>
+            <label htmlFor="usuario">Usuario</label>
             <input
               type="text"
+              id="usuario"
               value={username}
               onChange={(e) => {
                 setUsername(e.target.value);
@@ -89,9 +90,10 @@ function AdminLogin() {
             />
           </div>
           <div className="form-group">
-            <label>Contraseña</label>
+            <label htmlFor="contrasena">Contraseña</label>
             <input
               type="password"
+              id="contrasena"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
