@@ -31,6 +31,7 @@ function Header() {
         <ul>
           <li><Link to="/">Inicio</Link></li>
           <li><Link to="/delicias">Delicias</Link></li>
+          <li><Link to="/historia">Historia</Link></li>
           <li><Link to="/pedido">Pedido</Link></li>
           <li><Link to="/estado">Estado</Link></li>
           <li><Link to="/contacto">Contacto</Link></li>

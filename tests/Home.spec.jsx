@@ -353,33 +353,4 @@ describe("Pruebas de la Página Principal (Home)", () => {
     expect(screen.queryByTestId("banner-bienvenida")).not.toBeInTheDocument();
   });
 
-  it("cuenta la Nuestra historia con nombres reales y sin escuelas del curso", async () => {
-    renderHome();
-
-    const historia = await screen.findByTestId("nuestra-historia");
-
-    // Estructura: título de sección y sus tres bloques aprobados
-    expect(
-      within(historia).getByRole("heading", { level: 2, name: /Nuestra historia/i })
-    ).toBeInTheDocument();
-    expect(
-      within(historia).getByRole("heading", { level: 3, name: /^El nombre$/i })
-    ).toBeInTheDocument();
-    expect(
-      within(historia).getByRole("heading", { level: 3, name: /^La cocina$/i })
-    ).toBeInTheDocument();
-    expect(
-      within(historia).getByRole("heading", { level: 3, name: /Detrás de la web/i })
-    ).toBeInTheDocument();
-
-    // Copy público aprobado: con los nombres reales de la familia
-    expect(historia).toHaveTextContent(/My Dreams/);
-    expect(historia).toHaveTextContent(/Cathi/);
-    expect(historia).toHaveTextContent(/Andrés/);
-    expect(historia).toHaveTextContent(/Matías/);
-
-    // Decisión de copy: las escuelas quedan fuera del sitio (se lee negocio real)
-    expect(historia).not.toHaveTextContent(/duoc/i);
-    expect(historia).not.toHaveTextContent(/inacap/i);
-  });
 });

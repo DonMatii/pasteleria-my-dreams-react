@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Delicias from "./pages/Delicias";
+import Historia from "./pages/Historia";
 import Contacto from "./pages/Contacto";
 import Pedido from "./pages/Pedido";
 import EstadoPedido from "./pages/EstadoPedido";
@@ -31,6 +32,7 @@ function App() {
             {/* RUTAS PÚBLICAS */}
             <Route path="/" element={<Home />} />
             <Route path="/delicias" element={<Delicias />} />
+            <Route path="/historia" element={<Historia />} />
             <Route path="/contacto" element={<Contacto />} />
             <Route
               path="/pedido"

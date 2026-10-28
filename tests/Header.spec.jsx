@@ -15,6 +15,8 @@ describe("Pruebas de Navegación del Header", () => {
     render(<MemoryRouter><CarritoProvider><Header /></CarritoProvider></MemoryRouter>);
     expect(screen.getByText(/Inicio/i)).toBeInTheDocument();
     expect(screen.getByText(/Delicias/i)).toBeInTheDocument();
+    // La historia es una página propia, no una sección del Home
+    expect(screen.getByText(/^Historia$/i)).toBeInTheDocument();
   });
 
   it("2. Debe mostrar el botón de Admin solo con sesión de administrador (userRole)", () => {
