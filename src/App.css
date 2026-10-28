@@ -1089,33 +1089,52 @@ header nav ul li a:hover {
 }
 
 /* =========================================
-   8. MINI CARRITO: panel lateral desplegable
+   8. MINI CARRITO: drawer lateral (estilo pastelería)
    ========================================= */
 .mini-carrito-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.45);
+  background-color: rgba(214, 83, 134, 0.18);
+  backdrop-filter: blur(4px);
   z-index: 2000;
   display: flex;
   justify-content: flex-end;
 }
 
 .mini-carrito-panel {
-  background-color: white;
+  background-color: #fff;
   width: 420px;
-  max-width: 90vw;
+  max-width: 92vw;
   height: 100%;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+  box-shadow: -8px 0 32px rgba(214, 83, 134, 0.22);
+  border-left: 1px solid #f3d7e3;
   display: flex;
   flex-direction: column;
-  padding: 28px;
+  padding: 32px 28px 28px;
   overflow-y: auto;
-  animation: deslizarDerecha 0.25s ease;
+  animation: deslizarDerecha 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  scrollbar-width: thin;
+  scrollbar-color: #d95386 #f3d7e3;
+}
+
+.mini-carrito-panel::-webkit-scrollbar {
+  width: 8px;
+}
+.mini-carrito-panel::-webkit-scrollbar-track {
+  background: #f3d7e3;
+  border-radius: 4px;
+}
+.mini-carrito-panel::-webkit-scrollbar-thumb {
+  background: #d95386;
+  border-radius: 4px;
+}
+.mini-carrito-panel::-webkit-scrollbar-thumb:hover {
+  background: #b04e6f;
 }
 
 @keyframes deslizarDerecha {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(100%) scale(0.98); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
 }
 
 .mini-carrito-header {
@@ -1124,36 +1143,49 @@ header nav ul li a:hover {
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #f3d7e3;
+  border-bottom: 2px solid #d95386;
 }
 
 .mini-carrito-header h2 {
   margin: 0;
-  color: #5d405d;
-  font-size: 1.6rem;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
+  color: #d95386;
+  font-size: 1.8rem;
+  font-family: 'Great Vibes', cursive;
+  font-weight: 400;
+  letter-spacing: 0.5px;
 }
 
 .mini-carrito-cerrar {
   background: none;
   border: none;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   color: #b04e6f;
   cursor: pointer;
   padding: 4px;
   line-height: 1;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.mini-carrito-cerrar:hover {
+  background-color: #f3d7e3;
+  color: #b04e6f;
 }
 
 .mini-carrito-vacio {
   text-align: center;
-  padding: 50px 0;
+  padding: 60px 20px;
   color: #5d405d;
   font-size: 1.15rem;
 }
 
 .mini-carrito-vacio p {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .boton-secundario {
@@ -1182,25 +1214,32 @@ header nav ul li a:hover {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   flex: 1;
 }
 
 .mini-carrito-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background-color: #fff5f8;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #fff;
   border: 1px solid #f3d7e3;
-  border-radius: 10px;
+  border-radius: 12px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.mini-carrito-item:hover {
+  transform: translateY(-2px);
+  border-color: #d95386;
+  box-shadow: 0 4px 12px rgba(214, 83, 134, 0.15);
 }
 
 .mini-carrito-img {
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid #f3d7e3;
   flex-shrink: 0;
 }
@@ -1212,7 +1251,7 @@ header nav ul li a:hover {
 }
 
 .mini-carrito-nombre {
-  font-weight: 600;
+  font-weight: 700;
   color: #d95386;
   font-size: 1rem;
 }
@@ -1225,12 +1264,12 @@ header nav ul li a:hover {
 .mini-carrito-controles {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .mini-carrito-controles button {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 1px solid #d95386;
   background-color: white;
@@ -1240,6 +1279,7 @@ header nav ul li a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s;
 }
 
 .mini-carrito-controles button:hover {
@@ -1250,7 +1290,7 @@ header nav ul li a:hover {
 .mini-carrito-cantidad {
   font-weight: 700;
   color: #5d405d;
-  min-width: 24px;
+  min-width: 26px;
   text-align: center;
 }
 
@@ -1268,43 +1308,63 @@ header nav ul li a:hover {
   color: #b04e6f;
   font-size: 1rem;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.mini-carrito-quitar:hover {
+  background-color: #f3d7e3;
+  color: #b04e6f;
 }
 
 .mini-carrito-footer {
-  margin-top: 20px;
-  padding-top: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
   border-top: 2px solid #f3d7e3;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  background-color: #fff5f8;
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .mini-carrito-resumen {
   display: flex;
   justify-content: space-between;
-  font-weight: 600;
+  font-weight: 700;
   color: #5d405d;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .mini-carrito-total {
   color: #d95386;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .mini-carrito-finalizar {
   text-align: center;
   text-decoration: none;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   padding: 14px;
+  background-color: #d95386;
+  color: white;
+  border-radius: 50px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  transition: background-color 0.2s;
+}
+
+.mini-carrito-finalizar:hover {
+  background-color: #b04e6f;
 }
 
 .mini-carrito-vaciar {
   background: none;
   border: none;
   color: #b04e6f;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
   text-decoration: underline;
   padding: 4px;
