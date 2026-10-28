@@ -22,6 +22,27 @@ function Delicias() {
     { titulo: "Queques Artesanales", cats: ["Queques Artesanales", "Queques"] },
   ];
 
+  // Ancla estable de cada sección: "Sabores Frutales" -> "sabores-frutales"
+  const slug = (texto) =>
+    texto
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-");
+
+  // Solo las secciones que de verdad tienen productos (la pill apunta a
+  // una sección que va a existir en pantalla).
+  const seccionesVisibles = secciones.filter((sec) =>
+    productos.some((p) => sec.cats.includes(p.categoria))
+  );
+
+  const irASecion = (titulo) => {
+    const destino = document.getElementById(slug(titulo));
+    if (!destino) return;
+    const reducir = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    destino.scrollIntoView({ behavior: reducir ? "auto" : "smooth", block: "start" });
+  };
+
   useEffect(() => {
     const cargarTodo = async () => {
       try {
@@ -66,12 +87,24 @@ function Delicias() {
     <main className="main-content fondo-pagina">
       <h1 className="titulo-principal">Nuestro Catálogo</h1>
 
-      {secciones.map((sec) => {
+      <nav className="pills-categorias" aria-label="Categorías del catálogo">
+        {seccionesVisibles.map((sec) => (
+          <button
+            key={sec.titulo}
+            type="button"
+            className="pill-categoria"
+            onClick={() => irASecion(sec.titulo)}
+          >
+            {sec.titulo}
+          </button>
+        ))}
+      </nav>
+
+      {seccionesVisibles.map((sec) => {
         const itemsFiltrados = productos.filter((p) => sec.cats.includes(p.categoria));
-        if (itemsFiltrados.length === 0) return null;
 
         return (
-          <Revelar key={sec.titulo} as="section" className="seccion-catalogo">
+          <Revelar key={sec.titulo} as="section" className="seccion-catalogo" id={slug(sec.titulo)}>
             <h2 className="titulo-seccion">{sec.titulo}</h2>
             <div className="vitrina">
               {itemsFiltrados.map((prod) => (
