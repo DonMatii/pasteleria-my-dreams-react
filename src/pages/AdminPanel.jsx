@@ -447,6 +447,8 @@ const cargarDatos = () => {
                           src={`/img/${imagenDe(venta.nombre)}`}
                           alt={venta.nombre}
                           className="admin-top-img"
+                          loading="lazy"
+                          decoding="async"
                           onError={(e) => {
                             e.target.src = "/img/alfajor.jpg";
                           }}
@@ -513,6 +515,8 @@ const cargarDatos = () => {
                             src={`/img/${imagenDe(venta.nombre)}`}
                             alt={venta.nombre}
                             className="admin-vendido-img"
+                            loading="lazy"
+                            decoding="async"
                             onError={(e) => {
                               e.target.src = "/img/alfajor.jpg";
                             }}
@@ -711,6 +715,8 @@ const cargarDatos = () => {
                       src={`/img/${prod.imagenUrl}`}
                       alt=""
                       className="admin-img-tabla"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         e.target.src = "/img/alfajor.jpg";
                       }}

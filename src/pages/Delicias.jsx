@@ -117,6 +117,8 @@ function Delicias() {
                     <img 
                       src={`/img/${prod.imagenUrl}`} 
                       alt={prod.nombre} 
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.target.src = '/img/tortaMoka.jpg'; }} 
                     />
                   </div>

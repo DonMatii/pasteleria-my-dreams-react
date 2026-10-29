@@ -201,6 +201,8 @@ function Home() {
               <img
                 src={`/img/${delicia.imagenUrl}`}
                 alt={delicia.nombre}
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = "/img/alfajor.jpg";
@@ -245,6 +247,8 @@ function Home() {
                 <img
                   src={`/img/${prod.imagenUrl}`}
                   alt={prod.nombre}
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/img/alfajor.jpg";
