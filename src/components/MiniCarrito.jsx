@@ -90,7 +90,22 @@ function MiniCarrito({ abierto, onCerrar }) {
                     type="button"
                     className="mini-carrito-quitar"
                     aria-label={`Quitar ${it.nombre}`}
-                    onClick={() => quitarItem(it.id)}
+                    onClick={() => {
+                      Swal.fire({
+                        title: "¿Quitar del carrito?",
+                        text: `¿Seguro que quieres eliminar ${it.nombre}?`,
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonColor: "#d95386",
+                        cancelButtonColor: "#b04e6f",
+                        confirmButtonText: "Sí, quitar",
+                        cancelButtonText: "Cancelar",
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          quitarItem(it.id);
+                        }
+                      });
+                    }}
                   >
                     ✕
                   </button>
