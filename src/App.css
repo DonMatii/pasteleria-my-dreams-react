@@ -1139,12 +1139,15 @@ header nav ul li a:hover {
   background-color: #fff;
   width: 420px;
   max-width: 92vw;
-  height: 100%;
+  /* max-height en svh respeta la barra de tareas de Windows/macOS;
+     overflow-y permite scroll si el carrito crece, y el footer queda siempre visible */
+  max-height: 100svh;
+  height: auto;
   box-shadow: -8px 0 32px rgba(214, 83, 134, 0.22);
   border-left: 1px solid #f3d7e3;
   display: flex;
   flex-direction: column;
-  padding: 32px 28px 100px;
+  padding: 32px 28px 90px;
   overflow-y: auto;
   animation: deslizarDerecha 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   scrollbar-width: thin;
@@ -1469,7 +1472,8 @@ header nav ul li a:hover {
   pointer-events: none;
   background:
     linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.25) 40%, rgba(255, 240, 245, 0.6) 75%, rgba(255, 240, 245, 0.85) 100%),
-    url("./assets/img/fondoPagina.jpeg") center / cover no-repeat;
+    url("./assets/img/fondoPagina.jpeg") center / contain no-repeat;
+  background-color: #fce4ec;
 }
 
 /* Pills de navegación del catálogo: flotan sobre la foto (sin banda
