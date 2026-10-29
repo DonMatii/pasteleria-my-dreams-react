@@ -94,7 +94,7 @@ function MiniCarrito({ abierto, onCerrar }) {
                       Swal.fire({
                         title: "¿Quitar del carrito?",
                         text: `¿Seguro que quieres eliminar ${it.nombre}?`,
-                        icon: "question",
+                        iconHtml: '<span style="color:#d95386;font-size:2.5rem;">🗑️</span>',
                         showCancelButton: true,
                         confirmButtonColor: "#d95386",
                         cancelButtonColor: "#b04e6f",
