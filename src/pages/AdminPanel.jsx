@@ -163,7 +163,8 @@ const cargarDatos = () => {
         productosPorFecha.get(fecha).push({
           nombre: prod.nombre,
           imagen: `/img/${img}`,
-          cantidad: prod.cantidad
+          cantidad: Number(prod.cantidad) || 0,
+          monto: Number(prod.subtotal) || 0
         });
       });
     });
@@ -175,6 +176,7 @@ const cargarDatos = () => {
         const key = p.nombre.toLowerCase();
         if (mapa.has(key)) {
           mapa.get(key).cantidad += p.cantidad;
+          mapa.get(key).monto += p.monto;
         } else {
           mapa.set(key, { ...p });
         }
@@ -631,18 +633,26 @@ const cargarDatos = () => {
                           <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
                           <td>
                             {Array.isArray(venta.productos) && venta.productos.length > 0 ? (
-                              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "stretch" }}>
                                 {venta.productos.slice(0, 4).map((p) => (
-                                  <div key={p.nombre} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fff", border: "1px solid #f0d7e3", borderRadius: "10px", padding: "6px 10px", minWidth: "160px" }}>
-                                    <img src={`/img/${imagenDe(p.nombre)}`} alt={p.nombre} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "6px" }} onError={(e)=>{e.target.src='/img/alfajor.jpg'}} />
-                                    <div style={{ lineHeight: "1.2" }}>
-                                      <div style={{ fontSize: "0.85rem", color: "#5d405d", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "130px" }}>{p.nombre}</div>
-                                      <div style={{ fontSize: "0.75rem", color: "#7a6478" }}>{p.cantidad} unidad{p.cantidad > 1 ? 'es' : ''}</div>
-                                    </div>
+                                  <div key={p.nombre} className="admin-vendido" style={{ minWidth: "260px", background: "#fdf2f7" }}>
+                                    <img
+                                      src={`/img/${imagenDe(p.nombre)}`}
+                                      alt={p.nombre}
+                                      className="admin-vendido-img"
+                                      loading="lazy"
+                                      decoding="async"
+                                      onError={(e) => { e.target.src = "/img/alfajor.jpg"; }}
+                                    />
+                                    <span className="admin-vendido-nombre">{p.nombre}</span>
+                                    <span className="admin-vendido-unidades">{p.cantidad} {p.cantidad === 1 ? "unidad" : "unidades"}</span>
+                                    <span className="admin-vendido-monto">${formatearMoneda(p.monto)}</span>
                                   </div>
                                 ))}
                                 {venta.productos.length > 4 && (
-                                  <div style={{ fontSize: "0.75rem", alignSelf: "center", color: "#7a6478" }}>+{venta.productos.length - 4} más</div>
+                                  <div style={{ fontSize: "0.82rem", alignSelf: "center", color: "#7a6478" }}>
+                                    +{venta.productos.length - 4} más
+                                  </div>
                                 )}
                               </div>
                             ) : (
