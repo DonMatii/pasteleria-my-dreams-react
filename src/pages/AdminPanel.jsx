@@ -590,20 +590,22 @@ const cargarDatos = () => {
                           <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
                           <td>
                             {Array.isArray(venta.productos) && venta.productos.length > 0 ? (
-                              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center" }}>
-                                {venta.productos.slice(0, 3).map((p) => (
-                                  <div key={p.nombre} style={{ textAlign: "center", maxWidth: "80px" }}>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "flex-start" }}>
+                                {venta.productos.slice(0, 4).map((p) => (
+                                  <div key={p.nombre} className="admin-vendido-mini" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#fff", border: "1px solid #f0d7e3", borderRadius: "8px", padding: "4px 8px" }}>
                                     {p.imagen && (
-                                      <img src={p.imagen} alt={p.nombre} style={{ width: "36px", height: "36px", objectFit: "cover", borderRadius: "6px" }} />
+                                      <img src={p.imagen} alt={p.nombre} style={{ width: "32px", height: "32px", objectFit: "cover", borderRadius: "6px" }} />
                                     )}
-                                    <div style={{ fontSize: "0.7rem", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</div>
+                                    <span style={{ fontSize: "0.75rem", color: "#5d405d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "90px" }}>{p.nombre}</span>
                                   </div>
                                 ))}
-                                {venta.productos.length > 3 && (
-                                  <div style={{ fontSize: "0.7rem", alignSelf: "center", color: "#7a6478" }}>+{venta.productos.length - 3}</div>
+                                {venta.productos.length > 4 && (
+                                  <div style={{ fontSize: "0.7rem", alignSelf: "center", color: "#7a6478" }}>+{venta.productos.length - 4}</div>
                                 )}
                               </div>
-                            ) : null}
+                            ) : (
+                              <span style={{ color: "#c9a8b8", fontSize: "0.8rem" }}>—</span>
+                            )}
                           </td>
                         </tr>
                       ))}
