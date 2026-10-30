@@ -686,3 +686,120 @@
   .admin-vendido-unidades { grid-area: unidades; }
   .admin-vendido-monto { grid-area: monto; }
 }
+
+/* =========================================
+   Gestión de pedidos (S5/S6)
+   ========================================= */
+.admin-pedidos {
+  margin-top: 28px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #f3d7e3;
+  border-radius: 12px;
+}
+
+.admin-pedidos-titulo {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #5d405d;
+}
+
+.admin-pedidos-vacio {
+  margin: 12px 0 0;
+  color: #7d6a7d;
+  font-size: 0.95rem;
+}
+
+.admin-pedidos-tabla td {
+  vertical-align: top;
+}
+
+.admin-pedidos-fecha {
+  white-space: nowrap;
+  color: #7d6a7d;
+  font-size: 0.88rem;
+}
+
+.admin-pedidos-cliente {
+  display: block;
+  font-weight: 700;
+  color: #4a2f4a;
+}
+
+.admin-pedidos-email {
+  display: block;
+  font-size: 0.82rem;
+  color: #7d6a7d;
+  word-break: break-all;
+}
+
+.admin-pedidos-productos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.88rem;
+  color: #5d405d;
+}
+
+.admin-pedidos-total {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Badge del estado actual: un tono por estado para leerlo de un vistazo */
+.admin-pedidos-estado {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #f7f2f6;
+  color: #5d405d;
+}
+
+.admin-estado-recibido { background: #fdf3f7; color: #a8446d; }
+.admin-estado-en_preparacion { background: #fff4e5; color: #8a5a10; }
+.admin-estado-despachado { background: #eaf3fb; color: #2c6e9e; }
+.admin-estado-entregado { background: #eaf7ee; color: #2f7a45; }
+
+.admin-pedidos-controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.admin-pedidos-opcion {
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #e6c8d8;
+  border-radius: 8px;
+  color: #b04e6f;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.admin-pedidos-opcion:hover:not(:disabled) {
+  background: #d95386;
+  border-color: #d95386;
+  color: #fff;
+}
+
+/* El estado actual queda resaltado y no se vuelve a elegir: pulsarlo de nuevo
+   no cambiaría nada y solo dispararía un correo repetido al cliente */
+.admin-pedidos-opcion-actual,
+.admin-pedidos-opcion:disabled {
+  background: #d95386;
+  border-color: #d95386;
+  color: #fff;
+  cursor: default;
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  .admin-pedidos-controles { min-width: 0; }
+}

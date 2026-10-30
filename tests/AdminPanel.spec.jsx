@@ -25,9 +25,12 @@ vi.mock("../src/service/EstadisticasService", () => ({
   guardarMetas: vi.fn(),
 }));
 
-// El dashboard pide las ventas por producto a pedidos-service para el periodo elegido.
+// El dashboard pide las ventas por producto a pedidos-service para el periodo elegido,
+// y la sección de gestión de pedidos pide el listado y cambia estados.
 vi.mock("../src/service/PedidosService", () => ({
   obtenerVentasPorProducto: vi.fn(),
+  obtenerPedidos: vi.fn(),
+  cambiarEstadoPedido: vi.fn(),
 }));
 
 vi.mock('sweetalert2', () => ({
@@ -56,6 +59,8 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
       estadoServicio: "UP",
     });
     PedidosService.obtenerVentasPorProducto.mockResolvedValue([]);
+    // Sin pedidos por defecto: la sección nueva muestra su estado vacío
+    PedidosService.obtenerPedidos.mockResolvedValue([]);
     EstadisticasService.guardarMetas.mockResolvedValue({});
   });
 

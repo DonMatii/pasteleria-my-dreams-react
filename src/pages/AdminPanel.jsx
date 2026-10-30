@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto } from "../service/ProductosService";
 import { obtenerEstadisticas, guardarMetas } from "../service/EstadisticasService";
 import { obtenerVentasPorProducto } from "../service/PedidosService";
+import AdminPedidos from "../components/AdminPedidos";
 import "./AdminPanel.css";
 import Swal from "sweetalert2";
 
@@ -593,6 +594,9 @@ const cargarDatos = () => {
             )}
           </section>
         )}
+
+        {/* Gestion de pedidos: quien compro, en que estado esta y cambio de estado (S5/S6) */}
+        <AdminPedidos />
 
         <div className="admin-seccion-gestion" ref={formEdicionRef}>
           <h2 className="admin-titulo-formulario">
