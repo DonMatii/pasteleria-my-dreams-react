@@ -555,6 +555,7 @@ const cargarDatos = () => {
                           { campo: "fecha", etiqueta: "Fecha" },
                           { campo: "pedidos", etiqueta: "Pedidos" },
                           { campo: "monto", etiqueta: "Ventas" },
+                          { campo: "productos", etiqueta: "Productos" },
                         ].map((c) => (
                           <th
                             key={c.campo}
@@ -587,6 +588,23 @@ const cargarDatos = () => {
                           <td>{formatearFecha(venta.fecha)}</td>
                           <td>{venta.pedidos}</td>
                           <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
+                          <td>
+                            {Array.isArray(venta.productos) && venta.productos.length > 0 ? (
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", justifyContent: "center" }}>
+                                {venta.productos.slice(0, 3).map((p) => (
+                                  <div key={p.nombre} style={{ textAlign: "center", maxWidth: "80px" }}>
+                                    {p.imagen && (
+                                      <img src={p.imagen} alt={p.nombre} style={{ width: "36px", height: "36px", objectFit: "cover", borderRadius: "6px" }} />
+                                    )}
+                                    <div style={{ fontSize: "0.7rem", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.nombre}</div>
+                                  </div>
+                                ))}
+                                {venta.productos.length > 3 && (
+                                  <div style={{ fontSize: "0.7rem", alignSelf: "center", color: "#7a6478" }}>+{venta.productos.length - 3}</div>
+                                )}
+                              </div>
+                            ) : null}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
