@@ -629,21 +629,22 @@ const cargarDatos = () => {
                           <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
                           <td>
                             {Array.isArray(venta.productos) && venta.productos.length > 0 ? (
-                              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "flex-start" }}>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                                 {venta.productos.slice(0, 4).map((p) => (
-                                  <div key={p.nombre} className="admin-vendido-mini" style={{ display: "flex", alignItems: "center", gap: "6px", background: "#fff", border: "1px solid #f0d7e3", borderRadius: "8px", padding: "4px 8px" }}>
-                                    {p.imagen && (
-                                      <img src={p.imagen} alt={p.nombre} style={{ width: "32px", height: "32px", objectFit: "cover", borderRadius: "6px" }} />
-                                    )}
-                                    <span style={{ fontSize: "0.75rem", color: "#5d405d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "90px" }}>{p.nombre}</span>
+                                  <div key={p.nombre} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#fff", border: "1px solid #f0d7e3", borderRadius: "10px", padding: "6px 10px", minWidth: "160px" }}>
+                                    <img src={`/img/${imagenDe(p.nombre)}`} alt={p.nombre} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "6px" }} onError={(e)=>{e.target.src='/img/alfajor.jpg'}} />
+                                    <div style={{ lineHeight: "1.2" }}>
+                                      <div style={{ fontSize: "0.85rem", color: "#5d405d", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "130px" }}>{p.nombre}</div>
+                                      <div style={{ fontSize: "0.75rem", color: "#7a6478" }}>{p.cantidad} unidad{p.cantidad > 1 ? 'es' : ''}</div>
+                                    </div>
                                   </div>
                                 ))}
                                 {venta.productos.length > 4 && (
-                                  <div style={{ fontSize: "0.7rem", alignSelf: "center", color: "#7a6478" }}>+{venta.productos.length - 4}</div>
+                                  <div style={{ fontSize: "0.75rem", alignSelf: "center", color: "#7a6478" }}>+{venta.productos.length - 4} más</div>
                                 )}
                               </div>
                             ) : (
-                              <span style={{ color: "#c9a8b8", fontSize: "0.8rem" }}>—</span>
+                              <span style={{ color: "#c9a8b8" }}>—</span>
                             )}
                           </td>
                         </tr>
