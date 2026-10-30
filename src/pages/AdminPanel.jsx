@@ -548,7 +548,6 @@ const cargarDatos = () => {
                   </button>
                 </div>
                 {diarioAbierto && (
-                  <div className="admin-tabla-container">
                   <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
                     <thead>
                       <tr>
@@ -612,7 +611,6 @@ const cargarDatos = () => {
                       ))}
                     </tbody>
                   </table>
-                  </div>
                 )}
               </div>
             )}
