@@ -640,9 +640,9 @@ const cargarDatos = () => {
                           <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
                           <td>
                             {Array.isArray(venta.productos) && venta.productos.length > 0 ? (
-                              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "stretch" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "stretch" }}>
                                 {venta.productos.slice(0, 4).map((p) => (
-                                  <div key={p.nombre} className="admin-vendido" style={{ minWidth: "260px", background: "#fdf2f7" }}>
+                                  <div key={p.nombre} className="admin-vendido">
                                     <img
                                       src={`/img/${imagenDe(p.nombre)}`}
                                       alt={p.nombre}
