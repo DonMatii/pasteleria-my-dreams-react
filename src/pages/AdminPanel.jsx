@@ -153,17 +153,16 @@ const cargarDatos = () => {
   // La tabla de 7 dias con el orden elegido (por defecto, de mas reciente a mas antiguo)
   const diarioOrdenado = useMemo(() => {
     if (!Array.isArray(stats?.ventasDiarias)) return [];
-    const catalogoImg = new Map((productos || []).map(p => [p.nombre.toLowerCase(), p.imagenUrl || p.imagen || `/img/${p.nombre.toLowerCase().replace(/\s+/g,'-')}.jpg`]));
     // Agrupar productos por fecha usando los pedidos cargados
     const productosPorFecha = new Map();
     (pedidos || []).forEach(p => {
       const fecha = new Date(p.fecha).toISOString().slice(0,10);
       if (!productosPorFecha.has(fecha)) productosPorFecha.set(fecha, []);
       (p.productos || []).forEach(prod => {
-        const img = prod.imagen || catalogoImg.get(prod.nombre.toLowerCase()) || `/img/${prod.nombre.toLowerCase().replace(/\s+/g,'-')}.jpg`;
+        const img = imagenDe(prod.nombre);
         productosPorFecha.get(fecha).push({
           nombre: prod.nombre,
-          imagen: img,
+          imagen: `/img/${img}`,
           cantidad: prod.cantidad
         });
       });
