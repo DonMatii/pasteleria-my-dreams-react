@@ -11,6 +11,7 @@ function AdminPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [guardandoId, setGuardandoId] = useState(null);
+  const [abierto, setAbierto] = useState(true);
 
   // Mismo orden y mismos codigos que valida PedidoService.ESTADOS_VALIDOS
   const ESTADOS = [
@@ -75,91 +76,108 @@ function AdminPedidos() {
     <section className="admin-pedidos" aria-label="Pedidos recibidos">
       <div className="admin-seccion-cabecera">
         <h3 className="admin-pedidos-titulo">🎂 Pedidos recibidos</h3>
-        <button
-          type="button"
-          className="admin-btn-pill"
-          onClick={cargar}
-          disabled={cargando}
-        >
-          {cargando ? "Cargando pedidos..." : "Recargar pedidos"}
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="button"
+            className="admin-btn-pill"
+            onClick={cargar}
+            disabled={cargando}
+          >
+            {cargando ? "Cargando pedidos..." : "Recargar pedidos"}
+          </button>
+          <button
+            type="button"
+            className="admin-pliegue-btn"
+            aria-label="Pedidos recibidos"
+            aria-expanded={abierto}
+            onClick={() => setAbierto(v => !v)}
+          >
+            {abierto ? "Cerrar" : "Abrir"}
+          </button>
+        </div>
       </div>
 
-      {cargando && pedidos.length === 0 ? (
-        <p className="admin-pedidos-vacio" data-testid="pedidos-cargando">Cargando pedidos...</p>
-      ) : pedidos.length === 0 ? (
-        <p className="admin-pedidos-vacio" data-testid="pedidos-vacio">
-          Todavía no hay pedidos registrados.
-        </p>
-      ) : (
-        <div className="admin-tabla-container">
-          <table className="admin-tabla admin-pedidos-tabla">
-            <thead>
-              <tr>
-                <th scope="col">Fecha</th>
-                <th scope="col">Cliente</th>
-                <th scope="col">Productos</th>
-                <th scope="col">Total</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Cambiar estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pedidos.map((pedido) => (
-                <tr key={pedido.id}>
-                  <td className="admin-pedidos-fecha">{formatearFecha(pedido.fecha)}</td>
-                  <td>
-                    <span className="admin-pedidos-cliente">{pedido.cliente}</span>
-                    <span className="admin-pedidos-email">{pedido.email}</span>
-                  </td>
-                  <td className="admin-pedidos-productos">
-                    {(pedido.productos || []).map((producto) => (
-                      <span key={producto.nombre} className="admin-pedidos-producto">
-                        {producto.nombre} ×{producto.cantidad}
-                      </span>
-                    ))}
-                  </td>
-                  <td className="admin-pedidos-total">
-                    ${(Number(pedido.total) || 0).toLocaleString("es-CL")}
-                  </td>
-                  <td>
-                    <span
-                      className={`admin-pedidos-estado admin-estado-${(pedido.estado || "").toLowerCase()}`}
-                      data-testid="estado-actual"
-                    >
-                      {etiquetaDe(pedido.estado)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="admin-pedidos-controles" role="group"
-                      aria-label={`Estados del pedido de ${pedido.cliente}`}>
-                      {ESTADOS.map((estado) => {
-                        const esActual = estado.codigo === pedido.estado;
-                        return (
-                          <button
-                            key={estado.codigo}
-                            type="button"
-                            className={
-                              "admin-pedidos-opcion" +
-                              (esActual ? " admin-pedidos-opcion-actual" : "")
-                            }
-                            aria-label={`Marcar el pedido de ${pedido.cliente} como ${estado.etiqueta}`}
-                            aria-current={esActual ? "true" : undefined}
-                            disabled={esActual || guardandoId === pedido.id}
-                            onClick={() => aplicarEstado(pedido, estado)}
-                          >
-                            {estado.etiqueta}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </td>
+      {abierto ? (
+        cargando && pedidos.length === 0 ? (
+          <p className="admin-pedidos-vacio" data-testid="pedidos-cargando">Cargando pedidos...</p>
+        ) : pedidos.length === 0 ? (
+          <p className="admin-pedidos-vacio" data-testid="pedidos-vacio">
+            Todavía no hay pedidos registrados.
+          </p>
+        ) : (
+          <div className="admin-tabla-container">
+            <table className="admin-tabla admin-pedidos-tabla">
+              <thead>
+                <tr>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Cliente</th>
+                  <th scope="col">Código</th>
+                  <th scope="col">Productos</th>
+                  <th scope="col">Total</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Cambiar estado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {pedidos.map((pedido) => (
+                  <tr key={pedido.id}>
+                    <td className="admin-pedidos-fecha">{formatearFecha(pedido.fecha)}</td>
+                    <td>
+                      <span className="admin-pedidos-cliente">{pedido.cliente}</span>
+                      <span className="admin-pedidos-email">{pedido.email}</span>
+                    </td>
+                    <td className="admin-pedidos-fecha">
+                      <code>{pedido.codigoConsulta || "—"}</code>
+                    </td>
+                    <td className="admin-pedidos-productos">
+                      {(pedido.productos || []).map((producto) => (
+                        <span key={producto.nombre} className="admin-pedidos-producto">
+                          {producto.nombre} ×{producto.cantidad}
+                        </span>
+                      ))}
+                    </td>
+                    <td className="admin-pedidos-total">
+                      ${(Number(pedido.total) || 0).toLocaleString("es-CL")}
+                    </td>
+                    <td>
+                      <span
+                        className={`admin-pedidos-estado admin-estado-${(pedido.estado || "").toLowerCase()}`}
+                        data-testid="estado-actual"
+                      >
+                        {etiquetaDe(pedido.estado)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="admin-pedidos-controles" role="group"
+                        aria-label={`Estados del pedido de ${pedido.cliente}`}>
+                        {ESTADOS.map((estado) => {
+                          const esActual = estado.codigo === pedido.estado;
+                          return (
+                            <button
+                              key={estado.codigo}
+                              type="button"
+                              className={
+                                "admin-pedidos-opcion" +
+                                (esActual ? " admin-pedidos-opcion-actual" : "")
+                              }
+                              aria-label={`Marcar el pedido de ${pedido.cliente} como ${estado.etiqueta}`}
+                              aria-current={esActual ? "true" : undefined}
+                              disabled={esActual || guardandoId === pedido.id}
+                              onClick={() => aplicarEstado(pedido, estado)}
+                            >
+                              {estado.etiqueta}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      ) : null}
     </section>
   );
 }
