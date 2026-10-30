@@ -154,7 +154,55 @@
 
 /* Tabla de los últimos 7 días, integrada dentro de la tarjeta del dashboard */
 .admin-diario {
-  margin-top: 4px;
+  margin-top: 12px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #f0d7e3;
+  box-shadow: 0 4px 14px rgba(217, 83, 134, 0.08);
+  padding: 14px 16px;
+}
+
+/* Mejora visual para la tabla de 7 días */
+.admin-diario .admin-tabla {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #f0d7e3;
+  box-shadow: 0 4px 14px rgba(217, 83, 134, 0.08);
+}
+
+.admin-diario .admin-tabla th {
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  background-color: #d95386;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.admin-diario .admin-tabla td {
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #5d405d;
+}
+
+.admin-diario .admin-tabla td:first-child {
+  text-align: left;
+  font-weight: 600;
+  color: #4a2f4a;
+}
+
+.admin-diario .admin-tabla tbody tr:nth-child(even) {
+  background: #fdf7fb;
+}
+
+.admin-diario .admin-tabla tbody tr:hover {
+  background: #fff0f6;
 }
 
 .admin-diario-titulo {
