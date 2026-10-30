@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto } from "../service/ProductosService";
 import { obtenerEstadisticas, guardarMetas } from "../service/EstadisticasService";
-import { obtenerVentasPorProducto } from "../service/PedidosService";
+import { obtenerVentasPorProducto, obtenerPedidos } from "../service/PedidosService";
 import AdminPedidos from "../components/AdminPedidos";
 import "./AdminPanel.css";
 import Swal from "sweetalert2";
@@ -24,6 +24,7 @@ function AdminPanel() {
   const [productos, setProductos] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
   const [stats, setStats] = useState(null);
+  const [pedidos, setPedidos] = useState([]);
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: "",
     descripcion: "",
@@ -73,9 +74,20 @@ const cargarDatos = () => {
     }
   };
 
+  const cargarPedidos = async () => {
+    try {
+      const data = await obtenerPedidos();
+      setPedidos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error al cargar pedidos:", error);
+      setPedidos([]);
+    }
+  };
+
   useEffect(() => {
     cargarDatos();
     cargarEstadisticas();
+    cargarPedidos();
   }, []);
 
   // Cifras del periodo elegido; el dia usa las de hoy, que siempre estan presentes
@@ -141,7 +153,33 @@ const cargarDatos = () => {
   // La tabla de 7 dias con el orden elegido (por defecto, de mas reciente a mas antiguo)
   const diarioOrdenado = useMemo(() => {
     if (!Array.isArray(stats?.ventasDiarias)) return [];
-    const arr = [...stats.ventasDiarias];
+    // Agrupar productos por fecha usando los pedidos cargados
+    const productosPorFecha = new Map();
+    (pedidos || []).forEach(p => {
+      const fecha = new Date(p.fecha).toISOString().slice(0,10);
+      if (!productosPorFecha.has(fecha)) productosPorFecha.set(fecha, []);
+      (p.productos || []).forEach(prod => {
+        productosPorFecha.get(fecha).push({
+          nombre: prod.nombre,
+          imagen: prod.imagen || `/img/${prod.nombre.toLowerCase().replace(/\s+/g,'-')}.jpg`,
+          cantidad: prod.cantidad
+        });
+      });
+    });
+    const arr = stats.ventasDiarias.map(v => {
+      const productos = productosPorFecha.get(v.fecha) || [];
+      // Des-duplicar por nombre sumando cantidad
+      const mapa = new Map();
+      productos.forEach(p => {
+        const key = p.nombre.toLowerCase();
+        if (mapa.has(key)) {
+          mapa.get(key).cantidad += p.cantidad;
+        } else {
+          mapa.set(key, { ...p });
+        }
+      });
+      return { ...v, productos: Array.from(mapa.values()) };
+    });
     const { campo, dir } = ordenDiario;
     arr.sort((a, b) => {
       const cmp =
@@ -151,7 +189,7 @@ const cargarDatos = () => {
       return dir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [stats?.ventasDiarias, ordenDiario]);
+  }, [stats?.ventasDiarias, ordenDiario, pedidos]);
 
   // Cambia el campo de orden; si ya era ese campo, invierte la direccion
   const cambiarOrdenVendidos = (campo) => {
