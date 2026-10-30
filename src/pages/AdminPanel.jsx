@@ -593,6 +593,30 @@ const cargarDatos = () => {
                   </button>
                 </div>
                 {diarioAbierto && (
+                  <>
+                  <div className="admin-orden" role="group" aria-label="Ordenar ventas de los últimos 7 días">
+                    <span className="admin-orden-etiqueta">Ordenar por:</span>
+                    {[
+                      { campo: "fecha", etiqueta: "Fecha" },
+                      { campo: "pedidos", etiqueta: "Pedidos" },
+                      { campo: "monto", etiqueta: "Monto" },
+                      { campo: "productos", etiqueta: "Productos" },
+                    ].map((c) => (
+                      <button
+                        key={c.campo}
+                        type="button"
+                        className={`admin-orden-btn${
+                          ordenDiario.campo === c.campo ? " admin-orden-activo" : ""
+                        }`}
+                        aria-pressed={ordenDiario.campo === c.campo}
+                        onClick={() => cambiarOrdenDiario(c.campo)}
+                      >
+                        {c.etiqueta}
+                        {ordenDiario.campo === c.campo &&
+                          (ordenDiario.dir === "asc" ? " ↑" : " ↓")}
+                      </button>
+                    ))}
+                  </div>
                   <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
                     <thead>
                       <tr>
@@ -602,25 +626,8 @@ const cargarDatos = () => {
                           { campo: "monto", etiqueta: "Ventas" },
                           { campo: "productos", etiqueta: "Productos" },
                         ].map((c) => (
-                          <th
-                            key={c.campo}
-                            aria-sort={
-                              ordenDiario.campo === c.campo
-                                ? ordenDiario.dir === "asc"
-                                  ? "ascending"
-                                  : "descending"
-                                : "none"
-                            }
-                          >
-                            <button
-                              type="button"
-                              className="admin-th-btn"
-                              onClick={() => cambiarOrdenDiario(c.campo)}
-                            >
-                              {c.etiqueta}
-                              {ordenDiario.campo === c.campo &&
-                                (ordenDiario.dir === "asc" ? " ↑" : " ↓")}
-                            </button>
+                          <th key={c.campo} scope="col">
+                            {c.etiqueta}
                           </th>
                         ))}
                       </tr>
@@ -663,6 +670,7 @@ const cargarDatos = () => {
                       ))}
                     </tbody>
                   </table>
+                  </>
                 )}
               </div>
             )}
