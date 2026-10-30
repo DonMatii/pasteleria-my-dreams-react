@@ -183,10 +183,14 @@ const cargarDatos = () => {
     });
     const { campo, dir } = ordenDiario;
     arr.sort((a, b) => {
-      const cmp =
-        campo === "fecha"
-          ? String(a.fecha).localeCompare(String(b.fecha))
-          : (Number(a[campo]) || 0) - (Number(b[campo]) || 0);
+      let cmp = 0;
+      if (campo === "fecha") {
+        cmp = String(a.fecha).localeCompare(String(b.fecha));
+      } else if (campo === "productos") {
+        cmp = (a.productos?.length || 0) - (b.productos?.length || 0);
+      } else {
+        cmp = (Number(a[campo]) || 0) - (Number(b[campo]) || 0);
+      }
       return dir === "asc" ? cmp : -cmp;
     });
     return arr;
@@ -609,9 +613,7 @@ const cargarDatos = () => {
                             <button
                               type="button"
                               className="admin-th-btn"
-                              onClick={() => c.campo !== "productos" && cambiarOrdenDiario(c.campo)}
-                              disabled={c.campo === "productos"}
-                              style={c.campo === "productos" ? { cursor: "default" } : undefined}
+                              onClick={() => cambiarOrdenDiario(c.campo)}
                             >
                               {c.etiqueta}
                               {ordenDiario.campo === c.campo &&
