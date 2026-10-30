@@ -12,6 +12,9 @@ function AdminPedidos() {
   const [cargando, setCargando] = useState(true);
   const [guardandoId, setGuardandoId] = useState(null);
   const [abierto, setAbierto] = useState(true);
+  const [ordenPedidos, setOrdenPedidos] = useState({ campo: "fecha", dir: "desc" });
+  const [pagina, setPagina] = useState(1);
+  const PEDIDOS_POR_PAGINA = 20;
 
   // Mismo orden y mismos codigos que valida PedidoService.ESTADOS_VALIDOS
   const ESTADOS = [
@@ -33,6 +36,39 @@ function AdminPedidos() {
   useEffect(() => {
     cargar();
   }, [cargar]);
+
+  const pedidosOrdenados = useMemo(() => {
+    const arr = [...pedidos];
+    const { campo, dir } = ordenPedidos;
+    arr.sort((a, b) => {
+      let cmp = 0;
+      if (campo === "fecha") {
+        cmp = new Date(a.fecha) - new Date(b.fecha);
+      } else if (campo === "total") {
+        cmp = Number(a.total || 0) - Number(b.total || 0);
+      } else if (campo === "cliente") {
+        cmp = String(a.cliente || "").localeCompare(String(b.cliente || ""), "es");
+      } else if (campo === "estado") {
+        cmp = String(a.estado || "").localeCompare(String(b.estado || ""), "es");
+      }
+      return dir === "asc" ? cmp : -cmp;
+    });
+    return arr;
+  }, [pedidos, ordenPedidos]);
+
+  const totalPaginas = Math.max(1, Math.ceil(pedidosOrdenados.length / PEDIDOS_POR_PAGINA));
+  const pedidosPaginados = useMemo(() => {
+    const inicio = (pagina - 1) * PEDIDOS_POR_PAGINA;
+    return pedidosOrdenados.slice(inicio, inicio + PEDIDOS_POR_PAGINA);
+  }, [pedidosOrdenados, pagina]);
+
+  const cambiarOrden = (campo) => {
+    setOrdenPedidos(prev => ({
+      campo,
+      dir: prev.campo === campo && prev.dir === "desc" ? "asc" : "desc"
+    }));
+    setPagina(1);
+  };
 
   // Pide confirmacion, aplica el cambio y recarga para verlo reflejado.
   // El correo al cliente lo dispara el backend, no esta vista.
@@ -109,17 +145,33 @@ function AdminPedidos() {
             <table className="admin-tabla admin-pedidos-tabla">
               <thead>
                 <tr>
-                  <th scope="col">Fecha</th>
-                  <th scope="col">Cliente</th>
+                  <th scope="col">
+                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("fecha")}>
+                      Fecha {ordenPedidos.campo === "fecha" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("cliente")}>
+                      Cliente {ordenPedidos.campo === "cliente" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                  </th>
                   <th scope="col">Código</th>
                   <th scope="col">Productos</th>
-                  <th scope="col">Total</th>
-                  <th scope="col">Estado</th>
+                  <th scope="col">
+                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("total")}>
+                      Total {ordenPedidos.campo === "total" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                  </th>
+                  <th scope="col">
+                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("estado")}>
+                      Estado {ordenPedidos.campo === "estado" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
+                    </button>
+                  </th>
                   <th scope="col">Cambiar estado</th>
                 </tr>
               </thead>
               <tbody>
-                {pedidos.map((pedido) => (
+                {pedidosPaginados.map((pedido) => (
                   <tr key={pedido.id}>
                     <td className="admin-pedidos-fecha">{formatearFecha(pedido.fecha)}</td>
                     <td>
@@ -175,6 +227,15 @@ function AdminPedidos() {
                 ))}
               </tbody>
             </table>
+            {totalPaginas > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', padding: '12px' }}>
+                <button className="admin-btn-pill" disabled={pagina === 1} onClick={() => setPagina(p => Math.max(1, p - 1))}>Anterior</button>
+                <span style={{ alignSelf: 'center', fontSize: '0.85rem', color: '#5d405d' }}>
+                  Página {pagina} de {totalPaginas} — {pedidosOrdenados.length} pedidos
+                </span>
+                <button className="admin-btn-pill" disabled={pagina === totalPaginas} onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}>Siguiente</button>
+              </div>
+            )}
           </div>
         )
       ) : null}
