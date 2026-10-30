@@ -17,8 +17,8 @@ Cada versión del proyecto vive en su propia rama. Son tres, y no son tres proye
 
 ### Cambios recientes 30-10-2026
 * **Admin – Pedidos recibidos:** sección plegable con botón Abrir/Cerrar, columna de **código de seguimiento** `codigoConsulta`, tabla con estilos de card y mejor legibilidad. Ordenamiento por Fecha/Cliente/Total/Estado y paginación 20 por página para evitar render masivo. Contenedor con scroll horizontal.
-* **Dashboard – Ventas de los últimos 7 días:** card con sombra y bordes redondeados, zebra/stripes, hover, fecha alineada a izquierda y columna **Productos** con mini-cards de imagen + nombre + unidades agregadas desde pedidos. Ordenamiento por Fecha/Pedidos/Ventas/**Productos**.
-* **Panel visual:** mejoras de estilo en tabla diaria para coherencia con el resto del dashboard.
+* **Dashboard – Ventas de los últimos 7 días:** card con sombra y bordes redondeados, zebra/stripes, hover y columna **Productos** con filas `admin-vendido` idénticas a *Qué se vendió (hoy)*: imagen 48×48, nombre, unidades y monto en rosado, apiladas verticalmente. Productos agregados en cliente desde los pedidos del día (des-duplicados por nombre, sumando cantidad y subtotal). Orden por pills **Fecha / Pedidos / Monto / Productos**, con la misma UI de `Ordenar por:` de la otra sección.
+* **Panel visual:** tabla diaria integrada con el lenguaje visual del dashboard (fondo suave, header rosado, bordes redondeados).
 
 `main` siempre lleva el último avance del desarrollo.
 
