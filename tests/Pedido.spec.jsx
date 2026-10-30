@@ -120,6 +120,15 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     ).toBeInTheDocument();
   });
 
+  test("1d. 'Seguir agregando delicias' no lleva el '+' delante (copy unificado con el mini carrito)", () => {
+    renderPedido([{ ...selvaNegra, cantidad: 1 }]);
+
+    // Nombre EXACTO: con el "+" de antes este find fallaba
+    expect(
+      screen.getByRole("button", { name: "Seguir agregando delicias" })
+    ).toBeInTheDocument();
+  });
+
   test("2. La validación bloquea el envío y muestra los errores", async () => {
     global.fetch = vi.fn();
 

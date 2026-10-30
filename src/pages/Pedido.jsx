@@ -13,6 +13,10 @@ import {
   consumirCodigoBienvenida,
 } from "../service/BienvenidaService";
 import Swal from "sweetalert2";
+import {
+  confirmarQuitarProducto,
+  confirmarVaciarCarrito,
+} from "../utils/confirmacionesCarrito";
 import { toastAgregado } from "../utils/toastAgregado";
 import "../App.css";
 
@@ -389,20 +393,9 @@ const Pedido = () => {
                       className="pedido-carrito-quitar"
                       aria-label={`Quitar ${it.nombre}`}
                       onClick={() => {
-                        Swal.fire({
-                          title: "¿Quitar del carrito?",
-                          text: `¿Seguro que quieres eliminar ${it.nombre}?`,
-                          iconHtml: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d95386" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16h.01M12 14h.01"/></svg>',
-                          showCancelButton: true,
-                          confirmButtonColor: "#d95386",
-                          cancelButtonColor: "#b04e6f",
-                          confirmButtonText: "Sí, quitar",
-                          cancelButtonText: "Cancelar",
-                        }).then((result) => {
-                          if (result.isConfirmed) {
-                            quitarItem(it.id);
-                          }
-                        });
+                        confirmarQuitarProducto(it.nombre, () =>
+                          quitarItem(it.id)
+                        );
                       }}
                     >
                       ✕
@@ -417,30 +410,16 @@ const Pedido = () => {
                   data-testid="seguir-agregando"
                   onClick={() => setModalAbierto(true)}
                 >
-                  + Seguir agregando delicias
+                  Seguir agregando delicias
                 </button>
                 <button
                   type="button"
                   className="pedido-vaciar"
                   onClick={() => {
-                    Swal.fire({
-                      title: "Vaciar carrito",
-                      text: "¿Seguro que quieres eliminar todos los productos de tu pedido?",
-                      icon: "warning",
-                      showCancelButton: true,
-                      confirmButtonColor: "#d95386",
-                      cancelButtonColor: "#b04e6f",
-                      confirmButtonText: "Sí, vaciar",
-                      cancelButtonText: "Cancelar",
-                    }).then((result) => {
-                      if (result.isConfirmed) {
-                        limpiarCarrito();
-                        Swal.fire(
-                          "Carrito vacío",
-                          "Se eliminaron todos los productos.",
-                          "info"
-                        );
-                      }
+                    confirmarVaciarCarrito({
+                      onConfirm: limpiarCarrito,
+                      texto:
+                        "¿Seguro que quieres eliminar todos los productos de tu pedido?",
                     });
                   }}
                 >

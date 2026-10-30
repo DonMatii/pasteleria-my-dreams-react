@@ -688,23 +688,29 @@ header nav ul li a:hover {
   margin-bottom: 12px;
 }
 
+/* Seguir agregando: pill outline, el mismo lenguaje visual que usa
+   .boton-secundario en el mini carrito (antes era dashed y con radio chico,
+   un tercer estilo para la misma acción). */
 .pedido-seguir {
   display: inline-block;
   margin-top: 12px;
-  padding: 9px 16px;
-  background: #f7f2f6;
-  border: 1px dashed #e6c8d8;
-  border-radius: 10px;
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid #d95386;
+  border-radius: 50px;
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   color: #d95386;
-  font-size: 0.9rem;
-  transition: background 0.2s;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .pedido-seguir:hover {
-  background: #ffe9f3;
+  background: #d95386;
+  color: #ffffff;
 }
 
 .pedido-botones-acciones {
@@ -713,23 +719,30 @@ header nav ul li a:hover {
   margin-top: 14px;
 }
 
+/* Vaciar carrito: acción destructiva de BAJO peso visual. Antes era un pill
+   outline idéntico a "Seguir agregando", así que una acción irreversible se
+   veía igual que una de navegación (clic equivocado = consecuencia enorme).
+   Ahora es texto en tono rojizo: sigue siendo accesible, pero no compite con
+   el botón principal de envío. */
 .pedido-vaciar {
   flex: 1;
   margin-top: 12px;
-  padding: 9px 16px;
-  background: #fff;
-  border: 2px solid #d95386;
-  color: #d95386;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: #b8324e;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
-  border-radius: 10px;
+  font-size: 0.88rem;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
+  text-align: center;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .pedido-vaciar:hover {
-  background: #d95386;
-  color: white;
+  background: #fdecef;
+  color: #98283f;
 }
 
 /* Ventanita del catálogo: seguir agregando sin salir del checkout */
@@ -1397,24 +1410,27 @@ header nav ul li a:hover {
   background-color: #b04e6f;
 }
 
+/* Mismo tratamiento destructivo que en /pedido: texto rojizo sin borde, para
+   que no se confunda con "Seguir agregando delicias" (ambos eran pill
+   outline con borde 2px, radio 50px y peso 700). */
 .mini-carrito-vaciar {
-  background-color: white;
-  border: 2px solid #d95386;
-  color: #d95386;
-  font-size: 0.95rem;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #b8324e;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: 6px;
   cursor: pointer;
   padding: 10px 16px;
-  border-radius: 50px;
-  text-decoration: none;
-  transition: all 0.2s;
-  width: 100%;
-  font-family: 'Montserrat', sans-serif;
+  text-align: center;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .mini-carrito-vaciar:hover {
-  background-color: #d95386;
-  color: white;
+  background-color: #fdecef;
+  color: #98283f;
 }
 
 /* =========================================
