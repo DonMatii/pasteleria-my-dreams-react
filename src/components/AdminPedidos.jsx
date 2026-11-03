@@ -14,7 +14,7 @@ function AdminPedidos() {
   const [abierto, setAbierto] = useState(true);
   const [ordenPedidos, setOrdenPedidos] = useState({ campo: "fecha", dir: "desc" });
   const [pagina, setPagina] = useState(1);
-  const PEDIDOS_POR_PAGINA = 20;
+  const PEDIDOS_POR_PAGINA = 5;
 
   // Mismo orden y mismos codigos que valida PedidoService.ESTADOS_VALIDOS
   const ESTADOS = [
