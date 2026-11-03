@@ -985,8 +985,30 @@
   font-weight: 600;
 }
 
-/* Opción sobre la que pasa el mouse: color institucional en vez del azul del navegador */
-.admin-pedidos-estado-select option:hover {
+/* Opciones del desplegado: cada una con el color de su estado y letra más gruesa */
+.admin-pedidos-estado-select option[value="RECIBIDO"] {
+  background: #fdf3f7;
+  color: #a8446d;
+  font-weight: 600;
+}
+.admin-pedidos-estado-select option[value="EN_PREPARACION"] {
+  background: #fff4e5;
+  color: #8a5a10;
+  font-weight: 600;
+}
+.admin-pedidos-estado-select option[value="DESPACHADO"] {
+  background: #eaf3fb;
+  color: #2c6e9e;
+  font-weight: 600;
+}
+.admin-pedidos-estado-select option[value="ENTREGADO"] {
+  background: #eaf7ee;
+  color: #2f7a45;
+  font-weight: 600;
+}
+
+/* Opción seleccionada: color institucional en vez del azul del navegador */
+.admin-pedidos-estado-select option:checked {
   background: #d95386 !important;
   color: #fff !important;
   font-weight: 700;
