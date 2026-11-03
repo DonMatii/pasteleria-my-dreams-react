@@ -270,7 +270,7 @@ function AdminPedidos() {
                             if (estado) aplicarEstado(pedido, estado);
                           }}
                           disabled={guardandoId === pedido.id}
-                          className="admin-pedidos-estado-select"
+                          className={`admin-pedidos-estado-select admin-estado-${(pedido.estado || "").toLowerCase()}`}
                         >
                           {ESTADOS.map((estado) => (
                             <option key={estado.codigo} value={estado.codigo}>

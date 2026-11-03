@@ -937,6 +937,46 @@
   cursor: not-allowed;
 }
 
+/* Select cerrado: muestra el calor del estado actual para distinguirlo de un vistazo */
+.admin-pedidos-estado-select.admin-estado-recibido {
+  background: #fdf3f7;
+  color: #a8446d;
+  border-color: #a8446d;
+}
+.admin-pedidos-estado-select.admin-estado-en_preparacion {
+  background: #fff4e5;
+  color: #8a5a10;
+  border-color: #8a5a10;
+}
+.admin-pedidos-estado-select.admin-estado-despachado {
+  background: #eaf3fb;
+  color: #2c6e9e;
+  border-color: #2c6e9e;
+}
+.admin-pedidos-estado-select.admin-estado-entregado {
+  background: #eaf7ee;
+  color: #2f7a45;
+  border-color: #2f7a45;
+}
+
+/* Opciones del desplegado: cada una con el color de su estado */
+.admin-pedidos-estado-select option[value="RECIBIDO"] {
+  background: #fdf3f7;
+  color: #a8446d;
+}
+.admin-pedidos-estado-select option[value="EN_PREPARACION"] {
+  background: #fff4e5;
+  color: #8a5a10;
+}
+.admin-pedidos-estado-select option[value="DESPACHADO"] {
+  background: #eaf3fb;
+  color: #2c6e9e;
+}
+.admin-pedidos-estado-select option[value="ENTREGADO"] {
+  background: #eaf7ee;
+  color: #2f7a45;
+}
+
 @media (max-width: 760px) {
   .admin-pedidos-estado-fila { min-width: 0; }
 }
