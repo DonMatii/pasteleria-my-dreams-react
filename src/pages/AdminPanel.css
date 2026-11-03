@@ -813,7 +813,7 @@
   font-size: 0.8rem;
   padding: 8px;
   white-space: nowrap;
-  color: #5d405d;
+  color: #fff;
 }
 
 .admin-pedidos-tabla th:nth-child(1) { width: 12%; }   /* Fecha */
