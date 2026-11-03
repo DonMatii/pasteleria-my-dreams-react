@@ -64,22 +64,24 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     expect(screen.getAllByTestId("estado-actual")[1]).toHaveTextContent("Despachado");
   });
 
-  test("3. Ofrece los 4 estados como botones accionables por pedido", async () => {
+  test("3. Ofrece los 4 estados como opciones en un select por pedido", async () => {
     render(<AdminPedidos />);
 
     await screen.findByText("Daniela Soto");
-    // 4 estados en la primera fila (Daniela)
     const fila = screen.getByText("Daniela Soto").closest("tr");
     expect(fila).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /En preparación/i }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("button", { name: /Entregado/i }).length).toBeGreaterThan(0);
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    expect(select).toBeInTheDocument();
+    expect(select.querySelectorAll("option")).toHaveLength(4);
   });
 
   test("4. Al elegir un estado pide confirmación antes de aplicarlo", async () => {
     render(<AdminPedidos />);
 
     await screen.findByText("Daniela Soto");
-    fireEvent.click(screen.getAllByRole("button", { name: /Entregado/i })[0]);
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "ENTREGADO" } });
 
     await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(1));
     const confirmacion = Swal.fire.mock.calls[0][0];
@@ -93,7 +95,9 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     render(<AdminPedidos />);
 
     await screen.findByText("Daniela Soto");
-    fireEvent.click(screen.getAllByRole("button", { name: /Entregado/i })[0]);
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "ENTREGADO" } });
 
     await waitFor(() => {
       expect(cambiarEstadoPedido).toHaveBeenCalledWith(301, "ENTREGADO");
@@ -105,7 +109,9 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     render(<AdminPedidos />);
 
     await screen.findByText("Daniela Soto");
-    fireEvent.click(screen.getAllByRole("button", { name: /Entregado/i })[0]);
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "ENTREGADO" } });
 
     await waitFor(() => expect(Swal.fire).toHaveBeenCalled());
     expect(cambiarEstadoPedido).not.toHaveBeenCalled();
@@ -115,17 +121,19 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     render(<AdminPedidos />);
 
     await screen.findByText("Daniela Soto");
-    fireEvent.click(screen.getAllByRole("button", { name: /Entregado/i })[0]);
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "ENTREGADO" } });
 
     await waitFor(() => expect(obtenerPedidos).toHaveBeenCalledTimes(2));
   });
 
-  test("8. Los botones anuncian de qué pedido son (accesibilidad)", async () => {
+  test("8. El select anuncia de qué pedido es (accesibilidad)", async () => {
     render(<AdminPedidos />);
 
     await screen.findByText("Daniela Soto");
-    const botones = screen.getAllByRole("button", { name: /Entregado/i });
-    expect(botones[0]).toHaveAccessibleName(/Daniela Soto/i);
+    const grupo = screen.getByRole("group", { name: /Estado del pedido de Daniela Soto/i });
+    expect(grupo.querySelector("select")).toBeInTheDocument();
   });
 
   test("9. Si el backend falla, muestra el aviso en vez de la tabla", async () => {

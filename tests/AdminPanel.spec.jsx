@@ -178,6 +178,14 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
         { fecha: "2026-10-15", pedidos: 0, monto: 0 },
       ],
     });
+    // Un pedido del día permite ver la fila con foto dentro de la tarjeta
+    PedidosService.obtenerPedidos.mockResolvedValue([
+      {
+        id: 1,
+        fecha: "2026-10-21T12:00:00.000Z",
+        productos: [{ nombre: "Torta Chocolate", cantidad: 2, subtotal: 30000 }],
+      },
+    ]);
 
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
@@ -188,11 +196,22 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     const bloquePedidos = screen.getByText(/Pedidos hoy/i).parentElement;
     expect(bloquePedidos).toHaveTextContent("2");
 
-    // La ventana es una tabla propia con cabecera más los 7 días
+    // La ventana es una lista de tarjetas por día (ya no una tabla)
     await screen.findByRole("heading", { name: /últimos 7 días/i });
-    const tabla = screen.getByRole("table", { name: /últimos 7 días/i });
-    expect(within(tabla).getAllByRole("row")).toHaveLength(8);
-    expect(within(tabla).getByText("21-10-2026")).toBeInTheDocument();
+    const lista = screen.getByTestId("lista-dias");
+    expect(within(lista).getAllByRole("article")).toHaveLength(7);
+    expect(within(lista).getByText("21-10-2026")).toBeInTheDocument();
+
+    // Los 6 días sin ventas quedan como fila tenue, sin celdas vacías
+    expect(within(lista).getAllByText("Sin ventas registradas")).toHaveLength(6);
+
+    // El día con ventas muestra sus productos como fila con foto
+    const fila = within(lista).getByText("Torta Chocolate").closest("li");
+    expect(within(fila).getByText("2 unidades")).toBeInTheDocument();
+    expect(within(fila).getByText("$30.000")).toBeInTheDocument();
+
+    // La sección ya no se representa como tabla
+    expect(screen.queryByRole("table", { name: /últimos 7 días/i })).not.toBeInTheDocument();
   });
 
   it("7. No muestra el estado de los microservicios en el panel", async () => {

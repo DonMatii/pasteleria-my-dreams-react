@@ -27,6 +27,41 @@ function AdminPedidos() {
   const etiquetaDe = (codigo) =>
     ESTADOS.find((estado) => estado.codigo === codigo)?.etiqueta || codigo;
 
+  // Normaliza un nombre de producto (minúsculas, sin tildes ni espacios)
+  // para buscarle la imagen en /img/. Si no hay coincidencia, usa alfajor.jpg.
+  const normalizar = (s) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+
+  const IMAGENES = [
+    "alfajor.jpg", "brownieChocolateNuez.jpg", "carlotaMango.jpg",
+    "cupcakesVariedades.jpg", "donasGlaseadas.jpg", "kutchenDeManzana.jpg",
+    "logoPasteleria.png", "miniTartaletas.jpg", "muffinsPlatanoArandano.jpg",
+    "pieDeLimon.jpg", "pieMaracuya.jpg", "quequeArandano.jpg",
+    "quequeChoc.jpg", "quequeMarmoladoVainilla.jpg", "quequePlatano.jpg",
+    "quequeVainilla.jpg", "rollosDeCanela.jpg", "tartaletaFrutas.jpg",
+    "tartaYogurth.jpg", "torta3Leches.jpg", "tortaCremaPina.jpg",
+    "tortaManjarLucuma.jpg", "tortaManjarNuez.jpg", "tortaMerengueFrambueza.jpg",
+    "tortaMoka.jpg", "tortaSelvaNegra.jpg",
+  ];
+
+  // Alias por si el nombre del pedido no calza exactamente con el archivo
+  const ALIAS = {
+    "tortadechocolate": "tortaMoka.jpg",
+    "tartadeframbuesa": "tartaletaFrutas.jpg",
+    "tortadeyogur": "tartaYogurth.jpg",
+    "quequemarmolado": "quequeMarmoladoVainilla.jpg",
+  };
+
+  const imagenDe = (nombre) => {
+    const key = normalizar(nombre);
+    const archivo = ALIAS[key] || IMAGENES.find((f) => normalizar(f.replace(/\.(jpg|png)$/, "")) === key);
+    return archivo ? `/img/${archivo}` : "/img/alfajor.jpg";
+  };
+
   const cargar = useCallback(async () => {
     setCargando(true);
     setPedidos(await obtenerPedidos());
@@ -112,7 +147,30 @@ function AdminPedidos() {
     <section className="admin-pedidos" aria-label="Pedidos recibidos">
       <div className="admin-seccion-cabecera">
         <h3 className="admin-pedidos-titulo">🎂 Pedidos recibidos</h3>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="admin-orden" role="group" aria-label="Ordenar pedidos recibidos">
+          <span className="admin-orden-etiqueta">Ordenar por:</span>
+          {[
+            { campo: "fecha", etiqueta: "Fecha" },
+            { campo: "cliente", etiqueta: "Cliente" },
+            { campo: "total", etiqueta: "Monto" },
+            { campo: "estado", etiqueta: "Estado" },
+          ].map((c) => (
+            <button
+              key={c.campo}
+              type="button"
+              className={`admin-orden-btn${
+                ordenPedidos.campo === c.campo ? " admin-orden-activo" : ""
+              }`}
+              aria-pressed={ordenPedidos.campo === c.campo}
+              onClick={() => cambiarOrden(c.campo)}
+            >
+              {c.etiqueta}
+              {ordenPedidos.campo === c.campo &&
+                (ordenPedidos.dir === "desc" ? " ↓" : " ↑")}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
           <button
             type="button"
             className="admin-btn-pill"
@@ -145,28 +203,12 @@ function AdminPedidos() {
             <table className="admin-tabla admin-pedidos-tabla">
               <thead>
                 <tr>
-                  <th scope="col">
-                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("fecha")}>
-                      Fecha {ordenPedidos.campo === "fecha" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
-                    </button>
-                  </th>
-                  <th scope="col">
-                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("cliente")}>
-                      Cliente {ordenPedidos.campo === "cliente" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
-                    </button>
-                  </th>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Cliente</th>
                   <th scope="col">Código</th>
                   <th scope="col">Productos</th>
-                  <th scope="col">
-                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("total")}>
-                      Total {ordenPedidos.campo === "total" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
-                    </button>
-                  </th>
-                  <th scope="col">
-                    <button type="button" className="admin-th-btn" onClick={() => cambiarOrden("estado")}>
-                      Estado {ordenPedidos.campo === "estado" ? (ordenPedidos.dir === "asc" ? " ↑" : " ↓") : ""}
-                    </button>
-                  </th>
+                  <th scope="col">Total</th>
+                  <th scope="col">Estado</th>
                   <th scope="col">Cambiar estado</th>
                 </tr>
               </thead>
@@ -175,18 +217,37 @@ function AdminPedidos() {
                   <tr key={pedido.id}>
                     <td className="admin-pedidos-fecha">{formatearFecha(pedido.fecha)}</td>
                     <td>
-                      <span className="admin-pedidos-cliente">{pedido.cliente}</span>
-                      <span className="admin-pedidos-email">{pedido.email}</span>
+                      <span className="admin-pedidos-cliente" title={pedido.cliente}>
+                        {pedido.cliente}
+                      </span>
+                      <span className="admin-pedidos-email" title={pedido.email}>
+                        {pedido.email}
+                      </span>
                     </td>
-                    <td className="admin-pedidos-fecha">
-                      <code>{pedido.codigoConsulta || "—"}</code>
+                    <td className="admin-pedidos-codigo">
+                      <code title={pedido.codigoConsulta || ""}>
+                        {pedido.codigoConsulta || "—"}
+                      </code>
                     </td>
-                    <td className="admin-pedidos-productos">
-                      {(pedido.productos || []).map((producto) => (
-                        <span key={producto.nombre} className="admin-pedidos-producto">
-                          {producto.nombre} ×{producto.cantidad}
-                        </span>
-                      ))}
+                    <td>
+                      <div className="admin-pedidos-productos">
+                        {(pedido.productos || []).map((producto) => {
+                          const src = imagenDe(producto.nombre);
+                          return (
+                            <span key={producto.nombre} className="admin-pedidos-producto" title={producto.nombre}>
+                              <img
+                                src={src}
+                                alt=""
+                                className="admin-pedidos-img-chip"
+                                loading="lazy"
+                                decoding="async"
+                                onError={(e) => { e.target.src = "/img/alfajor.jpg"; }}
+                              />
+                              {producto.nombre} ×{producto.cantidad}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </td>
                     <td className="admin-pedidos-total">
                       ${(Number(pedido.total) || 0).toLocaleString("es-CL")}
@@ -200,27 +261,23 @@ function AdminPedidos() {
                       </span>
                     </td>
                     <td>
-                      <div className="admin-pedidos-controles" role="group"
-                        aria-label={`Estados del pedido de ${pedido.cliente}`}>
-                        {ESTADOS.map((estado) => {
-                          const esActual = estado.codigo === pedido.estado;
-                          return (
-                            <button
-                              key={estado.codigo}
-                              type="button"
-                              className={
-                                "admin-pedidos-opcion" +
-                                (esActual ? " admin-pedidos-opcion-actual" : "")
-                              }
-                              aria-label={`Marcar el pedido de ${pedido.cliente} como ${estado.etiqueta}`}
-                              aria-current={esActual ? "true" : undefined}
-                              disabled={esActual || guardandoId === pedido.id}
-                              onClick={() => aplicarEstado(pedido, estado)}
-                            >
+                      <div className="admin-pedidos-estado-fila" role="group"
+                        aria-label={`Estado del pedido de ${pedido.cliente}`}>
+                        <select
+                          value={pedido.estado}
+                          onChange={(e) => {
+                            const estado = ESTADOS.find(es => es.codigo === e.target.value);
+                            if (estado) aplicarEstado(pedido, estado);
+                          }}
+                          disabled={guardandoId === pedido.id}
+                          className="admin-pedidos-estado-select"
+                        >
+                          {ESTADOS.map((estado) => (
+                            <option key={estado.codigo} value={estado.codigo}>
                               {estado.etiqueta}
-                            </button>
-                          );
-                        })}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </td>
                   </tr>

@@ -17,7 +17,7 @@
 
 .admin-panel-card {
   width: 100%;
-  max-width: 850px;
+  max-width: 1200px;
 }
 
 /*  TÍTULOS  */
@@ -163,43 +163,80 @@
   padding: 14px 16px;
 }
 
-/* Mejora visual para la tabla de 7 días */
-.admin-diario .admin-tabla {
+/* Ventas de los últimos 7 días: tarjetas por día con sus productos */
+.admin-diario-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-dia {
   background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
   border: 1px solid #f0d7e3;
-  box-shadow: 0 4px 14px rgba(217, 83, 134, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 14px rgba(217, 83, 134, 0.06);
 }
 
-.admin-diario .admin-tabla th {
-  padding: 12px 14px;
-  font-size: 0.85rem;
-  background-color: #d95386;
-  color: #fff;
+/* Día sin ventas: tarjeta tenue, sin montos ni columnas vacías */
+.admin-dia-vacio {
+  background: #fdf7fb;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.admin-dia-cabecera {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #fce4ec;
+}
+
+.admin-dia-vacio .admin-dia-cabecera {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.admin-dia-fecha {
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
-  letter-spacing: 0.2px;
-}
-
-.admin-diario .admin-tabla td {
-  padding: 12px 14px;
-  font-size: 0.85rem;
-  text-align: center;
-  color: #5d405d;
-}
-
-.admin-diario .admin-tabla td:first-child {
-  text-align: left;
-  font-weight: 600;
+  font-size: 0.9rem;
   color: #4a2f4a;
 }
 
-.admin-diario .admin-tabla tbody tr:nth-child(even) {
-  background: #fdf7fb;
+.admin-dia-pedidos {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.82rem;
+  color: #7a6478;
 }
 
-.admin-diario .admin-tabla tbody tr:hover {
-  background: #fff0f6;
+.admin-dia-monto {
+  margin-left: auto;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #d95386;
+}
+
+.admin-dia-nota {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.84rem;
+  color: #a98fa0;
+}
+
+/* Los productos del día heredan el estilo de fila de "Qué se vendió" */
+.admin-dia .admin-vendidos-lista {
+  gap: 6px;
+}
+
+.admin-dia .admin-vendido {
+  background: #fdf7fb;
+  border-color: #fce4ec;
 }
 
 .admin-diario-titulo {
@@ -755,52 +792,119 @@
   font-size: 0.95rem;
 }
 
-.admin-pedidos-tabla td {
-  vertical-align: top;
+/* Tabla de pedidos: ancho fijo al 100% del contenedor, nunca hace scroll horizontal.
+   Las columnas con width fijo respetan su medida; Cliente y Productos absorben
+   el espacio restante. El texto largo se envuelve dentro de su celda. */
+.admin-pedidos-tabla {
+  table-layout: fixed;
+  width: 100%;
 }
 
+.admin-pedidos-tabla th,
+.admin-pedidos-tabla td {
+  padding: 12px 8px;
+  text-align: left;
+  vertical-align: top;
+  overflow: visible;
+  border-bottom: 1px solid #f3d7e3;
+}
+
+.admin-pedidos-tabla th {
+  font-size: 0.8rem;
+  padding: 8px;
+  white-space: nowrap;
+  color: #5d405d;
+}
+
+.admin-pedidos-tabla th:nth-child(1) { width: 12%; }   /* Fecha */
+.admin-pedidos-tabla th:nth-child(2) { width: 17%; }   /* Cliente */
+.admin-pedidos-tabla th:nth-child(3) { width: 11%; }   /* Código */
+.admin-pedidos-tabla th:nth-child(4) { width: 22%; }   /* Productos */
+.admin-pedidos-tabla th:nth-child(5) { width: 9%; }    /* Total */
+.admin-pedidos-tabla th:nth-child(6) { width: 12%; }   /* Estado */
+.admin-pedidos-tabla th:nth-child(7) { width: 17%; }   /* Cambiar estado */
+
+/* Fecha: una línea, sin envolver */
 .admin-pedidos-fecha {
   white-space: nowrap;
   color: #7d6a7d;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
+/* Código de pedido: se envuelve sin ocupar mucho */
+.admin-pedidos-codigo code {
+  font-size: 0.78rem;
+  color: #7d6a7d;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+/* Nombre y email: envuelven en varias líneas si es necesario */
 .admin-pedidos-cliente {
   display: block;
   font-weight: 700;
   color: #4a2f4a;
+  font-size: 0.85rem;
+  white-space: normal;
+  line-height: 1.3;
 }
 
 .admin-pedidos-email {
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: #7d6a7d;
-  word-break: break-all;
+  white-space: normal;
+  line-height: 1.3;
 }
 
+/* Productos como chips: foto de 24x24px, texto envuelve, separación 6px */
 .admin-pedidos-productos {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 0.88rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.85rem;
   color: #5d405d;
+}
+
+.admin-pedidos-producto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fdf2f7;
+  border: 1px solid #f6e0ec;
+  border-radius: 50px;
+  padding: 2px 7px;
+  font-size: 0.8rem;
+  white-space: normal;
+}
+
+.admin-pedidos-img-chip {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .admin-pedidos-total {
   font-weight: 700;
   white-space: nowrap;
+  font-size: 0.88rem;
 }
 
-/* Badge del estado actual: un tono por estado para leerlo de un vistazo */
+/* Badge del estado actual */
 .admin-pedidos-estado {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 50px;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
   white-space: nowrap;
   background: #f7f2f6;
   color: #5d405d;
+  max-width: 100%;
 }
 
 .admin-estado-recibido { background: #fdf3f7; color: #a8446d; }
@@ -808,43 +912,31 @@
 .admin-estado-despachado { background: #eaf3fb; color: #2c6e9e; }
 .admin-estado-entregado { background: #eaf7ee; color: #2f7a45; }
 
-.admin-pedidos-controles {
+/* Selector compacto de estado: reemplaza los 4 botones por un solo desplegable */
+.admin-pedidos-estado-fila {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: 220px;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 }
 
-.admin-pedidos-opcion {
-  padding: 6px 10px;
-  background: #fff;
-  border: 1px solid #e6c8d8;
-  border-radius: 8px;
-  color: #b04e6f;
+.admin-pedidos-estado-select {
   font-family: 'Montserrat', sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border: 1px solid #e6c8d8;
+  border-radius: 6px;
+  background: #fff;
+  color: #5d405d;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  min-width: 110px;
 }
 
-.admin-pedidos-opcion:hover:not(:disabled) {
-  background: #d95386;
-  border-color: #d95386;
-  color: #fff;
-}
-
-/* El estado actual queda resaltado y no se vuelve a elegir: pulsarlo de nuevo
-   no cambiaría nada y solo dispararía un correo repetido al cliente */
-.admin-pedidos-opcion-actual,
-.admin-pedidos-opcion:disabled {
-  background: #d95386;
-  border-color: #d95386;
-  color: #fff;
-  cursor: default;
-  opacity: 1;
+.admin-pedidos-estado-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 760px) {
-  .admin-pedidos-controles { min-width: 0; }
+  .admin-pedidos-estado-fila { min-width: 0; }
 }

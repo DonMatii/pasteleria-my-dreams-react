@@ -577,7 +577,7 @@ const cargarDatos = () => {
                 ))}
             </div>
 
-            {/* Ventas de los últimos 7 días: ordenables por columna y plegables */}
+            {/* Ventas de los últimos 7 días: tarjetas por día, ordenables y plegables */}
             {Array.isArray(stats?.ventasDiarias) && stats.ventasDiarias.length > 0 && (
               <div className="admin-diario">
                 <div className="admin-seccion-cabecera">
@@ -617,59 +617,61 @@ const cargarDatos = () => {
                       </button>
                     ))}
                   </div>
-                  <table className="admin-tabla" aria-label="Ventas de los últimos 7 días">
-                    <thead>
-                      <tr>
-                        {[
-                          { campo: "fecha", etiqueta: "Fecha" },
-                          { campo: "pedidos", etiqueta: "Pedidos" },
-                          { campo: "monto", etiqueta: "Ventas" },
-                          { campo: "productos", etiqueta: "Productos" },
-                        ].map((c) => (
-                          <th key={c.campo} scope="col">
-                            {c.etiqueta}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {diarioOrdenado.map((venta) => (
-                        <tr key={venta.fecha}>
-                          <td>{formatearFecha(venta.fecha)}</td>
-                          <td>{venta.pedidos}</td>
-                          <td>${Number(venta.monto ?? 0).toLocaleString("es-CL")}</td>
-                          <td>
-                            {Array.isArray(venta.productos) && venta.productos.length > 0 ? (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "stretch" }}>
-                                {venta.productos.slice(0, 4).map((p) => (
-                                  <div key={p.nombre} className="admin-vendido">
+                  <div className="admin-diario-lista" data-testid="lista-dias">
+                    {diarioOrdenado.map((venta) => {
+                      const sinVentas = !(venta.pedidos > 0 || venta.monto > 0);
+                      return (
+                        <article
+                          key={venta.fecha}
+                          className={`admin-dia${sinVentas ? " admin-dia-vacio" : ""}`}
+                        >
+                          <div className="admin-dia-cabecera">
+                            <span className="admin-dia-fecha">{formatearFecha(venta.fecha)}</span>
+                            {sinVentas ? (
+                              <span className="admin-dia-nota">Sin ventas registradas</span>
+                            ) : (
+                              <>
+                                <span className="admin-dia-pedidos">
+                                  {venta.pedidos} {venta.pedidos === 1 ? "pedido" : "pedidos"}
+                                </span>
+                                <span className="admin-dia-monto">
+                                  ${formatearMoneda(venta.monto)}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          {!sinVentas &&
+                            (venta.productos.length > 0 ? (
+                              <ul className="admin-vendidos-lista">
+                                {venta.productos.map((p) => (
+                                  <li key={p.nombre} className="admin-vendido">
                                     <img
                                       src={`/img/${imagenDe(p.nombre)}`}
                                       alt={p.nombre}
                                       className="admin-vendido-img"
                                       loading="lazy"
                                       decoding="async"
-                                      onError={(e) => { e.target.src = "/img/alfajor.jpg"; }}
+                                      onError={(e) => {
+                                        e.target.src = "/img/alfajor.jpg";
+                                      }}
                                     />
                                     <span className="admin-vendido-nombre">{p.nombre}</span>
-                                    <span className="admin-vendido-unidades">{p.cantidad} {p.cantidad === 1 ? "unidad" : "unidades"}</span>
-                                    <span className="admin-vendido-monto">${formatearMoneda(p.monto)}</span>
-                                  </div>
+                                    <span className="admin-vendido-unidades">
+                                      {p.cantidad} {p.cantidad === 1 ? "unidad" : "unidades"}
+                                    </span>
+                                    <span className="admin-vendido-monto">
+                                      ${formatearMoneda(p.monto)}
+                                    </span>
+                                  </li>
                                 ))}
-                                {venta.productos.length > 4 && (
-                                  <div style={{ fontSize: "0.82rem", alignSelf: "center", color: "#7a6478" }}>
-                                    +{venta.productos.length - 4} más
-                                  </div>
-                                )}
-                              </div>
+                              </ul>
                             ) : (
-                              <span style={{ color: "#c9a8b8" }}>—</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                              <p className="admin-dia-nota">Sin detalle de productos</p>
+                            ))}
+                        </article>
+                      );
+                    })}
+                  </div>
                   </>
                 )}
               </div>
