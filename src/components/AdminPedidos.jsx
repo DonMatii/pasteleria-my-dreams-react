@@ -146,7 +146,7 @@ function AdminPedidos() {
   return (
     <section className="admin-pedidos" aria-label="Pedidos recibidos">
       <div className="admin-seccion-cabecera">
-        <h3 className="admin-pedidos-titulo">🎂 Pedidos recibidos</h3>
+        <h3 className="admin-pedidos-titulo">📁 Pedidos recibidos</h3>
         <div className="admin-orden" role="group" aria-label="Ordenar pedidos recibidos">
           <span className="admin-orden-etiqueta">Ordenar por:</span>
           {[
@@ -181,12 +181,12 @@ function AdminPedidos() {
           </button>
           <button
             type="button"
-            className="admin-pliegue-btn"
-            aria-label="Pedidos recibidos"
+            className="admin-btn-cerrar"
+            aria-label="Cerrar Pedidos recibidos"
             aria-expanded={abierto}
             onClick={() => setAbierto(v => !v)}
           >
-            {abierto ? "Cerrar" : "Abrir"}
+            {abierto ? "✕ Cerrar" : "Abrir"}
           </button>
         </div>
       </div>
@@ -285,12 +285,39 @@ function AdminPedidos() {
               </tbody>
             </table>
             {totalPaginas > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', padding: '12px' }}>
-                <button className="admin-btn-pill" disabled={pagina === 1} onClick={() => setPagina(p => Math.max(1, p - 1))}>Anterior</button>
-                <span style={{ alignSelf: 'center', fontSize: '0.85rem', color: '#5d405d' }}>
-                  Página {pagina} de {totalPaginas} — {pedidosOrdenados.length} pedidos
+              <div className="admin-paginacion">
+                <span className="admin-paginacion-texto">
+                  Mostrando {pedidosPaginados.length} de {pedidosOrdenados.length} pedidos
                 </span>
-                <button className="admin-btn-pill" disabled={pagina === totalPaginas} onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}>Siguiente</button>
+                <button
+                  className={`admin-pagina-btn${pagina === 1 ? " admin-pagina-activa" : ""}`}
+                  disabled={pagina === 1}
+                  onClick={() => setPagina(p => Math.max(1, p - 1))}
+                  aria-label="Página anterior"
+                >
+                  〈 Anterior
+                </button>
+                {[...Array(totalPaginas)].map((_, i) => {
+                  const num = i + 1;
+                  return (
+                    <button
+                      key={num}
+                      className={`admin-pagina-btn${pagina === num ? " admin-pagina-activa" : ""}`}
+                      onClick={() => setPagina(num)}
+                      aria-label={`Página ${num}`}
+                    >
+                      {num}
+                    </button>
+                  );
+                })}
+                <button
+                  className={`admin-pagina-btn${pagina === totalPaginas ? " admin-pagina-activa" : ""}`}
+                  disabled={pagina === totalPaginas}
+                  onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                  aria-label="Página siguiente"
+                >
+                  Siguiente 〉
+                </button>
               </div>
             )}
           </div>

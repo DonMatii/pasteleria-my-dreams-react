@@ -940,3 +940,76 @@
 @media (max-width: 760px) {
   .admin-pedidos-estado-fila { min-width: 0; }
 }
+
+/* Botón Cerrar con X, estilo de cerrar vista */
+.admin-btn-cerrar {
+  background: #fff;
+  border: 1px solid #d95386;
+  border-radius: 50px;
+  color: #d95386;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-btn-cerrar:hover {
+  background: #d95386;
+  color: #fff;
+}
+
+/* Paginación: "Mostrando X de Y", números de página, Anterior/Siguiente */
+.admin-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.admin-paginacion-texto {
+  font-size: 0.85rem;
+  color: #5d405d;
+  white-space: nowrap;
+}
+
+.admin-pagina-btn {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid #e6c8d8;
+  border-radius: 50px;
+  background: #fff;
+  color: #5d405d;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.admin-pagina-btn:hover:not(:disabled) {
+  background: #fdf2f7;
+  border-color: #d95386;
+  color: #d95386;
+}
+
+.admin-pagina-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-pagina-activa {
+  background: #d95386;
+  border-color: #d95386;
+  color: #fff;
+}
+
+.admin-pagina-activa:hover {
+  background: #c03568;
+}
