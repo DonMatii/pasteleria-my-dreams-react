@@ -985,6 +985,13 @@
   font-weight: 600;
 }
 
+/* Opción seleccionada en el desplegado abierto: color institucional en vez del azul del navegador */
+.admin-pedidos-estado-select option:checked {
+  background: #d95386 !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
   .admin-pedidos-estado-fila { min-width: 0; }
 }
