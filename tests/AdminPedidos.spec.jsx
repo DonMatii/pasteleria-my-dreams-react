@@ -142,4 +142,36 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
 
     expect(await screen.findByTestId("pedidos-vacio")).toBeInTheDocument();
   });
+
+  // El título del toast es un <h2> y index.css le impone "Great Vibes" a todo
+  // h1/h2, con lo que el aviso queda en letra manuscrita y diminuto. La clase
+  // customClass es el gancho que permite a App.css devolverle Montserrat.
+  test("10. El aviso de cambio de estado lleva la clase que fija su tipografía", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "ENTREGADO" } });
+
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(2));
+    const aviso = Swal.fire.mock.calls[1][0];
+    expect(aviso.toast).toBe(true);
+    expect(aviso.customClass && aviso.customClass.popup).toBe("toast-estado");
+  });
+
+  // El estado se distingue de un vistazo por el color, igual que en la tabla:
+  // el título lleva la clase del estado para tomar su paleta.
+  test("11. El aviso lleva la clase del estado para pintar el título con su color", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "ENTREGADO" } });
+
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(2));
+    const aviso = Swal.fire.mock.calls[1][0];
+    expect(aviso.customClass && aviso.customClass.title).toBe("toast-estado--entregado");
+  });
 });

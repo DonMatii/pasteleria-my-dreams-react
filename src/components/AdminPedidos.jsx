@@ -134,6 +134,14 @@ function AdminPedidos() {
           title: `Pedido de ${pedido.cliente}: ${estado.etiqueta}`,
           showConfirmButton: false,
           timer: 3000,
+          // Le da su propia clase al popup: sin ella el <h2> del toast hereda
+          // la fuente manuscrita global y el aviso queda diminuto e ilegible.
+          // La clase del estado va en el TÍTULO para teñirlo con su color sin
+          // arrastrar el fondo pastel que .admin-estado-* fija a las insignias.
+          customClass: {
+            popup: "toast-estado",
+            title: `toast-estado--${estado.codigo.toLowerCase()}`,
+          },
         });
       } else {
         Swal.fire("Error", "No se pudo cambiar el estado. Verifica tu conexión o sesión.", "error");

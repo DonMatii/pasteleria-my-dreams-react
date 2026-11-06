@@ -1032,6 +1032,29 @@ header nav ul li a:hover {
   border-color: rgba(217, 83, 134, 0.3) !important;
 }
 
+/* Toast "cambio de estado del pedido" (AdminPedidos). El título es un <h2> y
+   index.css aplica "Great Vibes" a todo h1/h2, así que sin esta regla el aviso
+   sale en letra manuscrita, cuya x-height tan baja lo hace verse diminuto.
+   Aquí se devuelve Montserrat en un cuerpo mayor y en negrita, que es lo que
+   sí se lee de un vistazo arriba de la pantalla. El rosa lo hereda de
+   .swal2-popup .swal2-title. */
+.toast-estado .swal2-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.05rem !important;
+  font-weight: 700;
+}
+
+/* Color del estado en el título del toast, para distinguirlo de un vistazo
+   igual que en la tabla. Es la MISMA paleta que las insignias de la columna
+   Estado (AdminPanel.css, .admin-estado-*); se repite acá porque esas reglas
+   fijan también un fondo pastel que rompería la tarjeta blanca del toast, y
+   porque .swal2-popup .swal2-title (App.css) fija #d95386 con especificidad
+   (0,2,0): hace falta llegar a (0,3,0) para pisarlo sin !important. */
+.toast-estado .swal2-title.toast-estado--recibido { color: #a8446d; }
+.toast-estado .swal2-title.toast-estado--en_preparacion { color: #8a5a10; }
+.toast-estado .swal2-title.toast-estado--despachado { color: #2c6e9e; }
+.toast-estado .swal2-title.toast-estado--entregado { color: #2f7a45; }
+
 /* =========================================
    SELECTOR DE CANTIDAD EN MODAL (SweetAlert2)
    ========================================= */
