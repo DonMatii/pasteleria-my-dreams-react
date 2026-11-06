@@ -14,6 +14,8 @@ function AdminPedidos() {
   const [abierto, setAbierto] = useState(true);
   const [ordenPedidos, setOrdenPedidos] = useState({ campo: "fecha", dir: "desc" });
   const [pagina, setPagina] = useState(1);
+  // "" = sin filtro (Todos los estados)
+  const [filtroEstado, setFiltroEstado] = useState("");
   const PEDIDOS_POR_PAGINA = 5;
 
   // Mismo orden y mismos codigos que valida PedidoService.ESTADOS_VALIDOS
@@ -91,17 +93,29 @@ function AdminPedidos() {
     return arr;
   }, [pedidos, ordenPedidos]);
 
-  const totalPaginas = Math.max(1, Math.ceil(pedidosOrdenados.length / PEDIDOS_POR_PAGINA));
+  const pedidosFiltrados = useMemo(() => {
+    if (!filtroEstado) return pedidosOrdenados;
+    return pedidosOrdenados.filter((pedido) => pedido.estado === filtroEstado);
+  }, [pedidosOrdenados, filtroEstado]);
+
+  const totalPaginas = Math.max(1, Math.ceil(pedidosFiltrados.length / PEDIDOS_POR_PAGINA));
   const pedidosPaginados = useMemo(() => {
     const inicio = (pagina - 1) * PEDIDOS_POR_PAGINA;
-    return pedidosOrdenados.slice(inicio, inicio + PEDIDOS_POR_PAGINA);
-  }, [pedidosOrdenados, pagina]);
+    return pedidosFiltrados.slice(inicio, inicio + PEDIDOS_POR_PAGINA);
+  }, [pedidosFiltrados, pagina]);
 
   const cambiarOrden = (campo) => {
     setOrdenPedidos(prev => ({
       campo,
       dir: prev.campo === campo && prev.dir === "desc" ? "asc" : "desc"
     }));
+    setPagina(1);
+  };
+
+  // Filtrar puede reducir la lista a menos paginas de las que hay activas:
+  // sin volver al inicio la pagina 2 quedaria fuera de rango y la tabla en blanco
+  const cambiarFiltro = (valor) => {
+    setFiltroEstado(valor);
     setPagina(1);
   };
 
@@ -178,6 +192,24 @@ function AdminPedidos() {
             </button>
           ))}
         </div>
+        <div className="admin-filtro-estado">
+          <label className="admin-orden-etiqueta" htmlFor="filtro-estado-pedidos">
+            Filtrar por estado:
+          </label>
+          <select
+            id="filtro-estado-pedidos"
+            className={`admin-filtro-select${filtroEstado ? ` admin-estado-${filtroEstado.toLowerCase()}` : ""}`}
+            value={filtroEstado}
+            onChange={(e) => cambiarFiltro(e.target.value)}
+          >
+            <option value="">Todos los estados</option>
+            {ESTADOS.map((estado) => (
+              <option key={estado.codigo} value={estado.codigo}>
+                {estado.etiqueta}
+              </option>
+            ))}
+          </select>
+        </div>
         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
           <button
             type="button"
@@ -205,6 +237,12 @@ function AdminPedidos() {
         ) : pedidos.length === 0 ? (
           <p className="admin-pedidos-vacio" data-testid="pedidos-vacio">
             Todavía no hay pedidos registrados.
+          </p>
+        ) : pedidosFiltrados.length === 0 ? (
+          // Los pedidos existen, solo que ninguno en el estado elegido:
+          // decir "no hay pedidos" aca seria mentirle a la administradora
+          <p className="admin-pedidos-vacio" data-testid="pedidos-filtro-vacio">
+            Ningún pedido en estado "{etiquetaDe(filtroEstado)}".
           </p>
         ) : (
           <div className="admin-tabla-container">
@@ -292,11 +330,15 @@ function AdminPedidos() {
                 ))}
               </tbody>
             </table>
-            {totalPaginas > 1 && (
+            {(totalPaginas > 1 || filtroEstado) && (
               <div className="admin-paginacion">
                 <span className="admin-paginacion-texto">
-                  Mostrando {pedidosPaginados.length} de {pedidosOrdenados.length} pedidos
+                  Mostrando {pedidosPaginados.length} de {pedidosFiltrados.length} pedidos
+                  {filtroEstado &&
+                    ` · ${etiquetaDe(filtroEstado)} (${pedidos.length} en total)`}
                 </span>
+                {totalPaginas > 1 && (
+                <>
                 <button
                   className={`admin-pagina-btn${pagina === 1 ? " admin-pagina-activa" : ""}`}
                   disabled={pagina === 1}
@@ -326,6 +368,8 @@ function AdminPedidos() {
                 >
                   Siguiente 〉
                 </button>
+                </>
+                )}
               </div>
             )}
           </div>

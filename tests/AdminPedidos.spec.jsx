@@ -174,4 +174,82 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     const aviso = Swal.fire.mock.calls[1][0];
     expect(aviso.customClass && aviso.customClass.title).toBe("toast-estado--entregado");
   });
+
+  // Filtro por estado: la administradora tiene decenas de pedidos y necesita
+  // ver solo los que estan en un estado (p. ej. los RECIBIDO por atender).
+
+  test("12. El filtro ofrece Todos los estados y los 4 estados", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    const filtro = screen.getByLabelText(/filtrar por estado/i);
+    expect(filtro).toBeInTheDocument();
+    expect(filtro.querySelectorAll("option")).toHaveLength(5);
+    expect(filtro.options[0].textContent).toBe("Todos los estados");
+    // Por defecto no filtra nada: se ve la lista completa
+    expect(screen.getByText("Raul Pino")).toBeInTheDocument();
+  });
+
+  test("13. Filtrar por estado muestra solo los pedidos de ese estado", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    fireEvent.change(screen.getByLabelText(/filtrar por estado/i), {
+      target: { value: "DESPACHADO" },
+    });
+
+    expect(screen.getByText("Raul Pino")).toBeInTheDocument();
+    expect(screen.queryByText("Daniela Soto")).toBeNull();
+    // El contador aclara que es un filtro y no el total de la lista
+    expect(screen.getByText(/Mostrando 1 de 1 pedidos · Despachado \(2 en total\)/))
+      .toBeInTheDocument();
+  });
+
+  test("14. Un filtro sin resultados avisa que no hay pedidos en ese estado", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    fireEvent.change(screen.getByLabelText(/filtrar por estado/i), {
+      target: { value: "ENTREGADO" },
+    });
+
+    expect(await screen.findByTestId("pedidos-filtro-vacio")).toHaveTextContent(
+      /Ningún pedido en estado "Entregado"/
+    );
+    // No puede decir "no hay pedidos registrados": los hay, solo que otros
+    expect(screen.queryByTestId("pedidos-vacio")).toBeNull();
+  });
+
+  // Trampa de paginacion: filtrar con la pagina 2 activa dejaria un rango de
+  // slice fuera de tabla (o la pagina vacia). El filtro vuelve a la pagina 1.
+  test("15. Cambiar el filtro vuelve a la primera página", async () => {
+    const ochoPedidos = Array.from({ length: 8 }, (_, i) => ({
+      id: 400 + i,
+      cliente: `Cliente ${i + 1}`,
+      email: `cliente${i + 1}@ejemplo.cl`,
+      fecha: `2026-10-${String(31 - i).padStart(2, "0")}T10:00:00Z`,
+      total: 10000 + i,
+      estado: i < 5 ? "RECIBIDO" : "DESPACHADO",
+      productos: [{ nombre: "Torta de chocolate", cantidad: 1, precioUnitario: 10000, subtotal: 10000 }],
+    }));
+    obtenerPedidos.mockResolvedValue(ochoPedidos);
+    render(<AdminPedidos />);
+
+    await screen.findByText("Cliente 1");
+    // 8 pedidos a 5 por pagina: la pagina 2 muestra Cliente 6, 7 y 8
+    fireEvent.click(screen.getByRole("button", { name: "Página 2" }));
+    expect(await screen.findByText("Cliente 6")).toBeInTheDocument();
+    expect(screen.queryByText("Cliente 1")).toBeNull();
+
+    // Filtra a 5 RECIBIDO (1 sola pagina): si no volviera al inicio, la
+    // pagina 2 no existiria y la tabla quedaria en blanco
+    fireEvent.change(screen.getByLabelText(/filtrar por estado/i), {
+      target: { value: "RECIBIDO" },
+    });
+
+    expect(await screen.findByText("Cliente 1")).toBeInTheDocument();
+    expect(screen.queryByText("Cliente 6")).toBeNull();
+    expect(screen.getByText(/Mostrando 5 de 5 pedidos · Recibido \(8 en total\)/))
+      .toBeInTheDocument();
+  });
 });
