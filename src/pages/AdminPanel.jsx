@@ -150,6 +150,16 @@ const cargarDatos = () => {
     return arr;
   }, [ventasPorProducto, ordenVendidos]);
 
+  // Monto total de lo vendido en el periodo: base del "% del total"
+  const montoTotalVendido = useMemo(
+    () => ventasPorProducto.reduce((suma, v) => suma + (Number(v.monto) || 0), 0),
+    [ventasPorProducto]
+  );
+
+  // Participacion de un monto en ese total, redondeada al entero
+  const porcentajeDelTotal = (monto) =>
+    montoTotalVendido > 0 ? Math.round(((Number(monto) || 0) / montoTotalVendido) * 100) : 0;
+
   // La tabla de 7 dias con el orden elegido (por defecto, de mas reciente a mas antiguo)
   const diarioOrdenado = useMemo(() => {
     if (!Array.isArray(stats?.ventasDiarias)) return [];
@@ -197,6 +207,12 @@ const cargarDatos = () => {
     });
     return arr;
   }, [stats?.ventasDiarias, ordenDiario, pedidos, productos]);
+
+  // El dia mas fuerte de la ventana: escala de las barras proporcionales
+  const maxMontoDiario = useMemo(
+    () => Math.max(0, ...diarioOrdenado.map((d) => Number(d.monto) || 0)),
+    [diarioOrdenado]
+  );
 
   // Cambia el campo de orden; si ya era ese campo, invierte la direccion
   const cambiarOrdenVendidos = (campo) => {
@@ -503,7 +519,12 @@ const cargarDatos = () => {
                           <span className="admin-top-nombre">{venta.nombre}</span>
                           <span className="admin-top-unidades">{venta.unidades} unidades</span>
                         </div>
-                        <span className="admin-top-monto">${formatearMoneda(venta.monto)}</span>
+                        <div className="admin-top-monto-caja">
+                          <span className="admin-top-monto">${formatearMoneda(venta.monto)}</span>
+                          <span className="admin-top-porcentaje">
+                            {porcentajeDelTotal(venta.monto)}% del total
+                          </span>
+                        </div>
                       </li>
                     ))}
                   </ol>
@@ -554,6 +575,18 @@ const cargarDatos = () => {
                         </button>
                       ))}
                     </div>
+                    {/* Cabecera con las mismas columnas que las filas: alinea
+                        los títulos exactamente sobre sus valores */}
+                    <div
+                      className="admin-vendidos-cabecera"
+                      data-testid="cabecera-vendidos"
+                      aria-hidden="true"
+                    >
+                      <span>Producto</span>
+                      <span>Unidades</span>
+                      <span>Valor</span>
+                      <span>% del total</span>
+                    </div>
                     <ul className="admin-vendidos-lista" data-testid="lista-vendidos">
                       {vendidosOrdenados.map((venta) => (
                         <li key={venta.nombre} className="admin-vendido">
@@ -570,6 +603,9 @@ const cargarDatos = () => {
                           <span className="admin-vendido-nombre">{venta.nombre}</span>
                           <span className="admin-vendido-unidades">{venta.unidades} unidades</span>
                           <span className="admin-vendido-monto">${formatearMoneda(venta.monto)}</span>
+                          <span className="admin-vendido-porcentaje">
+                            {porcentajeDelTotal(venta.monto)}%
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -640,6 +676,19 @@ const cargarDatos = () => {
                               </>
                             )}
                           </div>
+                          {/* Barra contra el dia mas fuerte de la ventana:
+                              el dia mas vendido se ve de un vistazo, sin leer numeros */}
+                          {!sinVentas && maxMontoDiario > 0 && (
+                            <div className="admin-dia-barra" aria-hidden="true">
+                              <span
+                                className="admin-dia-barra-relleno"
+                                data-testid="dia-barra"
+                                style={{
+                                  width: `${Math.round((venta.monto / maxMontoDiario) * 100)}%`,
+                                }}
+                              />
+                            </div>
+                          )}
                           {!sinVentas &&
                             (venta.productos.length > 0 ? (
                               <ul className="admin-vendidos-lista">

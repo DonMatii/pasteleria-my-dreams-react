@@ -443,4 +443,68 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
       screen.getByText(/Modificar Dulce/i)
     );
   });
+
+  // --- Mejora 4: columnas alineadas con % del total, % en el podio y
+  //     barras proporcionales en la ventana de 7 días ---
+
+  it("19. TABLA: 'Qué se vendió' tiene cabecera de columnas y muestra % del total", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([
+      { nombre: "Torta Chocolate", unidades: 6, monto: 60000 },
+      { nombre: "Merengue Frambuesa", unidades: 18, monto: 40000 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    const lista = await screen.findByTestId("lista-vendidos");
+
+    // La cabecera nombra las columnas, igual que la tabla de pedidos
+    const cabecera = screen.getByTestId("cabecera-vendidos");
+    expect(cabecera).toHaveTextContent("Producto");
+    expect(cabecera).toHaveTextContent("Unidades");
+    expect(cabecera).toHaveTextContent("Valor");
+    expect(cabecera).toHaveTextContent("% del total");
+
+    // Cada fila muestra su participacion en el monto total (60.000 + 40.000)
+    const filaTorta = within(lista).getByText("Torta Chocolate").closest("li");
+    expect(filaTorta).toHaveTextContent("60%");
+    const filaMerengue = within(lista).getByText("Merengue Frambuesa").closest("li");
+    expect(filaMerengue).toHaveTextContent("40%");
+  });
+
+  it("20. TOP: cada medalla muestra su % del total de ventas", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDashboard);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([
+      { nombre: "Torta Chocolate", unidades: 6, monto: 60000 },
+      { nombre: "Merengue Frambuesa", unidades: 18, monto: 40000 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    const top = await screen.findByTestId("lista-top");
+    const items = within(top).getAllByRole("listitem");
+    // El ranking sigue siendo por unidades (18 > 6); el % es del monto total
+    expect(items[0]).toHaveTextContent("Merengue Frambuesa");
+    expect(items[0]).toHaveTextContent("40%");
+    expect(items[1]).toHaveTextContent("Torta Chocolate");
+    expect(items[1]).toHaveTextContent("60%");
+  });
+
+  it("21. BARRAS: cada día dibuja una barra proporcional a su monto", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      ...statsDashboard,
+      ventasDiarias: [
+        { fecha: "2026-10-21", pedidos: 2, monto: 30000 },
+        { fecha: "2026-10-20", pedidos: 1, monto: 15000 },
+        { fecha: "2026-10-19", pedidos: 0, monto: 0 },
+      ],
+    });
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    const lista = await screen.findByTestId("lista-dias");
+    const barras = within(lista).getAllByTestId("dia-barra");
+    // El día sin ventas queda como fila tenue y no lleva barra
+    expect(barras).toHaveLength(2);
+    // El monto más alto de la ventana marca la escala: 30.000 = 100%, 15.000 = 50%
+    expect(barras[0]).toHaveStyle("width: 100%");
+    expect(barras[1]).toHaveStyle("width: 50%");
+  });
 });

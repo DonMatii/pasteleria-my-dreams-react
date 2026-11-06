@@ -229,6 +229,23 @@
   color: #a98fa0;
 }
 
+/* Barra proporcional del dia contra el dia mas fuerte de la ventana */
+.admin-dia-barra {
+  height: 6px;
+  background: #fce4ec;
+  border-radius: 50px;
+  overflow: hidden;
+  margin: 2px 0 8px;
+}
+
+.admin-dia-barra-relleno {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #f48fb1, #d95386);
+  border-radius: 50px;
+  transition: width 0.3s ease;
+}
+
 /* Los productos del día heredan el estilo de fila de "Qué se vendió" */
 .admin-dia .admin-vendidos-lista {
   gap: 6px;
@@ -237,6 +254,8 @@
 .admin-dia .admin-vendido {
   background: #fdf7fb;
   border-color: #fce4ec;
+  /* Las filas dentro de la tarjeta no llevan columna de % del total */
+  grid-template-columns: 48px minmax(0, 1fr) 96px 100px;
 }
 
 .admin-diario-titulo {
@@ -694,6 +713,22 @@
   color: #d95386;
 }
 
+/* Monto con su participacion del total debajo, alineados a la derecha */
+.admin-top-monto-caja {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.admin-top-porcentaje {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #7a6478;
+  white-space: nowrap;
+}
+
 /* Qué se vendió: producto con foto, unidades y monto */
 .admin-vendidos-titulo {
   margin: 0 0 10px;
@@ -718,9 +753,11 @@
   gap: 8px;
 }
 
+/* Grilla de columnas fijas: la misma plantilla en cabecera y en todas las
+   filas, para que los valores queden alineados como en la tabla de pedidos */
 .admin-vendido {
   display: grid;
-  grid-template-columns: 48px 1fr auto auto;
+  grid-template-columns: 48px minmax(0, 1fr) 96px 100px 56px;
   align-items: center;
   gap: 12px;
   background: #fdf2f7;
@@ -755,18 +792,72 @@
   white-space: nowrap;
 }
 
+/* Participacion de la fila en el monto total del periodo */
+.admin-vendido-porcentaje {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5d405d;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Las columnas numericas se alinean a la derecha, como en la tabla de pedidos */
+.admin-vendido-unidades,
+.admin-vendido-monto {
+  text-align: right;
+}
+
+/* Cabecera de columnas: misma grilla y mismo padding que las filas para que
+   cada título caiga exactamente sobre su columna */
+.admin-vendidos-cabecera {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 96px 100px 56px;
+  gap: 12px;
+  align-items: center;
+  padding: 0 12px 6px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #f6e0ec;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #7a6478;
+}
+
+/* Cada columna de la cabecera se ubica de forma explicita: con
+   auto-placement, la etiqueta "Producto" dejaria las otras corridas */
+.admin-vendidos-cabecera span:nth-child(1) { grid-column: 2 / 3; }
+.admin-vendidos-cabecera span:nth-child(2) { grid-column: 3 / 4; }
+.admin-vendidos-cabecera span:nth-child(3) { grid-column: 4 / 5; }
+.admin-vendidos-cabecera span:nth-child(4) { grid-column: 5 / 6; }
+
+.admin-vendidos-cabecera span:not(:first-child) {
+  text-align: right;
+}
+
 @media (max-width: 520px) {
   .admin-vendido {
     grid-template-columns: 44px 1fr;
     grid-template-areas:
       "img nombre"
       "img unidades"
-      "img monto";
+      "img monto"
+      "img porcentaje";
   }
   .admin-vendido-img { grid-area: img; }
   .admin-vendido-nombre { grid-area: nombre; }
-  .admin-vendido-unidades { grid-area: unidades; }
-  .admin-vendido-monto { grid-area: monto; }
+  .admin-vendido-unidades { grid-area: unidades; text-align: left; }
+  .admin-vendido-monto { grid-area: monto; text-align: left; }
+  .admin-vendido-porcentaje { grid-area: porcentaje; text-align: left; }
+  /* Las filas de las tarjetas tienen regla propia: hay que replantearlas
+     aqui tambien o conservarian la grilla de escritorio en pantallas angostas */
+  .admin-dia .admin-vendido {
+    grid-template-columns: 44px 1fr;
+  }
+  /* En una sola columna la cabecera no aporta: cada fila ya dice lo suyo */
+  .admin-vendidos-cabecera { display: none; }
 }
 
 /* =========================================
@@ -1061,28 +1152,6 @@
   color: #2f7a45;
   border-color: #2f7a45;
   font-weight: 700;
-}
-
-/* Botón Cerrar con X, estilo de cerrar vista */
-.admin-btn-cerrar {
-  background: #fff;
-  border: 1px solid #d95386;
-  border-radius: 50px;
-  color: #d95386;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 6px 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.admin-btn-cerrar:hover {
-  background: #d95386;
-  color: #fff;
 }
 
 /* Paginación: "Mostrando X de Y", números de página, Anterior/Siguiente */

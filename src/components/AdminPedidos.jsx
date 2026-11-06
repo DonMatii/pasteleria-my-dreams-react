@@ -221,12 +221,12 @@ function AdminPedidos() {
           </button>
           <button
             type="button"
-            className="admin-btn-cerrar"
+            className="admin-pliegue-btn"
             aria-label="Cerrar Pedidos recibidos"
             aria-expanded={abierto}
             onClick={() => setAbierto(v => !v)}
           >
-            {abierto ? "✕ Cerrar" : "Abrir"}
+            {abierto ? "Cerrar" : "Abrir"}
           </button>
         </div>
       </div>

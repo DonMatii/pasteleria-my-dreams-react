@@ -252,4 +252,20 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     expect(screen.getByText(/Mostrando 5 de 5 pedidos · Recibido \(8 en total\)/))
       .toBeInTheDocument();
   });
+
+  // El panel tiene varias secciones plegables ("Más vendidos", "Qué se vendió",
+  // "Ventas de los últimos 7 días"). Todas comparten el mismo boton de
+  // pliegue: si Pedidos recibidos usa otro, el panel se ve parchado.
+  test("16. El botón de pliegue usa el mismo estilo que las secciones de ventas", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    const btn = screen.getByRole("button", { name: "Cerrar Pedidos recibidos" });
+
+    // La misma clase que usan las secciones de ventas
+    expect(btn).toHaveClass("admin-pliegue-btn");
+    expect(btn).not.toHaveClass("admin-btn-cerrar");
+    // Sin glifo: el texto es exactamente el de las otras secciones
+    expect(btn).toHaveTextContent(/^Cerrar$/);
+  });
 });
