@@ -323,4 +323,87 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     await waitFor(() => expect(Swal.fire).toHaveBeenCalled());
     expect(select.value).toBe("RECIBIDO");
   });
+
+  // El select ofrece solo los estados que el pedido puede tomar (el actual y los
+  // siguientes) y rotula el actual, para que la administradora sepa en que
+  // estado esta el pedido y no elija por error una accion imposible.
+  test("20. Cada select ofrece el estado actual y los siguientes, y rotula el actual", async () => {
+    const estados = [
+      { codigo: "RECIBIDO", etiqueta: "Recibido", opciones: 4 },
+      { codigo: "EN_PREPARACION", etiqueta: "En preparación", opciones: 3 },
+      { codigo: "DESPACHADO", etiqueta: "Despachado", opciones: 2 },
+      { codigo: "ENTREGADO", etiqueta: "Entregado", opciones: 1 },
+    ];
+    obtenerPedidos.mockResolvedValue(
+      estados.map((estado, i) => ({
+        id: 500 + i,
+        cliente: `Cliente ${i + 1}`,
+        email: `cliente${i + 1}@ejemplo.cl`,
+        fecha: "2026-11-01T10:00:00Z",
+        total: 10000,
+        estado: estado.codigo,
+        productos: [{ nombre: "Torta de chocolate", cantidad: 1, precioUnitario: 10000, subtotal: 10000 }],
+      }))
+    );
+    render(<AdminPedidos />);
+
+    await screen.findByText("Cliente 1");
+    estados.forEach((estado, i) => {
+      const fila = screen.getByText(`Cliente ${i + 1}`).closest("tr");
+      const select = fila.querySelector("select.admin-pedidos-estado-select");
+      // Solo el estado actual y los que le siguen
+      expect(select.querySelectorAll("option")).toHaveLength(estado.opciones);
+      // La primera opcion es el estado actual, rotulado como tal
+      expect(select.options[0].textContent).toBe(`${estado.etiqueta} (actual)`);
+      expect(select.options[0].value).toBe(estado.codigo);
+    });
+  });
+
+  // Elegir el estado que el pedido YA tiene no es un cambio: el aviso es
+  // informativo y no vuelve a pedirle nada al backend.
+  test("21. Elegir el estado actual muestra un aviso informativo y no llama al backend", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "RECIBIDO" } });
+
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(1));
+    const confirmacion = Swal.fire.mock.calls[0][0];
+    expect(confirmacion.title).toMatch(/ya est[aá] en/i);
+    expect(confirmacion.confirmButtonText).toBe("Entendido");
+    // No hay nada que cancelar: el aviso no propone cambiar nada
+    expect(confirmacion.showCancelButton).toBe(false);
+    expect(cambiarEstadoPedido).not.toHaveBeenCalled();
+  });
+
+  // El aviso honesto no puede castigar a los estados que SI notifican: esos
+  // siguen prometiendo el correo al cliente.
+  test("22. Los estados que sí generan correo siguen prometiéndolo", async () => {
+    // Se cancela cada aviso para que la unica llamada a Swal sea la del dialogo
+    Swal.fire.mockResolvedValue({ isConfirmed: false });
+    obtenerPedidos.mockResolvedValue([
+      { ...pedidoDaniela, id: 601, cliente: "Ana Recipes", estado: "RECIBIDO" },
+      { ...pedidoRaul, id: 602, cliente: "Beto Pastel", estado: "EN_PREPARACION" },
+    ]);
+    render(<AdminPedidos />);
+
+    await screen.findByText("Ana Recipes");
+    // RECIBIDO -> EN_PREPARACION: este estado notifica, asi que avisa del correo
+    const filaAna = screen.getByText("Ana Recipes").closest("tr");
+    fireEvent.change(filaAna.querySelector("select.admin-pedidos-estado-select"), {
+      target: { value: "EN_PREPARACION" },
+    });
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(1));
+    expect(Swal.fire.mock.calls[0][0].text).toMatch(/le llegar[aá] un correo/i);
+
+    // EN_PREPARACION -> DESPACHADO: este estado tambien notifica
+    const filaBeto = screen.getByText("Beto Pastel").closest("tr");
+    fireEvent.change(filaBeto.querySelector("select.admin-pedidos-estado-select"), {
+      target: { value: "DESPACHADO" },
+    });
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(2));
+    expect(Swal.fire.mock.calls[1][0].text).toMatch(/le llegar[aá] un correo/i);
+  });
 });
