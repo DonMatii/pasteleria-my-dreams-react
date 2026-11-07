@@ -508,3 +508,144 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     expect(barras[1]).toHaveStyle("width: 50%");
   });
 });
+
+// --- P0-3: el dashboard nunca miente (carga, error con reintento, sin ceros falsos) ---
+describe("AdminPanel - Dashboard honesto (P0-3)", () => {
+  const statsSanos = {
+    totalProductosCatalogo: 1,
+    categoriasActivas: 4,
+    pedidosTotales: 18,
+    montoTotalPedidos: 822070,
+    pedidosHoy: 2,
+    montoVentasHoy: 48990,
+    datosCompletos: true,
+    ventasDiarias: [
+      { fecha: "2026-11-07", pedidos: 2, monto: 48990 },
+      { fecha: "2026-11-06", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-05", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-04", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-03", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-02", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-01", pedidos: 0, monto: 0 },
+    ],
+    ventasPeriodo: {
+      dia: { desde: "2026-11-07", hasta: "2026-11-07", pedidos: 2, monto: 48990 },
+      semana: { desde: "2026-11-02", hasta: "2026-11-07", pedidos: 5, monto: 120000 },
+      mes: { desde: "2026-11-01", hasta: "2026-11-07", pedidos: 18, monto: 822070 },
+    },
+    metas: { dia: 80000, semana: 400000, mes: 1500000 },
+  };
+
+  // Así responde hoy un backend con la base caída: ceros en todas las cifras y
+  // estadoServicio todavía OPERATIVO. datosCompletos=false es lo que lo delata.
+  const statsDegradados = {
+    ...statsSanos,
+    totalProductosCatalogo: 17,
+    pedidosTotales: 0,
+    montoTotalPedidos: 0,
+    pedidosHoy: 0,
+    montoVentasHoy: 0,
+    datosCompletos: false,
+    estadoServicio: "DEGRADADO",
+    ventasDiarias: [
+      { fecha: "2026-11-07", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-06", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-05", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-04", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-03", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-02", pedidos: 0, monto: 0 },
+      { fecha: "2026-11-01", pedidos: 0, monto: 0 },
+    ],
+    ventasPeriodo: {
+      dia: { desde: "2026-11-07", hasta: "2026-11-07", pedidos: 0, monto: 0 },
+      semana: { desde: "2026-11-02", hasta: "2026-11-07", pedidos: 0, monto: 0 },
+      mes: { desde: "2026-11-01", hasta: "2026-11-07", pedidos: 0, monto: 0 },
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.setItem("userToken", "token-test-123");
+    sessionStorage.setItem("userName", "Admin");
+    ProductosService.obtenerProductos.mockResolvedValue([
+      { id: 1, nombre: "Torta Chocolate", precio: 15000, categoria: "Nuestras Tortas", imagenUrl: "torta3Leches.jpg", descripcion: "Deliciosa" },
+    ]);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([]);
+    PedidosService.obtenerPedidos.mockResolvedValue([]);
+    EstadisticasService.guardarMetas.mockResolvedValue({});
+  });
+
+  it("22. CARGA: muestra el estado de carga mientras estadisticas-service no responde", async () => {
+    let confirmarCarga;
+    EstadisticasService.obtenerEstadisticas.mockReturnValue(
+      new Promise((resolver) => {
+        confirmarCarga = resolver;
+      })
+    );
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // Antes de la respuesta el panel dice que está cargando: no se queda mudo
+    expect(screen.getByTestId("dashboard-cargando")).toBeInTheDocument();
+    expect(screen.getByText(/Cargando ventas/i)).toBeInTheDocument();
+
+    confirmarCarga(statsSanos);
+    expect(await screen.findByText(/Ventas Hoy/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("dashboard-cargando")).not.toBeInTheDocument();
+  });
+
+  it("23. ERROR: si estadisticas-service falla ofrece Reintentar y no pinta ninguna cifra", async () => {
+    EstadisticasService.obtenerEstadisticas.mockRejectedValueOnce(
+      new Error("estadisticas-service caido")
+    );
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByTestId("dashboard-error")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Reintentar/i })).toBeInTheDocument();
+    // Sin el bloque de indicadores no hay ningún $0 haciendo pasar "sin datos" por "sin ventas"
+    expect(screen.queryByTestId("kpis-dashboard")).not.toBeInTheDocument();
+
+    // El reintento vuelve a pedir los datos y deja el panel como estaba
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsSanos);
+    fireEvent.click(screen.getByRole("button", { name: /Reintentar/i }));
+
+    expect(await screen.findByText(/Ventas Hoy/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("dashboard-error")).not.toBeInTheDocument();
+  });
+
+  it("24. DATOS INCOMPLETOS: guiones largos en vez de $0 y sin barra al 0%", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsDegradados);
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // El aviso dice que los datos están incompletos, no que la pastelería no vendió nada
+    expect(await screen.findByTestId("aviso-datos-incompletos")).toBeInTheDocument();
+
+    const kpis = screen.getByTestId("kpis-dashboard");
+    expect(kpis).toHaveTextContent("—");
+    expect(kpis).not.toHaveTextContent("$0");
+
+    // Con meta definida la barra se dibujaría al 0%: sin dato no hay avance que mostrar
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.getByTestId("meta-sin-datos")).toBeInTheDocument();
+
+    // La ventana de 7 días tampoco puede afirmar "Sin ventas registradas" con la base caída
+    expect(screen.queryByTestId("lista-dias")).not.toBeInTheDocument();
+    expect(screen.getByTestId("diario-sin-datos")).toBeInTheDocument();
+  });
+
+  it("25. VENTAS POR PRODUCTO: si pedidos-service falla no afirma que no se vendió nada", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      ...statsSanos,
+      ventasDiarias: [],
+    });
+    PedidosService.obtenerVentasPorProducto.mockRejectedValue(new Error("pedidos-service caido"));
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByTestId("vendidos-sin-datos")).toBeInTheDocument();
+    expect(screen.getByTestId("vendidos-sin-datos")).toHaveTextContent(/No se pudieron leer las ventas/i);
+    expect(screen.queryByText(/Sin ventas registradas en/i)).not.toBeInTheDocument();
+  });
+});

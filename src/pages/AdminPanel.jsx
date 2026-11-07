@@ -37,6 +37,9 @@ function AdminPanel() {
   // Dashboard: periodo elegido, ventas por producto del periodo y edicion de la meta
   const [periodo, setPeriodo] = useState("dia");
   const [ventasPorProducto, setVentasPorProducto] = useState([]);
+  // Estado explicito de cada fuente: el panel avisa en vez de quedarse mudo (P0-3)
+  const [estadoStats, setEstadoStats] = useState("cargando");
+  const [estadoVentasProducto, setEstadoVentasProducto] = useState("cargando");
   const [editandoMeta, setEditandoMeta] = useState(false);
   const [metaEnEdicion, setMetaEnEdicion] = useState("");
 
@@ -65,13 +68,25 @@ const cargarDatos = () => {
     });
   };
 
+  // Sin setState sincrónico en el cuerpo: el efecto de montaje la llama y el relleno
+  // ocurre recién cuando la promesa resuelve. El estado de carga lo pinta quien reintenta
   const cargarEstadisticas = async () => {
     try {
       const data = await obtenerEstadisticas();
       setStats(data);
+      setEstadoStats("ok");
     } catch (error) {
       console.error("Error al conectar con estadisticas-service:", error);
+      // Sin datos no hay nada que pintar: se limpia el estado anterior para que un
+      // reintento no muestre cifras viejas como si fueran las nuevas
+      setStats(null);
+      setEstadoStats("error");
     }
+  };
+
+  const reintentarEstadisticas = () => {
+    setEstadoStats("cargando");
+    cargarEstadisticas();
   };
 
   const cargarPedidos = async () => {
@@ -110,18 +125,34 @@ const cargarDatos = () => {
       ? Math.min(100, Math.round((Number(ventasPeriodoSel.monto ?? 0) / metaActual) * 100))
       : 0;
 
-  // Pide a pedidos-service que se vendio en el rango del periodo elegido
+  // Pide a pedidos-service que se vendio en el rango del periodo elegido. Si ese
+  // servicio falla la seccion lo dice: "Sin ventas registradas" seria mentir.
+  // El estado inicial "cargando" cubre la primera carga; al cambiar de periodo la
+  // seccion conserva el dato anterior hasta que llega el nuevo (el fallo se avisa igual)
   useEffect(() => {
     const rango = stats?.ventasPeriodo?.[periodo];
     if (!rango?.desde || !rango?.hasta) return;
     let vigente = true;
-    obtenerVentasPorProducto(rango.desde, rango.hasta).then((lista) => {
-      if (vigente) setVentasPorProducto(lista);
-    });
+    obtenerVentasPorProducto(rango.desde, rango.hasta)
+      .then((lista) => {
+        if (!vigente) return;
+        setVentasPorProducto(lista);
+        setEstadoVentasProducto("ok");
+      })
+      .catch((error) => {
+        console.error("Error al conectar con pedidos-service:", error);
+        if (!vigente) return;
+        setVentasPorProducto([]);
+        setEstadoVentasProducto("error");
+      });
     return () => {
       vigente = false;
     };
   }, [stats, periodo]);
+
+  // El backend avisa con datosCompletos cuando un bloque falló y respondió con ceros:
+  // ese cero no se leyó de la base, así que no es "no se vendió nada" (P0-3)
+  const datosIncompletos = stats?.datosCompletos === false;
 
   // Foto del producto vendido: la resuelve contra el catalogo ya cargado
   const imagenDe = (nombre) =>
@@ -370,8 +401,41 @@ const cargarDatos = () => {
           Bienvenida, <span className="admin-user-name">{username}</span> 
         </p>
 
-        {/* Dashboard de ventas: periodo, KPIs, avance a meta y productos vendidos */}
-        {stats && (
+        {/* Dashboard de ventas: periodo, KPIs, avance a meta y productos vendidos.
+            Tres estados explícitos: cargando, error con reintento y datos reales.
+            El panel nunca se queda mudo ni pinta cifras que no se leyeron (P0-3) */}
+        {estadoStats === "cargando" && (
+          <section
+            className="admin-dashboard"
+            aria-label="Dashboard de ventas"
+            data-testid="dashboard-cargando"
+          >
+            <div className="admin-dashboard-cabecera">
+              <h2 className="admin-dashboard-titulo">Resumen de ventas</h2>
+            </div>
+            <p className="admin-dashboard-estado">Cargando ventas…</p>
+          </section>
+        )}
+
+        {estadoStats === "error" && (
+          <section
+            className="admin-dashboard"
+            aria-label="Dashboard de ventas"
+            data-testid="dashboard-error"
+          >
+            <div className="admin-dashboard-cabecera">
+              <h2 className="admin-dashboard-titulo">Resumen de ventas</h2>
+            </div>
+            <p className="admin-dashboard-estado">
+              No se pudieron cargar las estadísticas: estadisticas-service no respondió.
+            </p>
+            <button type="button" className="admin-reintentar" onClick={reintentarEstadisticas}>
+              Reintentar
+            </button>
+          </section>
+        )}
+
+        {estadoStats === "ok" && stats && (
           <section className="admin-dashboard" aria-label="Dashboard de ventas">
             <div className="admin-dashboard-cabecera">
               <h2 className="admin-dashboard-titulo">Resumen de ventas</h2>
@@ -391,31 +455,52 @@ const cargarDatos = () => {
               </div>
             </div>
 
+            {/* Aviso de datos incompletos: el servicio respondió, pero algún bloque
+                falló y devolvió ceros. No es "no se vendió nada", es "no se leyó" */}
+            {datosIncompletos && (
+              <p className="admin-datos-incompletos" data-testid="aviso-datos-incompletos">
+                ⚠️ Estadísticas incompletas: estadisticas-service está degradado y parte de los
+                datos no se pudo leer. Reintenta antes de tomar una decisión con estas cifras.
+              </p>
+            )}
+
             {/* Primero las cifras del periodo elegido, luego los totales del catalogo */}
-            <div className="admin-kpis">
+            <div className="admin-kpis" data-testid="kpis-dashboard">
               <div className="admin-kpi admin-kpi-destacado">
                 <span className="admin-kpi-etiqueta">Ventas {periodoActual.frase}</span>
-                <strong className="admin-kpi-valor">${formatearMoneda(ventasPeriodoSel.monto)}</strong>
+                <strong className="admin-kpi-valor">
+                  {datosIncompletos ? "—" : `$${formatearMoneda(ventasPeriodoSel.monto)}`}
+                </strong>
               </div>
               <div className="admin-kpi admin-kpi-destacado">
                 <span className="admin-kpi-etiqueta">Pedidos {periodoActual.frase}</span>
-                <strong className="admin-kpi-valor">{ventasPeriodoSel.pedidos ?? 0}</strong>
+                <strong className="admin-kpi-valor">
+                  {datosIncompletos ? "—" : (ventasPeriodoSel.pedidos ?? 0)}
+                </strong>
               </div>
               <div className="admin-kpi">
                 <span className="admin-kpi-etiqueta">💰 Ventas totales</span>
-                <strong className="admin-kpi-valor">${formatearMoneda(stats.montoTotalPedidos)}</strong>
+                <strong className="admin-kpi-valor">
+                  {datosIncompletos ? "—" : `$${formatearMoneda(stats.montoTotalPedidos)}`}
+                </strong>
               </div>
               <div className="admin-kpi">
                 <span className="admin-kpi-etiqueta">🧾 Pedidos recibidos</span>
-                <strong className="admin-kpi-valor">{stats.pedidosTotales ?? 0}</strong>
+                <strong className="admin-kpi-valor">
+                  {datosIncompletos ? "—" : (stats.pedidosTotales ?? 0)}
+                </strong>
               </div>
               <div className="admin-kpi">
                 <span className="admin-kpi-etiqueta">📦 Total catálogo</span>
-                <strong className="admin-kpi-valor">{stats.totalProductosCatalogo ?? 0}</strong>
+                <strong className="admin-kpi-valor">
+                  {datosIncompletos ? "—" : (stats.totalProductosCatalogo ?? 0)}
+                </strong>
               </div>
               <div className="admin-kpi">
                 <span className="admin-kpi-etiqueta">🏷️ Categorías</span>
-                <strong className="admin-kpi-valor">{stats.categoriasActivas ?? 0}</strong>
+                <strong className="admin-kpi-valor">
+                  {datosIncompletos ? "—" : (stats.categoriasActivas ?? 0)}
+                </strong>
               </div>
             </div>
 
@@ -454,6 +539,11 @@ const cargarDatos = () => {
                   </div>
                   <button type="submit" className="admin-meta-guardar">Guardar meta</button>
                 </form>
+              ) : datosIncompletos ? (
+                <p className="admin-meta-vacia" data-testid="meta-sin-datos">
+                  No se pudieron leer las ventas de {periodoActual.frase.toLowerCase()}: sin dato
+                  real no hay avance que mostrar hacia la meta.
+                </p>
               ) : metaActual > 0 ? (
                 <>
                   <p className="admin-meta-texto" data-testid="meta-texto">
@@ -548,9 +638,18 @@ const cargarDatos = () => {
               </div>
               {vendidosAbiertos &&
                 (ventasPorProducto.length === 0 ? (
-                  <p className="admin-vendidos-vacio">
-                    Sin ventas registradas en {periodoActual.frase.toLowerCase()}.
-                  </p>
+                  estadoVentasProducto === "error" ? (
+                    <p className="admin-vendidos-vacio" data-testid="vendidos-sin-datos">
+                      No se pudieron leer las ventas de pedidos-service. Revisa el servicio y
+                      vuelve a intentar.
+                    </p>
+                  ) : estadoVentasProducto === "cargando" ? (
+                    <p className="admin-vendidos-vacio">Cargando ventas…</p>
+                  ) : (
+                    <p className="admin-vendidos-vacio">
+                      Sin ventas registradas en {periodoActual.frase.toLowerCase()}.
+                    </p>
+                  )
                 ) : (
                   <>
                     <div className="admin-orden" role="group" aria-label="Ordenar qué se vendió">
@@ -613,8 +712,19 @@ const cargarDatos = () => {
                 ))}
             </div>
 
-            {/* Ventas de los últimos 7 días: tarjetas por día, ordenables y plegables */}
-            {Array.isArray(stats?.ventasDiarias) && stats.ventasDiarias.length > 0 && (
+            {/* Ventas de los últimos 7 días: tarjetas por día, ordenables y plegables.
+                Con la base caída la ventana llega en ceros y "Sin ventas registradas"
+                sería una mentira, así que el panel dice que no pudo leerla */}
+            {datosIncompletos ? (
+              <div className="admin-diario" data-testid="diario-sin-datos">
+                <div className="admin-seccion-cabecera">
+                  <h3 className="admin-diario-titulo">Ventas de los últimos 7 días</h3>
+                </div>
+                <p className="admin-diario-vacio">
+                  No se pudieron leer las ventas de los últimos 7 días.
+                </p>
+              </div>
+            ) : Array.isArray(stats?.ventasDiarias) && stats.ventasDiarias.length > 0 && (
               <div className="admin-diario">
                 <div className="admin-seccion-cabecera">
                   <h3 className="admin-diario-titulo">Ventas de los últimos 7 días</h3>

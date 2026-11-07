@@ -1204,3 +1204,48 @@
 .admin-pagina-activa:hover {
   background: #c03568;
 }
+
+/* --- Estados del dashboard (P0-3): cargando, error con reintento y datos incompletos --- */
+
+.admin-dashboard-estado {
+  margin: 0;
+  padding: 1.1rem 0 0.4rem;
+  font-size: 0.9rem;
+  color: #7a6478;
+  text-align: center;
+}
+
+.admin-reintentar {
+  display: block;
+  margin: 0.4rem auto 0.6rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid #5d405d;
+  border-radius: 6px;
+  background: #5d405d;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-reintentar:hover {
+  background: #6f4b6f;
+}
+
+/* Aviso de datos incompletos: el servicio respondió pero no se pudieron leer todos
+   los bloques, así que las cifras se muestran como no disponibles, nunca como cero */
+.admin-datos-incompletos {
+  margin: 0 0 0.9rem;
+  padding: 0.65rem 0.85rem;
+  border-left: 3px solid #b0680f;
+  border-radius: 4px;
+  background: #fdf4e6;
+  font-size: 0.86rem;
+  color: #7a5a24;
+}
+
+.admin-diario-vacio {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #7a6478;
+}
