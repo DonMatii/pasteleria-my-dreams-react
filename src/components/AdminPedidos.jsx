@@ -29,6 +29,24 @@ function AdminPedidos() {
   const etiquetaDe = (codigo) =>
     ESTADOS.find((estado) => estado.codigo === codigo)?.etiqueta || codigo;
 
+  // Estados que generan aviso al cliente. Coincide con la lista CON_CORREO de
+  // notificaciones-service: al RECIBIDO no se le manda correo (ese aviso ya se
+  // envío cuando se recibió el pedido), así que el panel no debe prometerlo.
+  const ESTADOS_CON_CORREO = ["EN_PREPARACION", "DESPACHADO", "ENTREGADO"];
+
+  // El ciclo de vida de un pedido es lineal y no retrocede: el backend rechaza
+  // volver a un estado anterior. El select ofrece solo el estado actual y los
+  // siguientes, para no ofrecer una acción que el servidor va a rechazar.
+  const estadosPosibles = (estadoActual) => {
+    const indice = ESTADOS.findIndex((estado) => estado.codigo === estadoActual);
+    if (indice >= 0) {
+      return ESTADOS.slice(indice);
+    }
+    // Estado fuera del ciclo conocido: se antepone el actual para que el select
+    // no quede en blanco y no se restringe ninguna opción.
+    return [{ codigo: estadoActual, etiqueta: etiquetaDe(estadoActual) }, ...ESTADOS];
+  };
+
   // Normaliza un nombre de producto (minúsculas, sin tildes ni espacios)
   // para buscarle la imagen en /img/. Si no hay coincidencia, usa alfajor.jpg.
   const normalizar = (s) =>
@@ -122,19 +140,40 @@ function AdminPedidos() {
   // Pide confirmacion, aplica el cambio y recarga para verlo reflejado.
   // El correo al cliente lo dispara el backend, no esta vista.
   const aplicarEstado = async (pedido, estado) => {
+    const esElEstadoActual = estado.codigo === pedido.estado;
+
+    // El aviso no puede prometer un correo que no se envía: si el pedido ya
+    // está en ese estado no hay cambio, y RECIBIDO no genera aviso.
+    let texto;
+    if (esElEstadoActual) {
+      texto = `El pedido de ${pedido.cliente} ya está en estado "${estado.etiqueta}". ` +
+        "No se enviará ningún correo: el pedido no cambia.";
+    } else if (ESTADOS_CON_CORREO.includes(estado.codigo)) {
+      texto = `El pedido de ${pedido.cliente} quedará en estado "${estado.etiqueta}". ` +
+        "Le llegará un correo avisándole.";
+    } else {
+      texto = `El pedido de ${pedido.cliente} quedará en estado "${estado.etiqueta}". ` +
+        "No se enviará ningún correo.";
+    }
+
     const { isConfirmed } = await Swal.fire({
-      title: `Marcar como "${estado.etiqueta}"`,
-      text: `El pedido de ${pedido.cliente} quedará en estado "${estado.etiqueta}". ` +
-        "Le llegará un correo avisándole.",
+      title: esElEstadoActual
+        ? `El pedido ya está en "${estado.etiqueta}"`
+        : `Marcar como "${estado.etiqueta}"`,
+      text: texto,
       icon: "question",
       iconColor: "#d95386",
-      showCancelButton: true,
+      showCancelButton: !esElEstadoActual,
       confirmButtonColor: "#d95386",
       cancelButtonColor: "#b04e6f",
-      confirmButtonText: "Sí, cambiar estado",
+      confirmButtonText: esElEstadoActual ? "Entendido" : "Sí, cambiar estado",
       cancelButtonText: "Cancelar",
     });
     if (!isConfirmed) return;
+
+    // Elegir el estado que el pedido YA tiene no es un cambio: no se le pide
+    // al backend que guarde nada, para no fingir una transición que no pasó.
+    if (esElEstadoActual) return;
 
     setGuardandoId(pedido.id);
     try {
@@ -312,15 +351,23 @@ function AdminPedidos() {
                         <select
                           value={pedido.estado}
                           onChange={(e) => {
-                            const estado = ESTADOS.find(es => es.codigo === e.target.value);
+                            const elegido = e.target.value;
+                            // El select refleja el estado REAL del pedido. Al elegir
+                            // una opción el navegador la muestra al instante, así que
+                            // se revierte a mano: si la administradora cancela, la
+                            // pantalla no puede quedar diciendo un estado que el
+                            // pedido no tiene.
+                            e.target.value = pedido.estado;
+                            const estado = ESTADOS.find((es) => es.codigo === elegido);
                             if (estado) aplicarEstado(pedido, estado);
                           }}
                           disabled={guardandoId === pedido.id}
                           className={`admin-pedidos-estado-select admin-estado-${(pedido.estado || "").toLowerCase()}`}
                         >
-                          {ESTADOS.map((estado) => (
+                          {estadosPosibles(pedido.estado).map((estado) => (
                             <option key={estado.codigo} value={estado.codigo}>
                               {estado.etiqueta}
+                              {estado.codigo === pedido.estado ? " (actual)" : ""}
                             </option>
                           ))}
                         </select>

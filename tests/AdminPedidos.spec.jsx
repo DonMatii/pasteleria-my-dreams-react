@@ -268,4 +268,59 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     // Sin glifo: el texto es exactamente el de las otras secciones
     expect(btn).toHaveTextContent(/^Cerrar$/);
   });
+
+  // El ciclo de vida de un pedido es lineal: Recibido -> En preparacion ->
+  // Despachado -> Entregado. Un pedido ya avanzado no vuelve atras (el backend
+  // lo rechaza), asi que el panel no debe ofrecer una accion imposible.
+  test("17. El select solo ofrece los estados que el pedido puede tomar", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Raul Pino");
+    const fila = screen.getByText("Raul Pino").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+
+    // Raul esta DESPACHADO: solo le queda ENTREGADO
+    expect(select.querySelectorAll("option")).toHaveLength(2);
+    expect(Array.from(select.options).map((o) => o.value)).toEqual([
+      "DESPACHADO",
+      "ENTREGADO",
+    ]);
+  });
+
+  // El aviso no puede prometer un correo que no se envia: RECIBIDO no genera
+  // correo (ese aviso ya se mando cuando se recibio el pedido).
+  test("18. Elegir el estado actual no promete ningun correo", async () => {
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "RECIBIDO" } });
+
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(1));
+    const confirmacion = Swal.fire.mock.calls[0][0];
+    expect(confirmacion.text).not.toMatch(/le llegar[aá] un correo/i);
+    expect(confirmacion.text).toMatch(/no se enviar[aá] ning[uú]n correo/i);
+    // Elegir el estado que ya tiene el pedido no es un cambio: no se pide al
+    // backend que guarde nada, para no fingir una transición que no ocurrió.
+    expect(cambiarEstadoPedido).not.toHaveBeenCalled();
+  });
+
+  // El select refleja el estado real del pedido. Si la administradora cancela,
+  // no puede quedar mostrando un estado que el pedido no tiene: sería una
+  // mentira en pantalla. React además restaura por su cuenta el valor
+  // controlado, pero el panel lo revierte a mano y este test fija esa
+  // garantía para que un refactor no la rompa en silencio.
+  test("19. Al cancelar, el select vuelve a mostrar el estado real del pedido", async () => {
+    Swal.fire.mockResolvedValue({ isConfirmed: false });
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    const fila = screen.getByText("Daniela Soto").closest("tr");
+    const select = fila.querySelector("select.admin-pedidos-estado-select");
+    fireEvent.change(select, { target: { value: "ENTREGADO" } });
+
+    await waitFor(() => expect(Swal.fire).toHaveBeenCalled());
+    expect(select.value).toBe("RECIBIDO");
+  });
 });
