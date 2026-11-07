@@ -29,6 +29,8 @@ export const cambiarEstadoPedido = async (id, estado) => {
 // Que se vendio en un rango de fechas: lista de { nombre, unidades, monto } por
 // producto, de mas a menos vendido (dashboard de administracion, S3).
 // Requiere X-Api-Key: apiClient la adjunta sola desde el entorno.
+// El error se propaga en vez de devolver []: el panel traduciría una lista vacía en
+// "Sin ventas registradas", que es una afirmación sobre el negocio y no sobre la red.
 export const obtenerVentasPorProducto = async (desde, hasta) => {
   try {
     const response = await apiClient.get("/api/pedidos/estadisticas/productos", {
@@ -37,6 +39,6 @@ export const obtenerVentasPorProducto = async (desde, hasta) => {
     return response.data;
   } catch (error) {
     console.error("Error al consultar las ventas por producto:", error);
-    return [];
+    throw error;
   }
 };
