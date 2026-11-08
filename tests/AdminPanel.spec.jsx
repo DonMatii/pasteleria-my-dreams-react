@@ -648,4 +648,39 @@ describe("AdminPanel - Dashboard honesto (P0-3)", () => {
     expect(screen.getByTestId("vendidos-sin-datos")).toHaveTextContent(/No se pudieron leer las ventas/i);
     expect(screen.queryByText(/Sin ventas registradas en/i)).not.toBeInTheDocument();
   });
+
+  // Una tabla de productos vacia por un servicio caido se lee como "no hay
+  // productos en la pasteleria". El panel tiene que decir que no pudo leerla.
+  it("26. CATALOGO: si catalogo-service falla la tabla lo dice en vez de quedar vacía", async () => {
+    ProductosService.obtenerProductos.mockRejectedValue(new Error("catalogo-service caido"));
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByTestId("productos-error")).toBeInTheDocument();
+    expect(screen.getByTestId("productos-error")).toHaveTextContent(/No se pudo leer el catálogo/i);
+    // Sin filas no hay ningún producto que se pueda editar o eliminar
+    expect(screen.queryByLabelText(/Editar /i)).not.toBeInTheDocument();
+  });
+
+  it("27. CATALOGO: con el servicio sano la tabla sigue mostrando los productos", async () => {
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByText(/Torta Chocolate/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("productos-error")).not.toBeInTheDocument();
+  });
+
+  // El listado de pedidos se usa para el detalle de la tabla de 7 dias: si
+  // falla, esa seccion no puede afirmar que no hubo detalle de productos
+  it("28. PEDIDOS: si pedidos-service falla el detalle diario no afirma 'Sin detalle'", async () => {
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue({
+      ...statsSanos,
+      ventasDiarias: [{ fecha: "2026-11-07", pedidos: 2, monto: 30000 }],
+    });
+    PedidosService.obtenerPedidos.mockRejectedValue(new Error("pedidos-service caido"));
+
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    expect(await screen.findByTestId("diario-detalle-error")).toBeInTheDocument();
+    expect(screen.queryByText(/Sin detalle de productos/i)).not.toBeInTheDocument();
+  });
 });

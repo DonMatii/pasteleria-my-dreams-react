@@ -3,13 +3,16 @@ import apiClient from "./apiClient";
 // Listado administrativo de pedidos: el mas reciente primero. Incluye cliente,
 // email, estado y desglose de productos, todo lo que muestra el panel de admin.
 // Requiere X-Api-Key: apiClient la adjunta sola desde el entorno.
+// El error se propaga en vez de devolver []: al panel le llegaria una lista
+// vacia y diria "Todavia no hay pedidos registrados", que es una afirmacion
+// sobre el negocio y no sobre la red (mismo criterio que obtenerVentasPorProducto).
 export const obtenerPedidos = async () => {
   try {
     const response = await apiClient.get("/api/pedidos");
     return response.data;
   } catch (error) {
     console.error("Error al consultar los pedidos:", error);
-    return [];
+    throw error;
   }
 };
 

@@ -37,3 +37,28 @@ describe("PedidosService - los fallos no se disfrazan de lista vacía", () => {
     });
   });
 });
+
+// Mismo criterio para el listado administrativo: un rechazo no puede volver
+// convertido en [] porque AdminPedidos lo traduciria en "Todavia no hay
+// pedidos registrados", una afirmacion sobre el negocio y no sobre la red.
+describe("PedidosService - obtenerPedidos no disfraza un fallo de lista vacia", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("propaga el error en vez de devolver []", async () => {
+    apiClient.get.mockRejectedValue(new Error("pedidos-service caido"));
+
+    await expect(PedidosService.obtenerPedidos()).rejects.toThrow(
+      "pedidos-service caido"
+    );
+  });
+
+  it("devuelve la lista cuando la petición responde", async () => {
+    const lista = [{ id: 301, cliente: "Daniela Soto", estado: "RECIBIDO" }];
+    apiClient.get.mockResolvedValue({ data: lista });
+
+    await expect(PedidosService.obtenerPedidos()).resolves.toEqual(lista);
+    expect(apiClient.get).toHaveBeenCalledWith("/api/pedidos");
+  });
+});

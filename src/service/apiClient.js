@@ -4,6 +4,13 @@ import axios from "axios";
 // (exportada para que otros módulos, como el formulario de pedido, usen la misma fuente)
 export const URL_BASE = import.meta.env.VITE_API_BASE_URL;
 
+// Si un servicio no responde, el GET tiene que FALLAR y no colgarse: sin este
+// tope el dashboard se quedaba en "Cargando ventas…" para siempre y el aviso
+// de error con su botón Reintentar jamás llegaba a verse.
+// 15 s es generoso a propósito: un falso negativo en la demo es peor que la
+// espera larga, y los servicios locales responden en milisegundos.
+export const TIMEOUT_GET_MS = 15000;
+
 // 2. Creamos la instancia oficial para "8 Digital"
 const apiClient = axios.create({
   baseURL: URL_BASE,
@@ -12,6 +19,11 @@ const apiClient = axios.create({
 // 3. Nuestro Interceptor Inteligente ("El Guardia de Seguridad")
 apiClient.interceptors.request.use(
   (config) => {
+    // Timeout SOLO en GET: abortar un POST, PUT, PATCH o DELETE a mitad de
+    // camino deja el cambio aplicado en el servidor pero no en el cliente, y
+    // el reintento lo repite. Esos verbos conservan el tope 0 de axios.
+    config.timeout = String(config.method).toLowerCase() === "get" ? TIMEOUT_GET_MS : 0;
+
     // Busca el token sagrado en la sesión (Google o Admin)
     const token = sessionStorage.getItem("userToken");
     

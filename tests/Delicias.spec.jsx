@@ -114,3 +114,57 @@ describe("Delicias - badge de la delicia del día", () => {
     });
   });
 });
+
+describe("Delicias - catálogo no disponible", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Con el servicio caído el spinner se apaga: antes la página quedaba en
+    // blanco total, con el título y nada más
+    ProductosService.obtenerProductos.mockRejectedValue(new Error("catalogo-service caido"));
+    ProductosService.obtenerDeliciaDelDia.mockRejectedValue(new Error("404"));
+  });
+
+  const montar = () =>
+    render(
+      <CarritoProvider>
+        <Delicias />
+      </CarritoProvider>
+    );
+
+  test("si catalogo-service no responde, la página lo dice en vez de quedar en blanco", async () => {
+    montar();
+
+    expect(await screen.findByTestId("delicias-error")).toBeInTheDocument();
+    expect(screen.getByTestId("delicias-error")).toHaveTextContent(/No se pudo cargar el catálogo/i);
+    // Ni el spinner infinito ni el título solo, que es como se veía antes
+    expect(screen.queryByText(/Cargando delicias/i)).not.toBeInTheDocument();
+  });
+
+  test("el aviso ofrece Reintentar y vuelve a pedir el catálogo", async () => {
+    // La primera llamada falla (estado de la beforeEach); tras el reintento,
+    // el servicio ya responde con el catálogo real
+    ProductosService.obtenerProductos
+      .mockRejectedValueOnce(new Error("catalogo-service caido"))
+      .mockResolvedValue(CATALOGO);
+    ProductosService.obtenerDeliciaDelDia.mockResolvedValue(CATALOGO.tortas[0]);
+
+    montar();
+    fireEvent.click(await screen.findByTestId("delicias-reintentar"));
+
+    expect(await screen.findByRole("heading", { name: "Torta Moka" })).toBeInTheDocument();
+    expect(ProductosService.obtenerProductos).toHaveBeenCalledTimes(2);
+    expect(screen.queryByTestId("delicias-error")).not.toBeInTheDocument();
+  });
+
+  // Un catálogo vacío LEGITIMO (200 con {}) sigue mostrando su estado vacío:
+  // el aviso de error solo aparece cuando la promesa rechaza
+  test("con un catálogo vacío legítimo no aparece el aviso de error", async () => {
+    ProductosService.obtenerProductos.mockResolvedValue({});
+    ProductosService.obtenerDeliciaDelDia.mockResolvedValue(null);
+
+    montar();
+
+    expect(await screen.findByRole("heading", { name: "Nuestro Catálogo" })).toBeInTheDocument();
+    expect(screen.queryByTestId("delicias-error")).not.toBeInTheDocument();
+  });
+});

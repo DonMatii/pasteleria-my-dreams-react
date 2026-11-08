@@ -10,6 +10,9 @@ import { obtenerPedidos, cambiarEstadoPedido } from "../service/PedidosService";
 function AdminPedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  // "cargando" | "ok" | "error": un rechazo de pedidos-service no es "no hay
+  // pedidos", así que la sección lo dice en vez de quedarse muda (P0-3)
+  const [estado, setEstado] = useState("cargando");
   const [guardandoId, setGuardandoId] = useState(null);
   const [abierto, setAbierto] = useState(true);
   const [ordenPedidos, setOrdenPedidos] = useState({ campo: "fecha", dir: "desc" });
@@ -84,8 +87,19 @@ function AdminPedidos() {
 
   const cargar = useCallback(async () => {
     setCargando(true);
-    setPedidos(await obtenerPedidos());
-    setCargando(false);
+    try {
+      const lista = await obtenerPedidos();
+      setPedidos(Array.isArray(lista) ? lista : []);
+      setEstado("ok");
+    } catch (error) {
+      console.error("Error al cargar los pedidos:", error);
+      // Sin datos no hay nada que pintar: se limpia la lista para que un
+      // reintento no muestre pedidos viejos como si fueran los nuevos
+      setPedidos([]);
+      setEstado("error");
+    } finally {
+      setCargando(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -271,7 +285,23 @@ function AdminPedidos() {
       </div>
 
       {abierto ? (
-        cargando && pedidos.length === 0 ? (
+        estado === "error" ? (
+          // Un rechazo del servicio no es "no hay pedidos": decir eso seria
+          // mentirle a la administradora sobre su propio negocio
+          <div className="admin-pedidos-error" data-testid="pedidos-error">
+            <p className="admin-pedidos-vacio">
+              No se pudieron leer los pedidos: pedidos-service no respondió.
+            </p>
+            <button
+              type="button"
+              className="admin-reintentar"
+              data-testid="pedidos-reintentar"
+              onClick={cargar}
+            >
+              Recargar pedidos
+            </button>
+          </div>
+        ) : cargando && pedidos.length === 0 ? (
           <p className="admin-pedidos-vacio" data-testid="pedidos-cargando">Cargando pedidos...</p>
         ) : pedidos.length === 0 ? (
           <p className="admin-pedidos-vacio" data-testid="pedidos-vacio">

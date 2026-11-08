@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { obtenerProductos, obtenerDeliciaDelDia, aplanarCatalogo } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
@@ -9,6 +9,9 @@ import "../App.css";
 function Delicias() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  // "cargando" | "ok" | "error": si catalogo-service no responde la página
+  // lo dice. Antes quedaba el título "Nuestro Catálogo" y nada más (P0-3)
+  const [estadoCatalogo, setEstadoCatalogo] = useState("cargando");
   const [deliciaDelDia, setDeliciaDelDia] = useState(null); // producto con -10% de hoy
   const { agregarAlCarrito } = useCarrito();
 
@@ -43,28 +46,38 @@ function Delicias() {
     destino.scrollIntoView({ behavior: reducir ? "auto" : "smooth", block: "start" });
   };
 
-  useEffect(() => {
-    const cargarTodo = async () => {
-      try {
-        const datos = await obtenerProductos();
-        setProductos(aplanarCatalogo(datos));
-      } catch (error) {
-        console.error("Error al cargar:", error);
-      }
+  // Se usa como efecto y como handler del botón Reintentar: al recargar se
+  // vuelve al estado "cargando" para que el spinner cubra el reintento
+  const cargarTodo = useCallback(async () => {
+    setCargando(true);
+    setEstadoCatalogo("cargando");
+    try {
+      const datos = await obtenerProductos();
+      setProductos(aplanarCatalogo(datos));
+      setEstadoCatalogo("ok");
+    } catch (error) {
+      console.error("Error al cargar:", error);
+      // Sin catálogo no hay nada que mostrar: se limpia para que un reintento
+      // no deje mezclados productos viejos con los nuevos
+      setProductos([]);
+      setEstadoCatalogo("error");
+    }
 
-      // La delicia del día viene del backend (mismo sorteo que el Home);
-      // si falla, el catálogo se muestra igual, solo que sin badge
-      try {
-        const delicia = await obtenerDeliciaDelDia();
-        if (delicia && delicia.id != null) setDeliciaDelDia(delicia);
-      } catch (error) {
-        console.error("Error al cargar la delicia del día en Delicias:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-    cargarTodo();
+    // La delicia del día viene del backend (mismo sorteo que el Home);
+    // si falla, el catálogo se muestra igual, solo que sin badge
+    try {
+      const delicia = await obtenerDeliciaDelDia();
+      if (delicia && delicia.id != null) setDeliciaDelDia(delicia);
+    } catch (error) {
+      console.error("Error al cargar la delicia del día en Delicias:", error);
+    } finally {
+      setCargando(false);
+    }
   }, []);
+
+  useEffect(() => {
+    cargarTodo();
+  }, [cargarTodo]);
 
   const manejarAgregar = async (prod) => {
     const cantidad = await pedirCantidad(prod);
@@ -81,6 +94,28 @@ function Delicias() {
         <div className="spinner" />
         <p className="loader-texto">Cargando delicias...</p>
       </div>
+    );
+
+  // Catálogo ilegible: decirlo en vez de dejar la página con el título y
+  // nada debajo, que es como se veía con el servicio caído
+  if (estadoCatalogo === "error")
+    return (
+      <main className="main-content fondo-pagina">
+        <h1 className="titulo-principal">Nuestro Catálogo</h1>
+        <div className="delicias-error" data-testid="delicias-error">
+          <p className="delicias-error-texto">
+            No se pudo cargar el catálogo: catalogo-service no respondió.
+          </p>
+          <button
+            type="button"
+            className="delicias-reintentar"
+            data-testid="delicias-reintentar"
+            onClick={cargarTodo}
+          >
+            Reintentar
+          </button>
+        </div>
+      </main>
     );
 
   return (

@@ -406,4 +406,39 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
     await waitFor(() => expect(Swal.fire).toHaveBeenCalledTimes(2));
     expect(Swal.fire.mock.calls[1][0].text).toMatch(/le llegar[aá] un correo/i);
   });
+
+  // Un rechazo de pedidos-service NO es "no hay pedidos": decir eso a la
+  // administradora seria mentirle sobre su propio negocio (P0-3)
+  test("23. Si pedidos-service no responde, la seccion lo dice en vez de fingir que no hay pedidos", async () => {
+    obtenerPedidos.mockRejectedValue(new Error("503"));
+
+    render(<AdminPedidos />);
+
+    expect(await screen.findByTestId("pedidos-error")).toBeInTheDocument();
+    expect(screen.queryByTestId("pedidos-vacio")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pedidos-cargando")).not.toBeInTheDocument();
+  });
+
+  test("24. El aviso de error ofrece Recargar y vuelve a pedir la lista", async () => {
+    obtenerPedidos.mockRejectedValueOnce(new Error("503"));
+    obtenerPedidos.mockResolvedValue([pedidoDaniela]);
+
+    render(<AdminPedidos />);
+    fireEvent.click(await screen.findByTestId("pedidos-reintentar"));
+
+    expect(await screen.findByText("Daniela Soto")).toBeInTheDocument();
+    expect(obtenerPedidos).toHaveBeenCalledTimes(2);
+    expect(screen.queryByTestId("pedidos-error")).not.toBeInTheDocument();
+  });
+
+  // La lista vacia LEGITIMA sigue mostrando su mensaje de siempre: el estado
+  // de error no puede castigar al caso en que efectivamente no hay pedidos
+  test("25. Con una lista vacia legitima sigue diciendo que no hay pedidos", async () => {
+    obtenerPedidos.mockResolvedValue([]);
+
+    render(<AdminPedidos />);
+
+    expect(await screen.findByTestId("pedidos-vacio")).toBeInTheDocument();
+    expect(screen.queryByTestId("pedidos-error")).not.toBeInTheDocument();
+  });
 });

@@ -22,9 +22,16 @@ const PERIODOS = [
 
 function AdminPanel() {
   const [productos, setProductos] = useState([]);
+  // Estado de la carga del catálogo: "cargando" | "ok" | "error". Una tabla
+  // vacía por un servicio caido se lee como "no hay productos", así que el
+  // panel tiene que decir que no pudo leerla (P0-3)
+  const [estadoProductos, setEstadoProductos] = useState("cargando");
   const [editandoId, setEditandoId] = useState(null);
   const [stats, setStats] = useState(null);
   const [pedidos, setPedidos] = useState([]);
+  // El detalle por día de la tabla de 7 días sale de pedidos-service: si ese
+  // servicio falla la sección lo dice en vez de afirmar "Sin detalle"
+  const [estadoPedidosDiario, setEstadoPedidosDiario] = useState("cargando");
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: "",
     descripcion: "",
@@ -63,8 +70,13 @@ const cargarDatos = () => {
       const arrayData = Array.isArray(data) ? data : Object.values(data).flat();
       const ordenados = (arrayData || []).sort((a, b) => a.id - b.id);
       setProductos(ordenados);
+      setEstadoProductos("ok");
     }).catch(error => {
       console.error("Error al cargar los datos del catálogo:", error);
+      // Sin datos no hay nada que pintar: se limpia la lista para que un
+      // reintento no muestre productos viejos como si fueran los nuevos
+      setProductos([]);
+      setEstadoProductos("error");
     });
   };
 
@@ -93,9 +105,11 @@ const cargarDatos = () => {
     try {
       const data = await obtenerPedidos();
       setPedidos(Array.isArray(data) ? data : []);
+      setEstadoPedidosDiario("ok");
     } catch (error) {
       console.error("Error al cargar pedidos:", error);
       setPedidos([]);
+      setEstadoPedidosDiario("error");
     }
   };
 
@@ -799,8 +813,18 @@ const cargarDatos = () => {
                               />
                             </div>
                           )}
+                          {/* Detalle por día: sale de pedidos-service. Si ese
+                              servicio falló no se puede afirmar "Sin detalle",
+                              que suena a que no hubo productos ese día */}
                           {!sinVentas &&
-                            (venta.productos.length > 0 ? (
+                            (estadoPedidosDiario === "error" ? (
+                              <p
+                                className="admin-dia-nota"
+                                data-testid="diario-detalle-error"
+                              >
+                                No se pudo leer el detalle de productos de pedidos-service.
+                              </p>
+                            ) : venta.productos.length > 0 ? (
                               <ul className="admin-vendidos-lista">
                                 {venta.productos.map((p) => (
                                   <li key={p.nombre} className="admin-vendido">
@@ -943,6 +967,23 @@ const cargarDatos = () => {
           </form>
         </div>
 
+        {/* Tabla del catálogo: si catalogo-service no responde se dice en vez
+            de dejar la tabla vacía, que se leería como "no hay productos" */}
+        {estadoProductos === "error" ? (
+          <div className="admin-productos-error" data-testid="productos-error">
+            <p className="admin-pedidos-vacio">
+              No se pudo leer el catálogo: catalogo-service no respondió.
+            </p>
+            <button
+              type="button"
+              className="admin-reintentar"
+              data-testid="productos-reintentar"
+              onClick={cargarDatos}
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : (
         <div className="admin-tabla-container">
           <table className="admin-tabla">
             <thead>
@@ -994,6 +1035,7 @@ const cargarDatos = () => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );
