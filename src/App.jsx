@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import TeaserPedido from "./components/TeaserPedido"; 
 import BotonVolverArriba from "./components/BotonVolverArriba";
 import Seo from "./components/Seo";
+import ErrorBoundary from "./components/ErrorBoundary";
 import './App.css';
 import imgLogo from "./assets/img/logoPasteleria.png"; 
 
@@ -45,7 +46,8 @@ function App() {
         <Header />
 
         <main className="main-content">
-          <Routes>
+          <ErrorBoundary>
+            <Routes>
             {/* RUTAS PÚBLICAS */}
             <Route path="/" element={<Home />} />
             <Route path="/delicias" element={<Delicias />} />
@@ -78,6 +80,7 @@ function App() {
             {/* Si la ruta no existe, vuelve al Home */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          </ErrorBoundary>
         </main>
 
         <Footer />

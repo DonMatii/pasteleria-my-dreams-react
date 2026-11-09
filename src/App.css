@@ -1610,6 +1610,81 @@ header nav ul li a:hover {
   }
 }
 
+/* Fallback del ErrorBoundary: cuando un componente crashea, la página
+   muestra esta tarjeta en vez de una pantalla blanca. Reutiliza la foto
+   de fondo del sitio (fondo-pagina) y la paleta institucional para que
+   el error se sienta parte de My Dreams. El título usa Montserrat a
+   propósito: index.css pinta todos los h1/h2 con Great Vibes y la
+   cursiva de baja x-height se lee mal en un mensaje de error. */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 62vh;
+  padding: 32px 20px;
+}
+
+.error-boundary-tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 520px;
+  padding: 36px 34px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.96);
+  border: 1px solid #f2c1d5;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(176, 78, 111, 0.22);
+}
+
+.error-boundary-icono {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.error-boundary-titulo {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #d95386;
+}
+
+.error-boundary-texto {
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: #7a4a5f;
+}
+
+.error-boundary-boton {
+  margin-top: 6px;
+  border: 1px solid #d95386;
+  background-color: #d95386;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 10px 30px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+  box-shadow: 0 2px 6px rgba(176, 78, 111, 0.18);
+}
+
+.error-boundary-boton:hover {
+  background-color: #c04274;
+  border-color: #c04274;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error-boundary-boton {
+    transition: none;
+  }
+}
+
 /* Foco visible de teclado en todos los controles (WCAG 2.4.7): anillo
    rosa que reemplaza el outline: none que los formularios traian. */
 a:focus-visible,
