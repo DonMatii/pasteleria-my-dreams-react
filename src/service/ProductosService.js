@@ -89,3 +89,17 @@ export const subirImagenProducto = async (archivo) => {
     throw error;
   }
 };
+
+// Ping de "producto visto" (Entrega 3): lo dispara la foto del producto al
+// entrar en pantalla y publica el evento `producto_visto` en el stream. Una
+// sola vez por producto y por sesión, y jamás lanza: ver un producto es un
+// dato, no una operación que pueda romper la navegación.
+const productosAvisados = new Set();
+
+export const marcarProductoVisto = (productoId) => {
+  if (!productoId || productosAvisados.has(productoId)) return;
+  productosAvisados.add(productoId);
+  apiClient.post(`/api/productos/${productoId}/visto`).catch(() => {
+    // Best-effort: si el aviso falla, la tienda sigue funcionando igual
+  });
+};

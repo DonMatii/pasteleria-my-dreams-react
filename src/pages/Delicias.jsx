@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { obtenerProductos, obtenerDeliciaDelDia, aplanarCatalogo } from "../service/ProductosService";
+import { obtenerProductos, obtenerDeliciaDelDia, aplanarCatalogo, marcarProductoVisto } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 import { toastAgregado } from "../utils/toastAgregado";
@@ -155,6 +155,7 @@ function Delicias() {
                       alt={prod.nombre} 
                       loading="lazy"
                       decoding="async"
+                      onLoad={() => marcarProductoVisto(prod.id)}
                       onError={(e) => { e.target.src = '/img/tortaMoka.jpg'; }} 
                     />
                   </div>

@@ -7,7 +7,7 @@ import {
   consumirCodigoBienvenida,
   verificarElegibilidadBienvenida,
 } from "../service/BienvenidaService";
-import { obtenerProductos, aplanarCatalogo, obtenerDeliciaDelDia } from "../service/ProductosService";
+import { obtenerProductos, aplanarCatalogo, obtenerDeliciaDelDia, marcarProductoVisto } from "../service/ProductosService";
 import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 import { toastAgregado } from "../utils/toastAgregado";
@@ -204,6 +204,7 @@ function Home() {
                 alt={delicia.nombre}
                 loading="lazy"
                 decoding="async"
+                onLoad={() => marcarProductoVisto(delicia.id)}
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = "/img/alfajor.jpg";
@@ -250,6 +251,7 @@ function Home() {
                   alt={prod.nombre}
                   loading="lazy"
                   decoding="async"
+                  onLoad={() => marcarProductoVisto(prod.id)}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "/img/alfajor.jpg";
