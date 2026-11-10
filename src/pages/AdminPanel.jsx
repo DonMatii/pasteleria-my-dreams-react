@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto } from "../service/ProductosService";
+import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto, subirImagenProducto } from "../service/ProductosService";
+import { resolverUrlImagen } from "../utils/resolverUrlImagen";
 import { obtenerEstadisticas, guardarMetas } from "../service/EstadisticasService";
 import { obtenerVentasPorProducto, obtenerPedidos } from "../service/PedidosService";
 import AdminPedidos from "../components/AdminPedidos";
@@ -40,6 +41,12 @@ function AdminPanel() {
     categoria: "",
     activo: true,
   });
+
+  // Foto del producto: al elegir el archivo se sube solo y se muestra la
+  // vista previa (S1-S3); la URL devuelta viaja en nuevoProducto.imagenUrl
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [errorImagen, setErrorImagen] = useState("");
+  const inputImagenRef = useRef(null);
 
   // Dashboard: periodo elegido, ventas por producto del periodo y edicion de la meta
   const [periodo, setPeriodo] = useState("dia");
@@ -217,7 +224,7 @@ const cargarDatos = () => {
         const img = imagenDe(prod.nombre);
         productosPorFecha.get(fecha).push({
           nombre: prod.nombre,
-          imagen: `/img/${img}`,
+          imagen: resolverUrlImagen(img),
           cantidad: Number(prod.cantidad) || 0,
           monto: Number(prod.subtotal) || 0
         });
@@ -311,6 +318,23 @@ const cargarDatos = () => {
     setNuevoProducto({ ...nuevoProducto, [id]: valorFinal });
   };
 
+  // Elige la foto y la sube de inmediato: la URL que responde el catalogo
+  // queda lista para el create/PUT, sin tecnicismos en pantalla
+  const manejarArchivoImagen = async (e) => {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+    setSubiendoImagen(true);
+    setErrorImagen("");
+    try {
+      const url = await subirImagenProducto(archivo);
+      setNuevoProducto((prev) => ({ ...prev, imagenUrl: url }));
+    } catch {
+      setErrorImagen("No se pudo subir la imagen. Intenta nuevamente.");
+    } finally {
+      setSubiendoImagen(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -393,6 +417,11 @@ const cargarDatos = () => {
       categoria: "",
       activo: true,
     });
+    // El input de archivo no se controla con valor: se limpia a mano para que
+    // el proximo producto no muestre la foto anterior
+    if (inputImagenRef.current) inputImagenRef.current.value = "";
+    setSubiendoImagen(false);
+    setErrorImagen("");
   };
 
   // Al entrar en modo edicion (o cambiar de producto editado), el scroll
@@ -610,7 +639,7 @@ const cargarDatos = () => {
                           {["🥇", "🥈", "🥉"][i]}
                         </span>
                         <img
-                          src={`/img/${imagenDe(venta.nombre)}`}
+                          src={resolverUrlImagen(imagenDe(venta.nombre))}
                           alt={venta.nombre}
                           className="admin-top-img"
                           loading="lazy"
@@ -704,7 +733,7 @@ const cargarDatos = () => {
                       {vendidosOrdenados.map((venta) => (
                         <li key={venta.nombre} className="admin-vendido">
                           <img
-                            src={`/img/${imagenDe(venta.nombre)}`}
+                            src={resolverUrlImagen(imagenDe(venta.nombre))}
                             alt={venta.nombre}
                             className="admin-vendido-img"
                             loading="lazy"
@@ -829,7 +858,7 @@ const cargarDatos = () => {
                                 {venta.productos.map((p) => (
                                   <li key={p.nombre} className="admin-vendido">
                                     <img
-                                      src={`/img/${imagenDe(p.nombre)}`}
+                                      src={resolverUrlImagen(imagenDe(p.nombre))}
                                       alt={p.nombre}
                                       className="admin-vendido-img"
                                       loading="lazy"
@@ -914,39 +943,27 @@ const cargarDatos = () => {
             </div>
 
             <div className="admin-form-group">
-              <label htmlFor="imagenUrl">Imagen del Archivo</label>
-              <select
-                id="imagenUrl"
-                value={nuevoProducto.imagenUrl}
-                onChange={handleChange}
-              >
-                <option value="">-- Seleccionar Imagen --</option>
-                <option value="alfajor.jpg">alfajor.jpg</option>
-                <option value="brownieChocolateNuez.jpg">brownieChocolateNuez.jpg</option>
-                <option value="carlotaMango.jpg">carlotaMango.jpg</option>
-                <option value="cupcakesVariedades.jpg">cupcakesVariedades.jpg</option>
-                <option value="donasGlaseadas.jpg">donasGlaseadas.jpg</option>
-                <option value="kutchenDeManzana.jpg">kutchenDeManzana.jpg</option>
-                <option value="miniTartaletas.jpg">miniTartaletas.jpg</option>
-                <option value="muffinsPlatanoArandano.jpg">muffinsPlatanoArandano.jpg</option>
-                <option value="pieDeLimon.jpg">pieDeLimon.jpg</option>
-                <option value="pieMaracuya.jpg">pieMaracuya.jpg</option>
-                <option value="quequeArandano.jpg">quequeArandano.jpg</option>
-                <option value="quequeChoc.jpg">quequeChoc.jpg</option>
-                <option value="quequeMarmoladoVainilla.jpg">quequeMarmoladoVainilla.jpg</option>
-                <option value="quequePlatano.jpg">quequePlatano.jpg</option>
-                <option value="quequeVainilla.jpg">quequeVainilla.jpg</option>
-                <option value="rollosDeCanela.jpg">rollosDeCanela.jpg</option>
-                <option value="tartaletaFrutas.jpg">tartaletaFrutas.jpg</option>
-                <option value="tartaYogurth.jpg">tartaYogurth.jpg</option>
-                <option value="torta3Leches.jpg">torta3Leches.jpg</option>
-                <option value="tortaCremaPina.jpg">tortaCremaPina.jpg</option>
-                <option value="tortaManjarLucuma.jpg">tortaManjarLucuma.jpg</option>
-                <option value="tortaManjarNuez.jpg">tortaManjarNuez.jpg</option>
-                <option value="tortaMerengueFrambueza.jpg">tortaMerengueFrambueza.jpg</option>
-                <option value="tortaMoka.jpg">tortaMoka.jpg</option>
-                <option value="tortaSelvaNegra.jpg">tortaSelvaNegra.jpg</option>
-              </select>
+              <label htmlFor="archivoImagen">Foto del producto</label>
+              <input
+                type="file"
+                id="archivoImagen"
+                ref={inputImagenRef}
+                accept="image/jpeg,image/png,image/webp"
+                onChange={manejarArchivoImagen}
+              />
+              {subiendoImagen && <p className="admin-form-info">Subiendo la foto…</p>}
+              {errorImagen && <p className="admin-form-error">{errorImagen}</p>}
+              {nuevoProducto.imagenUrl && (
+                <img
+                  className="admin-form-preview"
+                  src={resolverUrlImagen(nuevoProducto.imagenUrl)}
+                  alt="Vista previa de la foto del producto"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/img/alfajor.jpg";
+                  }}
+                />
+              )}
             </div>
 
             <div className="admin-botonera">
@@ -1000,7 +1017,7 @@ const cargarDatos = () => {
                 <tr key={prod.id}>
                   <td>
                     <img
-                      src={`/img/${prod.imagenUrl}`}
+                      src={resolverUrlImagen(prod.imagenUrl)}
                       alt=""
                       className="admin-img-tabla"
                       loading="lazy"

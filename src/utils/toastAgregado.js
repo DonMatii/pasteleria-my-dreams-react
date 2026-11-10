@@ -1,4 +1,5 @@
 import Swal from "sweetalert2";
+import { resolverUrlImagen } from "./resolverUrlImagen";
 
 // Toast compacto con el mismo SweetAlert2 de la confirmación de compra:
 // sale arriba con el cuadrito del producto, se cierra solo a los 3
@@ -10,7 +11,7 @@ export const toastAgregado = (nombreProducto, imagenUrl) => {
     position: "top",
     icon: "success",
     title: `<span class="toast-carrito-nombre">${nombreProducto}</span> agregado al carrito`,
-    html: `<img src="/img/${imagenUrl || "alfajor.jpg"}" alt="" class="toast-carrito-img" onerror="this.onerror=null;this.src='/img/alfajor.jpg'" />`,
+    html: `<img src="${resolverUrlImagen(imagenUrl) || "/img/alfajor.jpg"}" alt="" class="toast-carrito-img" onerror="this.onerror=null;this.src='/img/alfajor.jpg'" />`,
     showConfirmButton: false,
     showCloseButton: true,
     timer: 3000,

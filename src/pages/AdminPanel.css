@@ -95,6 +95,30 @@
   background-color: #fffdfd;
 }
 
+/* Foto del producto: vista previa y estados de subida (lenguaje llano) */
+.admin-form-preview {
+  max-width: 220px;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  margin-top: 4px;
+}
+
+.admin-form-info {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  color: #6d506d;
+  margin: 0;
+}
+
+.admin-form-error {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  color: #b3261e;
+  margin: 0;
+}
+
 /* --- BOTONES --- */
 .admin-botonera {
   grid-column: span 2;

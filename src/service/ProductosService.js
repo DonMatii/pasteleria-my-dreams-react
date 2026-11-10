@@ -73,3 +73,19 @@ export const eliminarProducto = async (id) => {
     throw error;
   }
 };
+
+// Sube la foto de un producto al storage del catalogo (disco local en dev,
+// S3 al migrar a AWS) y devuelve la URL publica que viaja en el imagenUrl
+// del producto. El archivo viaja como multipart; el apiClient agrega solo el
+// X-Api-Key administrativo. Nunca se toca la carpeta del front.
+export const subirImagenProducto = async (archivo) => {
+  try {
+    const formData = new FormData();
+    formData.append("archivo", archivo);
+    const response = await apiClient.post("/api/productos/imagen", formData);
+    return response.data.url;
+  } catch (error) {
+    console.error("Error al subir la imagen:", error);
+    throw error;
+  }
+};

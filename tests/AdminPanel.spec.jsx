@@ -17,6 +17,7 @@ vi.mock("../src/service/ProductosService", () => ({
   crearProducto: vi.fn(),
   actualizarProducto: vi.fn(),
   eliminarProducto: vi.fn(),
+  subirImagenProducto: vi.fn(),
 }));
 
 // El panel también consulta el microservicio de estadísticas al montar.
@@ -78,7 +79,11 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     fireEvent.change(screen.getByLabelText(/Precio/i), { target: { value: "8000" } });
     fireEvent.change(screen.getByLabelText(/Descripción/i), { target: { value: "Manjar y bizcocho" } });
     fireEvent.change(screen.getByLabelText(/Sección en Web/i), { target: { value: "Sabores Frutales" } });
-    fireEvent.change(screen.getByLabelText(/Imagen del Archivo/i), { target: { value: "alfajor.jpg" } });
+    // La foto se sube al elegir el archivo y la URL devuelta viaja en el form
+    ProductosService.subirImagenProducto.mockResolvedValue("/uploads/foto-nueva.jpg");
+    const archivoFoto = new File(["foto"], "torta.jpg", { type: "image/jpeg" });
+    fireEvent.change(screen.getByLabelText(/Foto del producto/i), { target: { files: [archivoFoto] } });
+    await waitFor(() => expect(ProductosService.subirImagenProducto).toHaveBeenCalledWith(archivoFoto));
 
     // Hacemos clic en Publicar
     const botonPublicar = screen.getByRole("button", { name: /Publicar/i });
@@ -89,7 +94,7 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
         nombre: "Brazo de Reina",
         precio: 8000,
         categoria: "Sabores Frutales",
-        imagenUrl: "alfajor.jpg"
+        imagenUrl: "/uploads/foto-nueva.jpg"
       }));
     });
     expect(ProductosService.actualizarProducto).not.toHaveBeenCalled();
@@ -145,7 +150,11 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     fireEvent.change(screen.getByLabelText(/Precio/i), { target: { value: "5000" } });
     fireEvent.change(screen.getByLabelText(/Descripción/i), { target: { value: "Test" } });
     fireEvent.change(screen.getByLabelText(/Sección en Web/i), { target: { value: "Nuestras Tortas" } });
-    fireEvent.change(screen.getByLabelText(/Imagen del Archivo/i), { target: { value: "alfajor.jpg" } });
+    // La foto se sube al elegir el archivo y la URL devuelta viaja en el form
+    ProductosService.subirImagenProducto.mockResolvedValue("/uploads/foto-nueva.jpg");
+    const archivoFoto = new File(["foto"], "torta.jpg", { type: "image/jpeg" });
+    fireEvent.change(screen.getByLabelText(/Foto del producto/i), { target: { files: [archivoFoto] } });
+    await waitFor(() => expect(ProductosService.subirImagenProducto).toHaveBeenCalledWith(archivoFoto));
     
     fireEvent.click(screen.getByRole("button", { name: /Publicar/i }));
 

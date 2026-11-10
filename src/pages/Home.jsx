@@ -12,6 +12,7 @@ import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 import { toastAgregado } from "../utils/toastAgregado";
 import Revelar from "../components/Revelar";
+import { resolverUrlImagen } from "../utils/resolverUrlImagen";
 
 // Respaldo: si la API no responde, la home muestra estos productos en vez de quedar vacía.
 const productosRespaldo = [
@@ -199,7 +200,7 @@ function Home() {
           <div className="delicia-card">
             <div className="delicia-img">
               <img
-                src={`/img/${delicia.imagenUrl}`}
+                src={resolverUrlImagen(delicia.imagenUrl)}
                 alt={delicia.nombre}
                 loading="lazy"
                 decoding="async"
@@ -245,7 +246,7 @@ function Home() {
             <div className="producto" key={prod.id}>
               <div className="img-wrapper">
                 <img
-                  src={`/img/${prod.imagenUrl}`}
+                  src={resolverUrlImagen(prod.imagenUrl)}
                   alt={prod.nombre}
                   loading="lazy"
                   decoding="async"

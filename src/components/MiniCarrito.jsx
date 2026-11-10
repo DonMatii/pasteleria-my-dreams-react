@@ -4,6 +4,7 @@ import {
   confirmarVaciarCarrito,
 } from "../utils/confirmacionesCarrito";
 import { useCarrito } from "../context/CarritoContext";
+import { resolverUrlImagen } from "../utils/resolverUrlImagen";
 
 // Mini carrito: panel lateral que se abre desde el header.
 // Muestra los items del carrito compartido, permite ajustar cantidades,
@@ -55,7 +56,7 @@ function MiniCarrito({ abierto, onCerrar }) {
                 <li key={it.id} className="mini-carrito-item">
                   {it.imagenUrl && (
                     <img
-                      src={`/img/${it.imagenUrl}`}
+                      src={resolverUrlImagen(it.imagenUrl)}
                       alt={it.nombre}
                       className="mini-carrito-img"
                     />

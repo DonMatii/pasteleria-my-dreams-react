@@ -4,6 +4,7 @@ import { useCarrito } from "../context/CarritoContext";
 import { pedirCantidad } from "../utils/pedirCantidad";
 import { toastAgregado } from "../utils/toastAgregado";
 import Revelar from "../components/Revelar";
+import { resolverUrlImagen } from "../utils/resolverUrlImagen";
 import "../App.css";
 
 function Delicias() {
@@ -150,7 +151,7 @@ function Delicias() {
                       <span className="delicia-badge" data-testid="badge-delicia">-10% hoy</span>
                     )}
                     <img 
-                      src={`/img/${prod.imagenUrl}`} 
+                      src={resolverUrlImagen(prod.imagenUrl)} 
                       alt={prod.nombre} 
                       loading="lazy"
                       decoding="async"

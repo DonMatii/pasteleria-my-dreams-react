@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../App.css";
 import { URL_BASE } from "../service/apiClient";
 import { obtenerProductos, aplanarCatalogo } from "../service/ProductosService";
+import { resolverUrlImagen } from "../utils/resolverUrlImagen";
 
 // RF-11: consulta pública del estado de un pedido ya registrado.
 // El cliente ingresa el CÓDIGO OPACO de seguimiento (32 caracteres) que devolvió
@@ -237,7 +238,7 @@ const EstadoPedido = () => {
                   {imagenDe(producto.nombre) && (
                     <img
                       className="estado-producto-img"
-                      src={`/img/${imagenDe(producto.nombre)}`}
+                      src={resolverUrlImagen(imagenDe(producto.nombre))}
                       alt=""
                       loading="lazy"
                       onError={(e) => {
