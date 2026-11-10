@@ -178,16 +178,38 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
   // Filtro por estado: la administradora tiene decenas de pedidos y necesita
   // ver solo los que estan en un estado (p. ej. los RECIBIDO por atender).
 
-  test("12. El filtro ofrece Todos los estados y los 4 estados", async () => {
+  test("12. El filtro ofrece Pedidos activos, Todos los estados y los 4 estados", async () => {
     render(<AdminPedidos />);
 
     await screen.findByText("Daniela Soto");
     const filtro = screen.getByLabelText(/filtrar por estado/i);
     expect(filtro).toBeInTheDocument();
-    expect(filtro.querySelectorAll("option")).toHaveLength(5);
-    expect(filtro.options[0].textContent).toBe("Todos los estados");
-    // Por defecto no filtra nada: se ve la lista completa
+    expect(filtro.querySelectorAll("option")).toHaveLength(6);
+    expect(filtro.options[0].textContent).toBe("Pedidos activos");
+    // Por defecto se ve la vista de trabajo (ambos mocks son activos)
     expect(screen.getByText("Raul Pino")).toBeInTheDocument();
+  });
+
+  // Historial entregado: los pedidos listos son el registro de la pasteleria y
+  // no se borran, pero tampoco tienen por qué estorbar en la vista de trabajo.
+  test("16. Por defecto se ocultan los entregados y 'Todos los estados' los muestra", async () => {
+    const pedidoEntregado = {
+      id: 303,
+      cliente: "Carla Contreras",
+      email: "carla@ejemplo.cl",
+      fecha: "2026-10-28T09:00:00Z",
+      total: 15000,
+      estado: "ENTREGADO",
+      productos: [{ nombre: "Torta Selva Negra", cantidad: 1, precioUnitario: 15000, subtotal: 15000 }],
+    };
+    obtenerPedidos.mockResolvedValue([pedidoDaniela, pedidoRaul, pedidoEntregado]);
+    render(<AdminPedidos />);
+
+    await screen.findByText("Daniela Soto");
+    expect(screen.queryByText("Carla Contreras")).toBeNull();
+
+    fireEvent.change(screen.getByLabelText(/filtrar por estado/i), { target: { value: "" } });
+    expect(await screen.findByText("Carla Contreras")).toBeInTheDocument();
   });
 
   test("13. Filtrar por estado muestra solo los pedidos de ese estado", async () => {
@@ -346,6 +368,10 @@ describe("AdminPedidos - gestion de estados desde el panel", () => {
       }))
     );
     render(<AdminPedidos />);
+
+    // Por defecto la vista de trabajo oculta los entregados: para revisar el
+    // select del pedido entregado se pide el historial completo
+    fireEvent.change(screen.getByLabelText(/filtrar por estado/i), { target: { value: "" } });
 
     await screen.findByText("Cliente 1");
     estados.forEach((estado, i) => {

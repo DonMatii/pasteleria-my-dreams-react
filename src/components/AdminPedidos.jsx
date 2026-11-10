@@ -18,7 +18,10 @@ function AdminPedidos() {
   const [ordenPedidos, setOrdenPedidos] = useState({ campo: "fecha", dir: "desc" });
   const [pagina, setPagina] = useState(1);
   // "" = sin filtro (Todos los estados)
-  const [filtroEstado, setFiltroEstado] = useState("");
+  // Vista de trabajo por defecto: lo que aun tiene camino por recorrer.
+  // Los entregados son el registro de la pasteleria y siguen accesibles con
+  // "Todos los estados" (nunca se borran ni se les cambia el estado).
+  const [filtroEstado, setFiltroEstado] = useState("ACTIVOS");
   const PEDIDOS_POR_PAGINA = 5;
 
   // Mismo orden y mismos codigos que valida PedidoService.ESTADOS_VALIDOS
@@ -127,6 +130,9 @@ function AdminPedidos() {
 
   const pedidosFiltrados = useMemo(() => {
     if (!filtroEstado) return pedidosOrdenados;
+    if (filtroEstado === "ACTIVOS") {
+      return pedidosOrdenados.filter((pedido) => pedido.estado !== "ENTREGADO");
+    }
     return pedidosOrdenados.filter((pedido) => pedido.estado === filtroEstado);
   }, [pedidosOrdenados, filtroEstado]);
 
@@ -221,7 +227,7 @@ function AdminPedidos() {
   return (
     <section className="admin-pedidos" aria-label="Pedidos recibidos">
       <div className="admin-seccion-cabecera">
-        <h3 className="admin-pedidos-titulo">📁 Pedidos recibidos</h3>
+        <h3 className="admin-pedidos-titulo">Pedidos recibidos</h3>
         <div className="admin-orden" role="group" aria-label="Ordenar pedidos recibidos">
           <span className="admin-orden-etiqueta">Ordenar por:</span>
           {[
@@ -255,6 +261,7 @@ function AdminPedidos() {
             value={filtroEstado}
             onChange={(e) => cambiarFiltro(e.target.value)}
           >
+            <option value="ACTIVOS">Pedidos activos</option>
             <option value="">Todos los estados</option>
             {ESTADOS.map((estado) => (
               <option key={estado.codigo} value={estado.codigo}>
@@ -311,7 +318,9 @@ function AdminPedidos() {
           // Los pedidos existen, solo que ninguno en el estado elegido:
           // decir "no hay pedidos" aca seria mentirle a la administradora
           <p className="admin-pedidos-vacio" data-testid="pedidos-filtro-vacio">
-            Ningún pedido en estado "{etiquetaDe(filtroEstado)}".
+            {filtroEstado === "ACTIVOS"
+              ? "Ningún pedido activo por atender."
+              : `Ningún pedido en estado "${etiquetaDe(filtroEstado)}".`}
           </p>
         ) : (
           <div className="admin-tabla-container">
@@ -407,12 +416,12 @@ function AdminPedidos() {
                 ))}
               </tbody>
             </table>
-            {(totalPaginas > 1 || filtroEstado) && (
+            {(totalPaginas > 1 || (filtroEstado && pedidos.length > 0)) && (
               <div className="admin-paginacion">
                 <span className="admin-paginacion-texto">
                   Mostrando {pedidosPaginados.length} de {pedidosFiltrados.length} pedidos
                   {filtroEstado &&
-                    ` · ${etiquetaDe(filtroEstado)} (${pedidos.length} en total)`}
+                    ` · ${filtroEstado === "ACTIVOS" ? "Pedidos activos" : etiquetaDe(filtroEstado)} (${pedidos.length} en total)`}
                 </span>
                 {totalPaginas > 1 && (
                 <>

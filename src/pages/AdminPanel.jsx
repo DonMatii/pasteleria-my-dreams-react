@@ -64,6 +64,10 @@ function AdminPanel() {
   const [diarioAbierto, setDiarioAbierto] = useState(true);
   const [topAbierto, setTopAbierto] = useState(true);
 
+  // Días de "Ventas de los últimos 7 días": sus productos arrancan plegados
+  // para que la sección no empuje el resto de la página hacia abajo
+  const [diasProductosAbiertos, setDiasProductosAbiertos] = useState({});
+
   const username = sessionStorage.getItem("userName") || "Administradora";
 
   // Contenedor del formulario de gestion (Nuevo Ingreso / Modificar Dulce)
@@ -508,42 +512,54 @@ const cargarDatos = () => {
             )}
 
             {/* Primero las cifras del periodo elegido, luego los totales del catalogo */}
-            <div className="admin-kpis" data-testid="kpis-dashboard">
-              <div className="admin-kpi admin-kpi-destacado">
-                <span className="admin-kpi-etiqueta">Ventas {periodoActual.frase}</span>
-                <strong className="admin-kpi-valor">
-                  {datosIncompletos ? "—" : `$${formatearMoneda(ventasPeriodoSel.monto)}`}
-                </strong>
+            <div data-testid="kpis-dashboard">
+              {/* Cifras del periodo elegido: cambian con Día/Semana/Mes */}
+              <div className="admin-kpis">
+                <div className="admin-kpi admin-kpi-destacado">
+                  <span className="admin-kpi-etiqueta">Ventas {periodoActual.frase}</span>
+                  <strong className="admin-kpi-valor">
+                    {datosIncompletos ? "—" : `$${formatearMoneda(ventasPeriodoSel.monto)}`}
+                  </strong>
+                </div>
+                <div className="admin-kpi admin-kpi-destacado">
+                  <span className="admin-kpi-etiqueta">Pedidos {periodoActual.frase}</span>
+                  <strong className="admin-kpi-valor">
+                    {datosIncompletos ? "—" : (ventasPeriodoSel.pedidos ?? 0)}
+                  </strong>
+                </div>
               </div>
-              <div className="admin-kpi admin-kpi-destacado">
-                <span className="admin-kpi-etiqueta">Pedidos {periodoActual.frase}</span>
-                <strong className="admin-kpi-valor">
-                  {datosIncompletos ? "—" : (ventasPeriodoSel.pedidos ?? 0)}
-                </strong>
-              </div>
-              <div className="admin-kpi">
-                <span className="admin-kpi-etiqueta">💰 Ventas totales</span>
-                <strong className="admin-kpi-valor">
-                  {datosIncompletos ? "—" : `$${formatearMoneda(stats.montoTotalPedidos)}`}
-                </strong>
-              </div>
-              <div className="admin-kpi">
-                <span className="admin-kpi-etiqueta">🧾 Pedidos recibidos</span>
-                <strong className="admin-kpi-valor">
-                  {datosIncompletos ? "—" : (stats.pedidosTotales ?? 0)}
-                </strong>
-              </div>
-              <div className="admin-kpi">
-                <span className="admin-kpi-etiqueta">📦 Total catálogo</span>
-                <strong className="admin-kpi-valor">
-                  {datosIncompletos ? "—" : (stats.totalProductosCatalogo ?? 0)}
-                </strong>
-              </div>
-              <div className="admin-kpi">
-                <span className="admin-kpi-etiqueta">🏷️ Categorías</span>
-                <strong className="admin-kpi-valor">
-                  {datosIncompletos ? "—" : (stats.categoriasActivas ?? 0)}
-                </strong>
+
+              {/* Totales del negocio: no cambian con el selector de periodo y
+                  por eso se agrupan aparte (antes se leían como si fueran
+                  cifras del periodo elegido) */}
+              <div className="admin-kpis-totales">
+                <span className="admin-kpis-totales-titulo">Totales del negocio</span>
+                <div className="admin-kpis admin-kpis-secundarias">
+                  <div className="admin-kpi">
+                    <span className="admin-kpi-etiqueta">Ventas totales</span>
+                    <strong className="admin-kpi-valor">
+                      {datosIncompletos ? "—" : `$${formatearMoneda(stats.montoTotalPedidos)}`}
+                    </strong>
+                  </div>
+                  <div className="admin-kpi">
+                    <span className="admin-kpi-etiqueta">Pedidos totales</span>
+                    <strong className="admin-kpi-valor">
+                      {datosIncompletos ? "—" : (stats.pedidosTotales ?? 0)}
+                    </strong>
+                  </div>
+                  <div className="admin-kpi">
+                    <span className="admin-kpi-etiqueta">Total catálogo</span>
+                    <strong className="admin-kpi-valor">
+                      {datosIncompletos ? "—" : (stats.totalProductosCatalogo ?? 0)}
+                    </strong>
+                  </div>
+                  <div className="admin-kpi">
+                    <span className="admin-kpi-etiqueta">Categorías</span>
+                    <strong className="admin-kpi-valor">
+                      {datosIncompletos ? "—" : (stats.categoriasActivas ?? 0)}
+                    </strong>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -620,7 +636,7 @@ const cargarDatos = () => {
             {vendidosTop.length > 0 && (
               <div className="admin-top">
                 <div className="admin-seccion-cabecera">
-                  <h3 className="admin-top-titulo">🏆 Más vendidos ({periodoActual.frase.toLowerCase()})</h3>
+                  <h3 className="admin-top-titulo">Más vendidos ({periodoActual.frase.toLowerCase()})</h3>
                   <button
                     type="button"
                     className="admin-pliegue-btn"
@@ -842,9 +858,10 @@ const cargarDatos = () => {
                               />
                             </div>
                           )}
-                          {/* Detalle por día: sale de pedidos-service. Si ese
-                              servicio falló no se puede afirmar "Sin detalle",
-                              que suena a que no hubo productos ese día */}
+                          {/* Detalle por día: sale de pedidos-service y arranca
+                              plegado para que la sección no empuje todo hacia
+                              abajo. Si ese servicio falló el aviso se ve igual,
+                              sin desplegar: nunca se afirma "Sin detalle" */}
                           {!sinVentas &&
                             (estadoPedidosDiario === "error" ? (
                               <p
@@ -854,29 +871,48 @@ const cargarDatos = () => {
                                 No se pudo leer el detalle de productos de pedidos-service.
                               </p>
                             ) : venta.productos.length > 0 ? (
-                              <ul className="admin-vendidos-lista">
-                                {venta.productos.map((p) => (
-                                  <li key={p.nombre} className="admin-vendido">
-                                    <img
-                                      src={resolverUrlImagen(imagenDe(p.nombre))}
-                                      alt={p.nombre}
-                                      className="admin-vendido-img"
-                                      loading="lazy"
-                                      decoding="async"
-                                      onError={(e) => {
-                                        e.target.src = "/img/alfajor.jpg";
-                                      }}
-                                    />
-                                    <span className="admin-vendido-nombre">{p.nombre}</span>
-                                    <span className="admin-vendido-unidades">
-                                      {p.cantidad} {p.cantidad === 1 ? "unidad" : "unidades"}
-                                    </span>
-                                    <span className="admin-vendido-monto">
-                                      ${formatearMoneda(p.monto)}
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
+                              <>
+                                <button
+                                  type="button"
+                                  className="admin-dia-toggle"
+                                  aria-expanded={!!diasProductosAbiertos[venta.fecha]}
+                                  onClick={() =>
+                                    setDiasProductosAbiertos((prev) => ({
+                                      ...prev,
+                                      [venta.fecha]: !prev[venta.fecha],
+                                    }))
+                                  }
+                                >
+                                  {diasProductosAbiertos[venta.fecha]
+                                    ? "Ocultar productos"
+                                    : `Ver productos (${venta.productos.length})`}
+                                </button>
+                                {diasProductosAbiertos[venta.fecha] && (
+                                  <ul className="admin-vendidos-lista">
+                                    {venta.productos.map((p) => (
+                                      <li key={p.nombre} className="admin-vendido">
+                                        <img
+                                          src={resolverUrlImagen(imagenDe(p.nombre))}
+                                          alt={p.nombre}
+                                          className="admin-vendido-img"
+                                          loading="lazy"
+                                          decoding="async"
+                                          onError={(e) => {
+                                            e.target.src = "/img/alfajor.jpg";
+                                          }}
+                                        />
+                                        <span className="admin-vendido-nombre">{p.nombre}</span>
+                                        <span className="admin-vendido-unidades">
+                                          {p.cantidad} {p.cantidad === 1 ? "unidad" : "unidades"}
+                                        </span>
+                                        <span className="admin-vendido-monto">
+                                          ${formatearMoneda(p.monto)}
+                                        </span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </>
                             ) : (
                               <p className="admin-dia-nota">Sin detalle de productos</p>
                             ))}
@@ -896,7 +932,7 @@ const cargarDatos = () => {
 
         <div className="admin-seccion-gestion" ref={formEdicionRef}>
           <h2 className="admin-titulo-formulario">
-            {editandoId ? "Modificar Dulce" : "Nuevo Ingreso"}
+            {editandoId ? `Modificar Dulce: ${nuevoProducto.nombre}` : "Nuevo Ingreso"}
           </h2>
           
           <form onSubmit={handleSubmit} className="admin-formulario" noValidate>
@@ -1050,7 +1086,7 @@ const cargarDatos = () => {
                       onClick={() => prepararEdicion(prod)}
                       aria-label={`Editar ${prod.nombre}`}
                     >
-                      ✏️
+                      Editar
                     </button>
                     <button
                       className="admin-btn-pill"
@@ -1058,7 +1094,7 @@ const cargarDatos = () => {
                       onClick={() => manejarEliminar(prod.id)}
                       aria-label={`Eliminar ${prod.nombre}`}
                     >
-                      🗑️
+                      Eliminar
                     </button>
                   </td>
                 </tr>

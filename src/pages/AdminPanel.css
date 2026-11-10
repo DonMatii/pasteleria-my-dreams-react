@@ -256,6 +256,8 @@
   background: #fdf7fb;
   border-style: dashed;
   box-shadow: none;
+  /* Una sola línea: un día sin ventas no debería ocupar una tarjeta entera */
+  padding: 6px 14px;
 }
 
 .admin-dia-cabecera {
@@ -300,6 +302,26 @@
   font-family: 'Montserrat', sans-serif;
   font-size: 0.84rem;
   color: #a98fa0;
+}
+
+/* Desplegable de productos del día: pastilla discreta con la paleta del sitio */
+.admin-dia-toggle {
+  margin: 2px 0 6px;
+  padding: 6px 16px;
+  border: 1px solid #e8b6cd;
+  border-radius: 50px;
+  background: #fff;
+  color: #b8437a;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-dia-toggle:hover {
+  background: #d95386;
+  color: #fff;
 }
 
 /* Barra proporcional del dia contra el dia mas fuerte de la ventana */
@@ -462,6 +484,23 @@
 
 .admin-kpi-destacado .admin-kpi-valor {
   color: #fff;
+}
+
+/* Totales del negocio: rótulo que separa lo que NO cambia con el selector de
+   periodo de las cifras del periodo elegido (antes se leían como iguales) */
+.admin-kpis-totales {
+  margin-bottom: 20px;
+}
+
+.admin-kpis-totales-titulo {
+  display: block;
+  margin: 0 0 8px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a98fa0;
 }
 
 /* Barra de avance hacia la meta */

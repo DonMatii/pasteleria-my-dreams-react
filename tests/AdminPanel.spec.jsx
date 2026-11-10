@@ -214,7 +214,9 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     // Los 6 días sin ventas quedan como fila tenue, sin celdas vacías
     expect(within(lista).getAllByText("Sin ventas registradas")).toHaveLength(6);
 
-    // El día con ventas muestra sus productos como fila con foto
+    // El día con ventas esconde sus productos tras el desplegable (para que la
+    // sección no empuje todo hacia abajo) y los muestra al pedirlos
+    fireEvent.click(within(lista).getByRole("button", { name: /ver productos/i }));
     const fila = within(lista).getByText("Torta Chocolate").closest("li");
     expect(within(fila).getByText("2 unidades")).toBeInTheDocument();
     expect(within(fila).getByText("$30.000")).toBeInTheDocument();
@@ -691,5 +693,74 @@ describe("AdminPanel - Dashboard honesto (P0-3)", () => {
 
     expect(await screen.findByTestId("diario-detalle-error")).toBeInTheDocument();
     expect(screen.queryByText(/Sin detalle de productos/i)).not.toBeInTheDocument();
+  });
+});
+
+// --- Pulido del tablero: KPIs agrupados y días compactos (feedback del usuario) ---
+describe("AdminPanel - Tablero pulido", () => {
+  const statsTablero = {
+    totalProductosCatalogo: 19,
+    categoriasActivas: 5,
+    pedidosTotales: 38,
+    montoTotalPedidos: 2060330,
+    pedidosHoy: 1,
+    montoVentasHoy: 65000,
+    datosCompletos: true,
+    ventasDiarias: [
+      { fecha: "2026-11-07", pedidos: 1, monto: 65000 },
+      { fecha: "2026-11-06", pedidos: 0, monto: 0 },
+    ],
+    ventasPeriodo: {
+      dia: { desde: "2026-11-07", hasta: "2026-11-07", pedidos: 1, monto: 65000 },
+      semana: { desde: "2026-11-01", hasta: "2026-11-07", pedidos: 1, monto: 65000 },
+      mes: { desde: "2026-11-01", hasta: "2026-11-07", pedidos: 1, monto: 65000 },
+    },
+    metas: { dia: 300000, semana: 400000, mes: 1500000 },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.setItem("userToken", "token-test-123");
+    sessionStorage.setItem("userName", "Admin");
+    ProductosService.obtenerProductos.mockResolvedValue([
+      { id: 1, nombre: "Torta Chocolate", precio: 15000, categoria: "Nuestras Tortas", imagenUrl: "torta3Leches.jpg", descripcion: "Deliciosa" },
+    ]);
+    EstadisticasService.obtenerEstadisticas.mockResolvedValue(statsTablero);
+    PedidosService.obtenerVentasPorProducto.mockResolvedValue([]);
+    PedidosService.obtenerPedidos.mockResolvedValue([]);
+    EstadisticasService.guardarMetas.mockResolvedValue({});
+  });
+
+  it("29. Los totales del negocio se agrupan aparte de las cifras del periodo", async () => {
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // El rótulo separa lo que cambia con Día/Semana/Mes de lo que no cambia
+    expect(await screen.findByText("Totales del negocio")).toBeInTheDocument();
+    expect(screen.getByText("Ventas totales")).toBeInTheDocument();
+    expect(screen.getByText("Pedidos totales")).toBeInTheDocument();
+    expect(screen.getByText("Total catálogo")).toBeInTheDocument();
+    expect(screen.getByText("Categorías")).toBeInTheDocument();
+  });
+
+  it("30. Los productos de cada día se despliegan al pedirlos (sección compacta)", async () => {
+    PedidosService.obtenerPedidos.mockResolvedValue([
+      {
+        id: 900,
+        fecha: "2026-11-07T12:00:00Z",
+        productos: [{ nombre: "Pastel de bodas My Dreams", cantidad: 1, subtotal: 65000 }],
+      },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    await screen.findByTestId("lista-dias");
+    // Plegado por defecto: el día no empuja toda la página hacia abajo
+    expect(screen.queryByText("Pastel de bodas My Dreams")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /ver productos/i }));
+    expect(await screen.findByText("Pastel de bodas My Dreams")).toBeInTheDocument();
+
+    // Y se vuelve a plegar
+    fireEvent.click(screen.getByRole("button", { name: /ocultar productos/i }));
+    expect(screen.queryByText("Pastel de bodas My Dreams")).toBeNull();
   });
 });
