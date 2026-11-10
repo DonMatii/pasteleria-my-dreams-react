@@ -67,6 +67,8 @@ describe("AdminPanel - Foto de producto", () => {
     await waitFor(() => expect(ProductosService.subirImagenProducto).toHaveBeenCalledWith(archivo));
     const vistaPrevia = await screen.findByAltText(/vista previa/i);
     expect(vistaPrevia).toHaveAttribute("src", "/uploads/foto-nueva.jpg");
+    // El estado habla en criollo: la foto quedo lista
+    expect(screen.getByText(/foto lista/i)).toBeInTheDocument();
   });
 
   it("si la subida falla se avisa y el formulario sigue util", async () => {

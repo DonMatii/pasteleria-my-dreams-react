@@ -119,6 +119,55 @@
   margin: 0;
 }
 
+/* Foto del producto: el input nativo (boton gris del navegador) se oculta y
+   el disparador es la pastilla institucional; el estado al lado dice que
+   pasa en criollo, sin tecnicismos */
+.admin-foto-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-form-group .admin-foto-input {
+  position: absolute;
+  width: 0.1px;
+  height: 0.1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+}
+
+/* La pastilla es un <label> y la regla de labels del form la pintaba de
+   ciruela: con label.admin-foto-boton esta regla gana y la letra queda blanca */
+.admin-form-group label.admin-foto-boton {
+  display: inline-block;
+  background-color: #d95386;
+  color: #ffffff;
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.admin-form-group label.admin-foto-boton:hover {
+  background-color: #c23d72;
+}
+
+.admin-foto-fila:focus-within .admin-foto-boton {
+  outline: 3px solid rgba(217, 83, 134, 0.4);
+  outline-offset: 2px;
+}
+
+.admin-foto-estado {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  color: #6d506d;
+}
+
 /* --- BOTONES --- */
 .admin-botonera {
   grid-column: span 2;

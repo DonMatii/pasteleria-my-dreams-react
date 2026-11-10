@@ -944,14 +944,28 @@ const cargarDatos = () => {
 
             <div className="admin-form-group">
               <label htmlFor="archivoImagen">Foto del producto</label>
-              <input
-                type="file"
-                id="archivoImagen"
-                ref={inputImagenRef}
-                accept="image/jpeg,image/png,image/webp"
-                onChange={manejarArchivoImagen}
-              />
-              {subiendoImagen && <p className="admin-form-info">Subiendo la foto…</p>}
+              <div className="admin-foto-fila">
+                <input
+                  type="file"
+                  id="archivoImagen"
+                  ref={inputImagenRef}
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={manejarArchivoImagen}
+                  className="admin-foto-input"
+                />
+                {/* El input nativo se oculta: el disparador es la pastilla
+                    institucional y el estado al lado dice que pasa, en criollo */}
+                <label htmlFor="archivoImagen" className="admin-foto-boton">
+                  {nuevoProducto.imagenUrl ? "Cambiar foto" : "Elegir foto"}
+                </label>
+                <span className="admin-foto-estado">
+                  {subiendoImagen
+                    ? "Subiendo la foto…"
+                    : nuevoProducto.imagenUrl
+                      ? "Foto lista ✓"
+                      : "Ninguna foto todavía — JPG, PNG o WebP hasta 5 MB"}
+                </span>
+              </div>
               {errorImagen && <p className="admin-form-error">{errorImagen}</p>}
               {nuevoProducto.imagenUrl && (
                 <img
