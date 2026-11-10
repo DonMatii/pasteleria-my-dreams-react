@@ -58,6 +58,9 @@
   background-color: white;
   padding: 40px 30px; 
   border-radius: 20px;
+  /* Ritmo vertical del panel: arriba igual que el margen de .admin-pedidos
+     (antes el form quedaba pegado a "Pedidos recibidos") */
+  margin-top: 28px;
   margin-bottom: 40px;
   border: 1px solid #fce4ec;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -501,6 +504,14 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #a98fa0;
+}
+
+/* Ambos grupos conservan el ancho de tarjeta original: con 1fr a secas, el
+   grid estiraba las 2 tarjetas del periodo a media fila cada una */
+.admin-kpis-periodo,
+.admin-kpis-secundarias {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 240px));
+  justify-content: start;
 }
 
 /* Barra de avance hacia la meta */

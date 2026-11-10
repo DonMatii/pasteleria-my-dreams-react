@@ -514,7 +514,7 @@ const cargarDatos = () => {
             {/* Primero las cifras del periodo elegido, luego los totales del catalogo */}
             <div data-testid="kpis-dashboard">
               {/* Cifras del periodo elegido: cambian con Día/Semana/Mes */}
-              <div className="admin-kpis">
+              <div className="admin-kpis admin-kpis-periodo">
                 <div className="admin-kpi admin-kpi-destacado">
                   <span className="admin-kpi-etiqueta">Ventas {periodoActual.frase}</span>
                   <strong className="admin-kpi-valor">
