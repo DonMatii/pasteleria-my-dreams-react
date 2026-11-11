@@ -12,6 +12,7 @@ export default defineConfig({
       '/api/productos': 'http://localhost:8080',
       // Imagenes subidas desde el admin: las sirve catalogo-service (storage)
       '/uploads': 'http://localhost:8080',
+      '/api/usuarios': 'http://localhost:8082',
       '/api/pedidos': 'http://localhost:8082',
       '/api/estadisticas': 'http://localhost:8081',
     },
