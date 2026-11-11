@@ -75,6 +75,9 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
   it("2. CREATE: Debe llamar a crearProducto con los datos del formulario", async () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
+    // El formulario vive en la zona Productos: se abre con su pestaña
+    fireEvent.click(screen.getByRole("tab", { name: /productos/i }));
+
     // Llenamos TODOS los campos que la validación manual requiere
     fireEvent.change(screen.getByLabelText(/Nombre del Producto/i), { target: { value: "Brazo de Reina" } });
     fireEvent.change(screen.getByLabelText(/Precio/i), { target: { value: "8000" } });
@@ -145,6 +148,9 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
   it("5. ERROR: Debe mostrar SweetAlert de error cuando crearProducto falla", async () => {
     ProductosService.crearProducto.mockRejectedValueOnce(new Error("sin conexión"));
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // El formulario vive en la zona Productos: se abre con su pestaña
+    fireEvent.click(screen.getByRole("tab", { name: /productos/i }));
 
     // Llenamos campos para pasar la validación inicial de "Campos incompletos"
     fireEvent.change(screen.getByLabelText(/Nombre del Producto/i), { target: { value: "Test Error" } });
@@ -429,6 +435,9 @@ describe("AdminPanel - Verificación Integral del CRUD", () => {
     render(<MemoryRouter><AdminPanel /></MemoryRouter>);
 
     expect(await screen.findByText(/Torta Chocolate/i)).toBeInTheDocument();
+
+    // Los botones viven en la zona Productos (getByRole no ve elementos ocultos)
+    fireEvent.click(screen.getByRole("tab", { name: /productos/i }));
 
     expect(
       screen.getByRole("button", { name: "Editar Torta Chocolate" })
@@ -807,5 +816,32 @@ describe("AdminPanel - Tablero pulido", () => {
     expect(await within(seccionVistos).findByText("Producto #105")).toBeInTheDocument();
     fireEvent.click(within(seccionVistos).getByRole("button", { name: /ver menos/i }));
     expect(within(seccionVistos).queryByText("Producto #105")).toBeNull();
+  });
+
+  it("33. El panel se navega por zonas: Resumen, Pedidos y Productos", async () => {
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // Se espera al estado "ok" del dashboard: el título del estado "cargando"
+    // se destruye cuando llegan los datos y rompería las visibilidades
+    await screen.findByTestId("kpis-dashboard");
+
+    // De entrada: el resumen visible y las otras zonas guardadas
+    expect(screen.getByText(/Resumen de ventas/i)).toBeVisible();
+    expect(screen.getByText("Nuevo Ingreso")).not.toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: /productos/i }));
+    expect(screen.getByText("Nuevo Ingreso")).toBeVisible();
+    expect(screen.getByText(/Resumen de ventas/i)).not.toBeVisible();
+
+    fireEvent.click(screen.getByRole("tab", { name: /pedidos/i }));
+    expect(screen.getByRole("heading", { name: /pedidos recibidos/i })).toBeVisible();
+    expect(screen.getByText("Nuevo Ingreso")).not.toBeVisible();
+    // La tabla del catálogo vive en la misma zona que el formulario: las dos
+    // cosas se ocultan juntas (fuga detectada en la revisión visual)
+    expect(screen.getByText("Miniatura")).not.toBeVisible();
+    // Atributo hidden presente en las zonas guardadas: lo visual depende del
+    // navegador, pero la lógica de las zonas se fija aquí sin depender del CSS
+    expect(document.querySelector(".admin-seccion-gestion").closest(".admin-zona")).toHaveAttribute("hidden");
+    expect(document.querySelector(".admin-zona")).toHaveAttribute("hidden");
   });
 });

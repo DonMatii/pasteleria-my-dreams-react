@@ -77,6 +77,10 @@ function AdminPanel() {
   const [vistosExpandido, setVistosExpandido] = useState(false);
   const VISIBLES_VISTOS = 5;
 
+  // Zona visible del panel (Resumen | Pedidos | Productos): cada bloque vive en
+  // su lugar y se navega con las pestañas, en vez de una sola columna infinita
+  const [zonaPanel, setZonaPanel] = useState("resumen");
+
   const username = sessionStorage.getItem("userName") || "Administradora";
 
   // Contenedor del formulario de gestion (Nuevo Ingreso / Modificar Dulce)
@@ -432,6 +436,9 @@ const cargarDatos = () => {
 
   const prepararEdicion = (prod) => {
     setEditandoId(prod.id);
+    // El formulario vive en la zona Productos: se abre antes del scroll para
+    // que la referencia exista cuando el efecto intente llevarse hasta ella
+    setZonaPanel("productos");
     setNuevoProducto({ ...prod });
     // el scroll lo lleva el useEffect al formulario Modificar Dulce,
     // no al tope de la pagina
@@ -474,6 +481,32 @@ const cargarDatos = () => {
           Bienvenida, <span className="admin-user-name">{username}</span> 
         </p>
 
+        {/* Navegación del panel: cada cosa en su zona, a un click de distancia
+            (antes todo era una sola columna que no terminaba nunca) */}
+        <nav className="admin-zonas" role="tablist" aria-label="Secciones del panel">
+          {[
+            { id: "resumen", etiqueta: "Resumen" },
+            { id: "pedidos", etiqueta: "Pedidos" },
+            { id: "productos", etiqueta: "Productos" },
+          ].map((z) => (
+            <button
+              key={z.id}
+              type="button"
+              role="tab"
+              aria-selected={zonaPanel === z.id}
+              className={`admin-zona-btn${zonaPanel === z.id ? " admin-zona-activo" : ""}`}
+              onClick={() => setZonaPanel(z.id)}
+            >
+              {z.etiqueta}
+            </button>
+          ))}
+        </nav>
+
+        <div
+          className="admin-zona"
+          hidden={zonaPanel !== "resumen"}
+          style={{ display: zonaPanel !== "resumen" ? "none" : undefined }}
+        >
         {/* Dashboard de ventas: periodo, KPIs, avance a meta y productos vendidos.
             Tres estados explícitos: cargando, error con reintento y datos reales.
             El panel nunca se queda mudo ni pinta cifras que no se leyeron (P0-3) */}
@@ -1042,8 +1075,22 @@ const cargarDatos = () => {
         )}
 
         {/* Gestion de pedidos: quien compro, en que estado esta y cambio de estado (S5/S6) */}
-        <AdminPedidos />
+        </div>
 
+        {/* Zona Pedidos: la gestión de pedidos, intacta */}
+        <div
+          className="admin-zona"
+          hidden={zonaPanel !== "pedidos"}
+          style={{ display: zonaPanel !== "pedidos" ? "none" : undefined }}
+        >
+          <AdminPedidos />
+        </div>
+
+        <div
+          className="admin-zona"
+          hidden={zonaPanel !== "productos"}
+          style={{ display: zonaPanel !== "productos" ? "none" : undefined }}
+        >
         <div className="admin-seccion-gestion" ref={formEdicionRef}>
           <h2 className="admin-titulo-formulario">
             {editandoId ? `Modificar Dulce: ${nuevoProducto.nombre}` : "Nuevo Ingreso"}
@@ -1217,6 +1264,7 @@ const cargarDatos = () => {
           </table>
         </div>
         )}
+        </div>
       </div>
     </div>
   );

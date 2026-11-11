@@ -171,6 +171,45 @@
   color: #6d506d;
 }
 
+/* Navegación por zonas del panel (Resumen | Pedidos | Productos): pastillas
+   institucionales, mismo lenguaje que el selector de periodos */
+.admin-zonas {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 auto 24px;
+}
+
+.admin-zona-btn {
+  padding: 11px 30px;
+  border: 1px solid #e8b6cd;
+  border-radius: 50px;
+  background: #fff;
+  color: #b8437a;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-zona-btn:hover {
+  background: #fce4ec;
+}
+
+.admin-zona-btn.admin-zona-activo {
+  background: #d95386;
+  color: #fff;
+  border-color: #d95386;
+}
+
+/* Seguridad: ninguna regla de display debe pisar el atributo hidden */
+.admin-zona[hidden],
+.admin-seccion-gestion[hidden] {
+  display: none !important;
+}
+
 /* --- BOTONES --- */
 .admin-botonera {
   grid-column: span 2;
