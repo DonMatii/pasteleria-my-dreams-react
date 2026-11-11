@@ -102,4 +102,24 @@ describe("Sistema de permisos por versión", () => {
     expect(screen.getByTestId("puede-v2")).toHaveTextContent("si");
     expect(apiClient.get).not.toHaveBeenCalled();
   });
+
+  it("al iniciar sesión en caliente (sin recargar) se consulta la versión del nuevo usuario", async () => {
+    // La app arranca sin sesión: acceso completo de invitado
+    const { rerender } = render(<VersionProvider><Probador /></VersionProvider>);
+    await waitFor(() => expect(screen.getByTestId("version")).toHaveTextContent("3"));
+
+    // El usuario inicia sesión con Google sin recargar la página (SPA)
+    sessionStorage.setItem("userEmail", "mat.suazog@duocuc.cl");
+    sessionStorage.setItem("userRole", "cliente");
+    apiClient.get.mockResolvedValue({ data: { email: "mat.suazog@duocuc.cl", version: 2 } });
+
+    rerender(<VersionProvider><Probador /></VersionProvider>);
+
+    await waitFor(() => expect(screen.getByTestId("version")).toHaveTextContent("2"));
+    expect(screen.getByTestId("puede-v2")).toHaveTextContent("si");
+    expect(apiClient.get).toHaveBeenCalledWith(
+      "/api/usuarios/version",
+      { params: { email: "mat.suazog@duocuc.cl" } }
+    );
+  });
 });

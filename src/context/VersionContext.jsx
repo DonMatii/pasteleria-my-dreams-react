@@ -17,7 +17,11 @@ const VersionContext = createContext({
 export const VersionProvider = ({ children }) => {
   const [version, setVersion] = useState(0);
   const [cargandoVersion, setCargandoVersion] = useState(true);
+  // Se leen en cada render para que un login en caliente (SPA, sin recargar)
+  // cambie las dependencias del efecto y se consulte la versión del usuario
+  // nuevo: si no, el provider se quedaría con el valor anterior.
   const esAdmin = sessionStorage.getItem("userRole") === "admin";
+  const email = sessionStorage.getItem("userEmail");
 
   useEffect(() => {
     if (esAdmin) {
@@ -25,7 +29,6 @@ export const VersionProvider = ({ children }) => {
       setCargandoVersion(false);
       return;
     }
-    const email = sessionStorage.getItem("userEmail");
     if (!email) {
       // Sin email conocido (invitado o sesión previa al sistema de versiones)
       // se conserva el acceso completo: la versión solo limita a usuarios
@@ -36,12 +39,23 @@ export const VersionProvider = ({ children }) => {
       setCargandoVersion(false);
       return;
     }
+    setCargandoVersion(true);
+    let consultaViva = true;
     apiClient
       .get("/api/usuarios/version", { params: { email } })
-      .then((respuesta) => setVersion(Number(respuesta.data?.version) || 0))
-      .catch(() => setVersion(0))
-      .finally(() => setCargandoVersion(false));
-  }, [esAdmin]);
+      .then((respuesta) => {
+        if (consultaViva) setVersion(Number(respuesta.data?.version) || 0);
+      })
+      .catch(() => {
+        if (consultaViva) setVersion(0);
+      })
+      .finally(() => {
+        if (consultaViva) setCargandoVersion(false);
+      });
+    return () => {
+      consultaViva = false;
+    };
+  }, [esAdmin, email]);
 
   const tieneVersion = (minima) => esAdmin || version >= minima;
 
