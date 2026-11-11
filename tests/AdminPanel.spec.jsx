@@ -782,7 +782,30 @@ describe("AdminPanel - Tablero pulido", () => {
 
     expect(await within(seccionVistos).findByText("Tarta de Yogurt")).toBeInTheDocument();
     expect(within(seccionVistos).getByText(/3 vistas/)).toBeInTheDocument();
+    // El % del total acompaña a cada fila (3 de 4 vistas = 75%)
+    expect(within(seccionVistos).getByText("75%")).toBeInTheDocument();
     // Producto que ya no está en el catálogo: se muestra con su id, sin inventar nombre
     expect(within(seccionVistos).getByText("Producto #99")).toBeInTheDocument();
+  });
+
+  it("32. Productos más vistos: top 5 con 'Ver más' para el resto", async () => {
+    const muchasVistas = Array.from({ length: 8 }, (_, i) => ({
+      producto_id: 100 + i,
+      vistas: 8 - i,
+    }));
+    EstadisticasService.obtenerProductosVistos.mockResolvedValue(muchasVistas);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    const titulo = await screen.findByText("Productos más vistos");
+    const seccionVistos = titulo.closest(".admin-diario");
+
+    // De entrada solo 5 filas y el botón que ofrece el resto
+    expect(await within(seccionVistos).findByText("Producto #100")).toBeInTheDocument();
+    expect(within(seccionVistos).queryByText("Producto #105")).toBeNull();
+    fireEvent.click(within(seccionVistos).getByRole("button", { name: /ver los 8/i }));
+
+    expect(await within(seccionVistos).findByText("Producto #105")).toBeInTheDocument();
+    fireEvent.click(within(seccionVistos).getByRole("button", { name: /ver menos/i }));
+    expect(within(seccionVistos).queryByText("Producto #105")).toBeNull();
   });
 });

@@ -73,6 +73,9 @@ function AdminPanel() {
   const [productosVistos, setProductosVistos] = useState([]);
   const [estadoVistos, setEstadoVistos] = useState("cargando");
   const [vistosAbiertos, setVistosAbiertos] = useState(true);
+  // Top compacto para el panel: 5 de entrada y "Ver más" cuando hacen falta
+  const [vistosExpandido, setVistosExpandido] = useState(false);
+  const VISIBLES_VISTOS = 5;
 
   const username = sessionStorage.getItem("userName") || "Administradora";
 
@@ -823,36 +826,62 @@ const cargarDatos = () => {
                     clientes miran los productos.
                   </p>
                 ) : (
-                  <ul className="admin-vendidos-lista">
-                    {productosVistos.map((vista) => {
-                      const prod = productos.find((p) => p.id === vista.producto_id);
-                      return (
-                        <li key={vista.producto_id} className="admin-vendido">
-                          {prod ? (
-                            <img
-                              src={resolverUrlImagen(prod.imagenUrl)}
-                              alt=""
-                              className="admin-vendido-img"
-                              loading="lazy"
-                              decoding="async"
-                              onError={(e) => {
-                                e.target.src = "/img/alfajor.jpg";
-                              }}
-                            />
-                          ) : (
-                            <span className="admin-vendido-img" aria-hidden="true" />
-                          )}
-                          <span className="admin-vendido-nombre">
-                            {prod ? prod.nombre : `Producto #${vista.producto_id}`}
-                          </span>
-                          <span className="admin-vendido-unidades">
-                            {vista.vistas} {Number(vista.vistas) === 1 ? "vista" : "vistas"}
-                          </span>
-                          <span className="admin-vendido-monto" />
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <>
+                    <ul className="admin-vendidos-lista">
+                      {(vistosExpandido
+                        ? productosVistos
+                        : productosVistos.slice(0, VISIBLES_VISTOS)
+                      ).map((vista) => {
+                        const prod = productos.find((p) => p.id === vista.producto_id);
+                        const totalVistas = productosVistos.reduce(
+                          (suma, v) => suma + (Number(v.vistas) || 0),
+                          0
+                        );
+                        const porcentaje =
+                          totalVistas > 0
+                            ? Math.round(((Number(vista.vistas) || 0) / totalVistas) * 100)
+                            : 0;
+                        return (
+                          <li key={vista.producto_id} className="admin-vendido">
+                            {prod ? (
+                              <img
+                                src={resolverUrlImagen(prod.imagenUrl)}
+                                alt=""
+                                className="admin-vendido-img"
+                                loading="lazy"
+                                decoding="async"
+                                onError={(e) => {
+                                  e.target.src = "/img/alfajor.jpg";
+                                }}
+                              />
+                            ) : (
+                              <span className="admin-vendido-img" aria-hidden="true" />
+                            )}
+                            <span className="admin-vendido-nombre">
+                              {prod ? prod.nombre : `Producto #${vista.producto_id}`}
+                            </span>
+                            <span className="admin-vendido-unidades">
+                              {vista.vistas} {Number(vista.vistas) === 1 ? "vista" : "vistas"}
+                            </span>
+                            {/* El % se muestra con el estilo del monto: es el
+                                número que decide la vitrina */}
+                            <span className="admin-vendido-monto">{porcentaje}%</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {productosVistos.length > VISIBLES_VISTOS && (
+                      <button
+                        type="button"
+                        className="admin-dia-toggle"
+                        onClick={() => setVistosExpandido((v) => !v)}
+                      >
+                        {vistosExpandido
+                          ? "Ver menos"
+                          : `Ver los ${productosVistos.length}`}
+                      </button>
+                    )}
+                  </>
                 ))}
             </div>
 
