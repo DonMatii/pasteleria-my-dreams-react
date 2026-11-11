@@ -21,6 +21,7 @@ vi.mock("../src/service/ProductosService", () => ({
 vi.mock("../src/service/EstadisticasService", () => ({
   obtenerEstadisticas: vi.fn(),
   guardarMetas: vi.fn(),
+  obtenerProductosVistos: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("../src/service/PedidosService", () => ({

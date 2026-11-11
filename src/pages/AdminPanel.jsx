@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { obtenerProductos, crearProducto, actualizarProducto, eliminarProducto, subirImagenProducto } from "../service/ProductosService";
 import { resolverUrlImagen } from "../utils/resolverUrlImagen";
-import { obtenerEstadisticas, guardarMetas } from "../service/EstadisticasService";
+import { obtenerEstadisticas, guardarMetas, obtenerProductosVistos } from "../service/EstadisticasService";
 import { obtenerVentasPorProducto, obtenerPedidos } from "../service/PedidosService";
 import AdminPedidos from "../components/AdminPedidos";
 import "./AdminPanel.css";
@@ -68,6 +68,12 @@ function AdminPanel() {
   // para que la sección no empuje el resto de la página hacia abajo
   const [diasProductosAbiertos, setDiasProductosAbiertos] = useState({});
 
+  // "Productos más vistos": la cara visible del stream de Kinesis (Entrega 3).
+  // Estado explícito por fuente, como el resto del panel (P0-3)
+  const [productosVistos, setProductosVistos] = useState([]);
+  const [estadoVistos, setEstadoVistos] = useState("cargando");
+  const [vistosAbiertos, setVistosAbiertos] = useState(true);
+
   const username = sessionStorage.getItem("userName") || "Administradora";
 
   // Contenedor del formulario de gestion (Nuevo Ingreso / Modificar Dulce)
@@ -93,6 +99,23 @@ const cargarDatos = () => {
 
   // Sin setState sincrónico en el cuerpo: el efecto de montaje la llama y el relleno
   // ocurre recién cuando la promesa resuelve. El estado de carga lo pinta quien reintenta
+  // "Productos más vistos": llega del stream de Kinesis vía estadisticas-service
+  const cargarVistos = async () => {
+    setEstadoVistos("cargando");
+    try {
+      const datos = await obtenerProductosVistos();
+      setProductosVistos(Array.isArray(datos) ? datos : []);
+      setEstadoVistos("ok");
+    } catch (error) {
+      setProductosVistos([]);
+      setEstadoVistos("error");
+    }
+  };
+
+  useEffect(() => {
+    cargarVistos();
+  }, []);
+
   const cargarEstadisticas = async () => {
     try {
       const data = await obtenerEstadisticas();
@@ -768,6 +791,68 @@ const cargarDatos = () => {
                       ))}
                     </ul>
                   </>
+                ))}
+            </div>
+
+            {/* Lo más vistos: la cara visible del stream de Kinesis (Entrega 3).
+                Cada foto que entra en pantalla suma una vista, y aquí se ve el
+                top — lo que más llama la atención de los clientes */}
+            <div className="admin-diario">
+              <div className="admin-seccion-cabecera">
+                <h3 className="admin-diario-titulo">Productos más vistos</h3>
+                <button
+                  type="button"
+                  className="admin-pliegue-btn"
+                  aria-label="Productos más vistos"
+                  aria-expanded={vistosAbiertos}
+                  onClick={() => setVistosAbiertos((v) => !v)}
+                >
+                  {vistosAbiertos ? "Cerrar" : "Abrir"}
+                </button>
+              </div>
+              {vistosAbiertos &&
+                (estadoVistos === "error" ? (
+                  <p className="admin-dia-nota">
+                    No se pudieron leer las vistas de productos.
+                  </p>
+                ) : estadoVistos === "cargando" ? (
+                  <p className="admin-dia-nota">Cargando…</p>
+                ) : productosVistos.length === 0 ? (
+                  <p className="admin-dia-nota">
+                    Todavía no hay vistas registradas: aparecen a medida que los
+                    clientes miran los productos.
+                  </p>
+                ) : (
+                  <ul className="admin-vendidos-lista">
+                    {productosVistos.map((vista) => {
+                      const prod = productos.find((p) => p.id === vista.producto_id);
+                      return (
+                        <li key={vista.producto_id} className="admin-vendido">
+                          {prod ? (
+                            <img
+                              src={resolverUrlImagen(prod.imagenUrl)}
+                              alt=""
+                              className="admin-vendido-img"
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => {
+                                e.target.src = "/img/alfajor.jpg";
+                              }}
+                            />
+                          ) : (
+                            <span className="admin-vendido-img" aria-hidden="true" />
+                          )}
+                          <span className="admin-vendido-nombre">
+                            {prod ? prod.nombre : `Producto #${vista.producto_id}`}
+                          </span>
+                          <span className="admin-vendido-unidades">
+                            {vista.vistas} {Number(vista.vistas) === 1 ? "vista" : "vistas"}
+                          </span>
+                          <span className="admin-vendido-monto" />
+                        </li>
+                      );
+                    })}
+                  </ul>
                 ))}
             </div>
 

@@ -24,6 +24,7 @@ vi.mock("../src/service/ProductosService", () => ({
 vi.mock("../src/service/EstadisticasService", () => ({
   obtenerEstadisticas: vi.fn(),
   guardarMetas: vi.fn(),
+  obtenerProductosVistos: vi.fn().mockResolvedValue([]),
 }));
 
 // El dashboard pide las ventas por producto a pedidos-service para el periodo elegido,
@@ -762,5 +763,26 @@ describe("AdminPanel - Tablero pulido", () => {
     // Y se vuelve a plegar
     fireEvent.click(screen.getByRole("button", { name: /ocultar productos/i }));
     expect(screen.queryByText("Pastel de bodas My Dreams")).toBeNull();
+  });
+
+  it("31. Productos más vistos: muestra el top que llega del stream", async () => {
+    ProductosService.obtenerProductos.mockResolvedValue([
+      { id: 10, nombre: "Tarta de Yogurt", precio: 11000, categoria: "Tartas", imagenUrl: "tartaYogurth.jpg", descripcion: "Ligera" },
+    ]);
+    EstadisticasService.obtenerProductosVistos.mockResolvedValue([
+      { producto_id: 10, vistas: 3 },
+      { producto_id: 99, vistas: 1 },
+    ]);
+    render(<MemoryRouter><AdminPanel /></MemoryRouter>);
+
+    // El nombre del producto también vive en la tabla del catálogo: las
+    // verificaciones se acotan a la sección "Productos más vistos"
+    const titulo = await screen.findByText("Productos más vistos");
+    const seccionVistos = titulo.closest(".admin-diario");
+
+    expect(await within(seccionVistos).findByText("Tarta de Yogurt")).toBeInTheDocument();
+    expect(within(seccionVistos).getByText(/3 vistas/)).toBeInTheDocument();
+    // Producto que ya no está en el catálogo: se muestra con su id, sin inventar nombre
+    expect(within(seccionVistos).getByText("Producto #99")).toBeInTheDocument();
   });
 });
