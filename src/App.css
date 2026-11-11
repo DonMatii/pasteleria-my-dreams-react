@@ -139,13 +139,14 @@ header nav ul li a:hover {
 }
 
 /* Compuerta de versión (demo de las tres versiones): tarjeta de rechazo
-   educado y mensaje de verificación, con la tipografía de las páginas públicas */
+   educado y mensaje de verificación, con la tipografía de las páginas públicas.
+   La caja blanca la aporta .formulario-container (misma que el resto). */
 .version-cargando {
   text-align: center;
   font-family: 'Montserrat', sans-serif;
   font-size: 1.15rem;
   color: #5d405d;
-  padding: 70px 20px;
+  padding: 30px 10px;
 }
 
 .version-denegada {
@@ -154,18 +155,17 @@ header nav ul li a:hover {
 
 .version-denegada .version-denegada-titulo {
   font-family: 'Great Vibes', cursive;
-  font-size: 2.8rem;
+  font-size: 2.3rem;
   color: #d95386;
-  margin: 50px 0 10px;
+  margin: 10px 0 15px;
 }
 
 .version-denegada .version-denegada-texto {
   font-family: 'Montserrat', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   color: #5d405d;
-  max-width: 640px;
-  margin: 0 auto 60px;
   line-height: 1.7;
+  margin: 0;
 }
 
 /* ================================

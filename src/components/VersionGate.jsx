@@ -9,7 +9,9 @@ const VersionGate = ({ minima, children }) => {
   if (cargandoVersion) {
     return (
       <main className="main-content fondo-pagina">
-        <p className="version-cargando">Verificando tu versión…</p>
+        <div className="formulario-container">
+          <p className="version-cargando">Verificando tu versión…</p>
+        </div>
       </main>
     );
   }
@@ -17,7 +19,7 @@ const VersionGate = ({ minima, children }) => {
   if (!tieneVersion(minima)) {
     return (
       <main className="main-content fondo-pagina">
-        <div className="version-denegada">
+        <div className="formulario-container version-denegada">
           <h1 className="version-denegada-titulo">Esta función no está en tu versión</h1>
           <p className="version-denegada-texto">
             Tu cuenta tiene habilitada la Versión {minima - 1} y esta función
