@@ -669,19 +669,23 @@ const cargarDatos = () => {
                     <strong>${formatearMoneda(ventasPeriodoSel.monto)}</strong> de una meta de{" "}
                     <strong>${formatearMoneda(metaActual)}</strong>
                   </p>
-                  <div
-                    className="admin-barra"
-                    role="progressbar"
-                    aria-valuenow={porcentaje}
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    aria-label={`Avance de ventas ${periodoActual.frase}`}
-                  >
-                    <div className="admin-barra-relleno" style={{ width: `${porcentaje}%` }} />
+                  {/* Barra y % juntos: el avance vive junto a lo que significa,
+                      no suelto abajo a la izquierda */}
+                  <div className="admin-meta-barra-fila">
+                    <div
+                      className="admin-barra"
+                      role="progressbar"
+                      aria-valuenow={porcentaje}
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-label={`Avance de ventas ${periodoActual.frase}`}
+                    >
+                      <div className="admin-barra-relleno" style={{ width: `${porcentaje}%` }} />
+                    </div>
+                    <span className="admin-meta-porcentaje">
+                      {porcentaje >= 100 ? "🎉 ¡Meta alcanzada!" : `${porcentaje}%`}
+                    </span>
                   </div>
-                  <span className="admin-meta-porcentaje">
-                    {porcentaje >= 100 ? "¡Meta alcanzada! 🎉" : `Avance: ${porcentaje}%`}
-                  </span>
                 </>
               ) : (
                 <p className="admin-meta-vacia">

@@ -210,6 +210,44 @@
   display: none !important;
 }
 
+/* --- Pulido del resumen (feedback visual 2026-11-11) --- */
+
+/* El par de cifras del periodo: fichas compactas y centradas — el aire a los
+   lados se lee elegante, no como vacío (feedback visual: NO más grande, más
+   lindo). Doble clase para ganarle a la regla base que vive más abajo */
+.admin-kpis.admin-kpis-periodo {
+  grid-template-columns: repeat(2, minmax(220px, 320px));
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Barra de avance: el % va como pastilla pegada al final de la barra */
+.admin-meta-barra-fila {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 10px 0 4px;
+}
+
+.admin-meta-barra-fila .admin-barra {
+  flex: 1;
+  height: 12px;
+}
+
+/* El % al final de la barra: texto limpio en el color institucional, sin
+   cajas ni adornos raros */
+.admin-meta .admin-meta-porcentaje {
+  margin-top: 0;
+  min-width: 52px;
+  text-align: right;
+  background: none;
+  padding: 0;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #d95386;
+}
+
 /* --- BOTONES --- */
 .admin-botonera {
   grid-column: span 2;
@@ -516,6 +554,9 @@
 
 .admin-kpi-destacado .admin-kpi-etiqueta {
   color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
 }
 
 .admin-kpi-valor {
@@ -526,6 +567,7 @@
 
 .admin-kpi-destacado .admin-kpi-valor {
   color: #fff;
+  font-size: 1.6rem;
 }
 
 /* Totales del negocio: rótulo que separa lo que NO cambia con el selector de
