@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import MiniCarrito from "./MiniCarrito";
+import { useVersion } from "../context/VersionContext";
 import logoPasteleria from "../assets/img/logoPasteleria.png";
 
 function Header() {
@@ -11,6 +12,7 @@ function Header() {
   // ✅ Leemos de sessionStorage para coherencia con el Login
   const username = sessionStorage.getItem("userName");
   const userRole = sessionStorage.getItem("userRole");
+  const { version, tieneVersion } = useVersion();
 
   const handleLogout = () => {
     // ✅ Limpiamos la sesión actual
@@ -36,7 +38,9 @@ function Header() {
           <li><Link to="/estado">Estado</Link></li>
           <li><Link to="/contacto">Contacto</Link></li>
           
-          {/* Ícono del carrito con contador de items — abre el mini carrito */}
+          {/* Ícono del carrito con contador de items — abre el mini carrito.
+              La compra con carrito es de la versión 2 en adelante */}
+          {tieneVersion(2) && (
           <li>
             <button
               type="button"
@@ -63,6 +67,7 @@ function Header() {
               {cantidadTotal > 0 && <span className="carrito-contador">{cantidadTotal}</span>}
             </button>
           </li>
+          )}
           
           {/* Mostramos Admin solo con sesión de administrador (userRole del login) */}
           {userRole === 'admin' && (
@@ -75,6 +80,9 @@ function Header() {
 
           {username ? (
             <li className="user-pill">
+              <span className="version-badge" data-testid="version-badge">
+                {userRole === "admin" ? "Admin" : `Versión ${version || "?"}`}
+              </span>
               <span className="user-name">
                 👤 {username}
               </span>

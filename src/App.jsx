@@ -11,7 +11,9 @@ import EstadoPedido from "./pages/EstadoPedido";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel"; 
-import ProtectedRoute from "./components/ProtectedRoute"; 
+import ProtectedRoute from "./components/ProtectedRoute";
+import VersionGate from "./components/VersionGate";
+import { VersionProvider } from "./context/VersionContext"; 
 import TeaserPedido from "./components/TeaserPedido"; 
 import BotonVolverArriba from "./components/BotonVolverArriba";
 import Seo from "./components/Seo";
@@ -43,6 +45,7 @@ function App() {
           <img src={imgLogo} alt="Logo My Dreams" className="logo-img" />
         </div>
 
+        <VersionProvider>
         <Header />
 
         <main className="main-content">
@@ -56,12 +59,21 @@ function App() {
             <Route
               path="/pedido"
               element={
-                <ProtectedRoute teaser={<TeaserPedido />}>
-                  <Pedido />
-                </ProtectedRoute>
+                <VersionGate minima={2}>
+                  <ProtectedRoute teaser={<TeaserPedido />}>
+                    <Pedido />
+                  </ProtectedRoute>
+                </VersionGate>
               }
             />
-            <Route path="/estado" element={<EstadoPedido />} />
+            <Route
+              path="/estado"
+              element={
+                <VersionGate minima={2}>
+                  <EstadoPedido />
+                </VersionGate>
+              }
+            />
             <Route path="/login" element={<Login />} />
 
             {/* Acceso de administrador (separado del login de clientes con Google) */}
@@ -82,6 +94,7 @@ function App() {
           </Routes>
           </ErrorBoundary>
         </main>
+        </VersionProvider>
 
         <Footer />
 

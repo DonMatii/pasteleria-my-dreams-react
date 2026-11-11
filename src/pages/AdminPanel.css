@@ -248,6 +248,22 @@
   color: #d95386;
 }
 
+/* Badge de versión del usuario (demo de las tres versiones) y tarjeta de
+   rechazo educado cuando la función no está habilitada en su versión */
+.version-badge {
+  background: #f7d9e6;
+  color: #b8437a;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.version-denegada {
+  text-align: center;
+}
+
 /* --- BOTONES --- */
 .admin-botonera {
   grid-column: span 2;
