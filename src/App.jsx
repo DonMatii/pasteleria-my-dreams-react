@@ -6,7 +6,7 @@ import Home from "./pages/Home";
 import Delicias from "./pages/Delicias";
 import Historia from "./pages/Historia";
 import Contacto from "./pages/Contacto";
-import Pedido from "./pages/Pedido";
+import PedidoSegunVersion from "./components/PedidoSegunVersion";
 import EstadoPedido from "./pages/EstadoPedido";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
@@ -59,9 +59,9 @@ function App() {
             <Route
               path="/pedido"
               element={
-                <VersionGate minima={2}>
+                <VersionGate minima={1}>
                   <ProtectedRoute teaser={<TeaserPedido />}>
-                    <Pedido />
+                    <PedidoSegunVersion />
                   </ProtectedRoute>
                 </VersionGate>
               }
