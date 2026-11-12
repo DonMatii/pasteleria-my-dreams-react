@@ -3,6 +3,7 @@ import "../App.css";
 import { URL_BASE } from "../service/apiClient";
 import { obtenerProductos, aplanarCatalogo } from "../service/ProductosService";
 import { resolverUrlImagen } from "../utils/resolverUrlImagen";
+import { useVersion } from "../context/VersionContext";
 
 // RF-11: consulta pública del estado de un pedido ya registrado.
 // El cliente ingresa el CÓDIGO OPACO de seguimiento (32 caracteres) que devolvió
@@ -64,6 +65,14 @@ const EstadoPedido = () => {
   // Mapa "nombre en minusculas -> imagenUrl" del catálogo. El pedido solo guarda
   // nombre, cantidad y precio: la foto se resuelve aqui, del lado del cliente.
   const [imagenes, setImagenes] = useState({});
+  // V3 (S4): código consultado (el opaco, nunca el id) y feed de actualizaciones
+  // de estado que llegan por el sondeo del endpoint público.
+  const [codigoSeguimiento, setCodigoSeguimiento] = useState("");
+  const [actualizaciones, setActualizaciones] = useState([]);
+  // Las actualizaciones en vivo por streaming son de la Versión 3. Sin provider
+  // (pruebas) el contexto por defecto tiene todo habilitado: la sección se ve.
+  const { tieneVersion } = useVersion();
+  const streamingActivo = tieneVersion(3);
 
   // El catálogo entra por axios (no por fetch), asi que no choca con el mock de
   // global.fetch que usan los tests de esta página. Sin respuesta se queda vacío
@@ -91,6 +100,41 @@ const EstadoPedido = () => {
     };
   }, []);
 
+  // V3 (S4): streaming de actualizaciones. El resultado ya trae el estado actual
+  // del pedido; cada 5 s se sondea el mismo endpoint público de seguimiento y,
+  // cuando el estado difiere del último visto, se agrega una entrada al feed con
+  // el estado y la marca de tiempo del cambio. El intervalo se limpia al
+  // desmontar y cuando cambia el código consultado.
+  useEffect(() => {
+    if (!streamingActivo || !pedido || !codigoSeguimiento) return undefined;
+    let activo = true;
+    let ultimoEstado = normalizarEstado(pedido.estado);
+    const intervalo = setInterval(async () => {
+      try {
+        const respuesta = await fetch(
+          `${URL_BASE}/api/pedidos/seguimiento/${encodeURIComponent(codigoSeguimiento)}`
+        );
+        if (!respuesta.ok || !activo) return;
+        const datos = await respuesta.json();
+        if (!activo || !datos) return;
+        const estadoNuevo = normalizarEstado(datos.estado);
+        if (estadoNuevo !== ultimoEstado) {
+          ultimoEstado = estadoNuevo;
+          setActualizaciones((previas) => [
+            ...previas,
+            { estado: estadoNuevo, marcaDeTiempo: new Date().toISOString() },
+          ]);
+        }
+      } catch {
+        // Sin conexión se salta este turno: el próximo sondeo reintentará
+      }
+    }, 5000);
+    return () => {
+      activo = false;
+      clearInterval(intervalo);
+    };
+  }, [streamingActivo, pedido, codigoSeguimiento]);
+
   // El pedido no guarda la foto, solo el nombre: se busca en el catálogo. Si el
   // producto ya no existe (renombrado o eliminado) se muestra sin imagen.
   const imagenDe = (nombre) =>
@@ -116,6 +160,8 @@ const EstadoPedido = () => {
     setCargando(true);
     setMensaje("");
     setPedido(null);
+    // Nueva consulta: el feed de actualizaciones empieza desde cero
+    setActualizaciones([]);
 
     try {
       const response = await fetch(
@@ -124,7 +170,9 @@ const EstadoPedido = () => {
 
       if (response.ok) {
         // 200: PedidoResponse con detalle, productos y estado
-        setPedido(await response.json());
+        const datos = await response.json();
+        setPedido(datos);
+        setCodigoSeguimiento(datos.codigoConsulta || codigo);
       } else if (response.status === 404) {
         // 404: el backend responde sin body cuando el codigo no existe
         setMensaje("No encontramos un pedido con ese código.");
@@ -228,6 +276,38 @@ const EstadoPedido = () => {
               </span>
             </li>
           </ul>
+
+          {/* V3 (S4): feed de actualizaciones por streaming. Sin la versión 3 se
+              explica en el mismo lugar, sin romper el seguimiento por código. */}
+          {streamingActivo ? (
+            <section data-testid="actualizaciones-stream">
+              <h3 className="estado-subtitulo">Actualizaciones en vivo</h3>
+              <ul className="estado-datos">
+                {actualizaciones.map((actualizacion) => (
+                  <li
+                    key={`${actualizacion.estado}-${actualizacion.marcaDeTiempo}`}
+                    className="estado-dato"
+                    data-testid="actualizacion-item"
+                  >
+                    <span
+                      className={`estado-badge ${CLASES_ESTADO[actualizacion.estado] || "estado-otro"}`}
+                    >
+                      {ETIQUETAS_ESTADO[actualizacion.estado] || actualizacion.estado}
+                    </span>
+                    <span className="estado-dato-valor">
+                      {formatearFecha(actualizacion.marcaDeTiempo)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : (
+            <div className="version-denegada" data-testid="actualizaciones-note">
+              <p className="version-denegada-texto">
+                {"Las actualizaciones en vivo por streaming de datos son de la Versión 3. Tu versión sigue el pedido con el código de seguimiento."}
+              </p>
+            </div>
+          )}
 
           <h3 className="estado-subtitulo">Productos</h3>
           <ul className="estado-productos">
