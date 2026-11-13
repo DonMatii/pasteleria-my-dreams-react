@@ -304,7 +304,7 @@ const EstadoPedido = () => {
           ) : (
             <div className="version-denegada" data-testid="actualizaciones-note">
               <p className="version-denegada-texto">
-                {"Las actualizaciones en vivo por streaming de datos son de la Versión 3. Tu versión sigue el pedido con el código de seguimiento."}
+                {"Las novedades en vivo de tu pedido son parte de la Versión 3. Mientras tanto, aquí ves el estado actualizado cada vez que consultas con tu código."}
               </p>
             </div>
           )}

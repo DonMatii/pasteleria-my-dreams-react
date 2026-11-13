@@ -104,7 +104,7 @@ describe("Actualizaciones en vivo por streaming de datos (Versión 3, S4)", () =
 
     const nota = await screen.findByTestId("actualizaciones-note");
     expect(nota).toHaveTextContent(
-      "Las actualizaciones en vivo por streaming de datos son de la Versión 3. Tu versión sigue el pedido con el código de seguimiento."
+      "Las novedades en vivo de tu pedido son parte de la Versión 3. Mientras tanto, aquí ves el estado actualizado cada vez que consultas con tu código."
     );
     expect(screen.queryByTestId("actualizaciones-stream")).not.toBeInTheDocument();
   });
