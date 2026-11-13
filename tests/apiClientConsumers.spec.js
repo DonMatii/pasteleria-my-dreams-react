@@ -55,7 +55,7 @@ describe("apiClient - contrato de los consumidores compartidos", () => {
     // La clave la inyecta el entorno (VITE_ADMIN_API_KEY). Se stubbea para que
     // la asercion compare contra un valor conocido y no contra undefined.
     vi.stubEnv("VITE_ADMIN_API_KEY", "test-admin-key");
-    sessionStorage.setItem("userToken", "tok-123");
+    sessionStorage.setItem("userToken", "sesion.jwt.google");
   });
 
   afterEach(() => {
@@ -100,7 +100,7 @@ describe("apiClient - contrato de los consumidores compartidos", () => {
       expect(l, `GET ${url} no fue capturado`).toBeTruthy();
       expect(l.timeout, `GET ${url}`).toBe(TIMEOUT_GET_MS);
       expect(l.baseURL, `GET ${url}`).toBe(URL_BASE);
-      expect(l.headers.Authorization, `GET ${url}`).toBe("Bearer tok-123");
+      expect(l.headers.Authorization, `GET ${url}`).toBe("Bearer sesion.jwt.google");
       expect(l.headers["X-Api-Key"], `GET ${url}`).toBe("test-admin-key");
     }
 

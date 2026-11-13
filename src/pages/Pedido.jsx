@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useCarrito } from "../context/CarritoContext";
 import { obtenerDeliciaDelDia } from "../service/ProductosService";
-import { URL_BASE } from "../service/apiClient";
+import { URL_BASE, encabezadoAutorizacion } from "../service/apiClient";
 import {
   esCodigoValido,
   obtenerCodigoBienvenida,
@@ -164,9 +164,16 @@ const Pedido = () => {
     }
 
     try {
+      // La compra exige sesión de Google con versión 2 o superior: el token JWT
+      // viaja como Bearer para que el backend verifique quién compra (el token
+      // opaco del admin no aplica aquí, ver encabezadoAutorizacion)
+      const autorizacion = encabezadoAutorizacion(sessionStorage.getItem("userToken"));
       const response = await fetch(`${URL_BASE}/api/pedidos`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(autorizacion ? { Authorization: autorizacion } : {}),
+        },
         body: JSON.stringify(cuerpoPedido),
       });
 

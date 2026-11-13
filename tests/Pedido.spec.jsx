@@ -147,6 +147,36 @@ describe("Checkout de Pedido - My Dreams (RF-07)", () => {
     );
   });
 
+  test("3b. La compra manda el token de Google como Bearer (la sesión identifica al comprador)", async () => {
+    // Sesión de Google: el token JWT de la sesión viaja como Authorization para
+    // que el backend verifique quién compra y qué versión tiene habilitada
+    sessionStorage.setItem("userToken", "sesion.jwt.google");
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: vi.fn().mockResolvedValue({
+        id: 8,
+        cliente: "Catherine Test",
+        email: "cat@test.com",
+        total: 30000,
+        productos: [],
+        eventoPublicado: true,
+        codigoConsulta: "b1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
+      }),
+    });
+
+    // llenarFormularioValido ya arma la página del checkout con sus items
+    llenarFormularioValido([{ ...selvaNegra, cantidad: 2 }]);
+    fireEvent.click(screen.getByRole("button", { name: /Registrar pedido/i }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+    const [, opciones] = global.fetch.mock.calls[0];
+    expect(opciones.headers.Authorization).toBe("Bearer sesion.jwt.google");
+    sessionStorage.removeItem("userToken");
+  });
+
   test("3. Envío exitoso: POST con el body exacto del contrato y Swal de éxito", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,

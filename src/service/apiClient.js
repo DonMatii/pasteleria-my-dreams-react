@@ -16,6 +16,17 @@ const apiClient = axios.create({
   baseURL: URL_BASE,
 });
 
+// El header Authorization solo corresponde a tokens JWT (tres segmentos con
+// punto), que es como llega el ID token de Google. El token opaco del
+// administrador viaja solo en X-Api-Key: si se enviara como Bearer, el backend
+// lo rechazaría y el panel admin entero quedaría en 401.
+export const encabezadoAutorizacion = (token) => {
+  if (!token || String(token).split(".").length !== 3) {
+    return null;
+  }
+  return `Bearer ${token}`;
+};
+
 // 3. Nuestro Interceptor Inteligente ("El Guardia de Seguridad")
 apiClient.interceptors.request.use(
   (config) => {
@@ -26,10 +37,12 @@ apiClient.interceptors.request.use(
 
     // Busca el token sagrado en la sesión (Google o Admin)
     const token = sessionStorage.getItem("userToken");
-    
-    // Como el catálogo es privado, adjuntamos siempre el token a cualquier petición
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+
+    // La sesión con Google viaja como Bearer para que el backend valide quién
+    // eres y qué versión tienes; el token del admin no (ver encabezadoAutorizacion)
+    const autorizacion = encabezadoAutorizacion(token);
+    if (autorizacion) {
+      config.headers.Authorization = autorizacion;
     }
 
     // API key administrativa (X-Api-Key): los endpoints protegidos del backend
