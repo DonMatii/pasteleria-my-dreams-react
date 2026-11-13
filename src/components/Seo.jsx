@@ -45,7 +45,7 @@ function Seo({ title, description, path = "/", image = DEFAULT_IMAGE, noindex = 
     setMeta("twitter:description", desc);
     setMeta("twitter:image", image);
 
-    // Canonical
+    // URL canónica
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement("link");
